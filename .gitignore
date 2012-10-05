@@ -4,3 +4,13 @@
 *.jar
 *.war
 *.ear
+
+# Build dir #
+target
+
+#idea stuff#
+.idea
+*.iml
+
+#misc#
+velocity.log
