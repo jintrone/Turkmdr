@@ -305,6 +305,10 @@
                 <artifactId>maven-cayenne-plugin</artifactId>
                 <version>3.0.2</version>
                 <configuration>
+                    <driver>com.mysql.jdbc.Driver</driver>
+                    <url>"jdbc:mysql://localhost/kickball-2"</url>
+                    <username>kickball</username>
+                    <password>kickball</password>
                     <map>src/main/resources/KickballDataMap.map.xml</map>
                 </configuration>
             </plugin>
