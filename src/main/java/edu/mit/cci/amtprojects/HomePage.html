@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        >
+<head>
+    <meta charset="utf-8"/>
+    <title>AMT Task Manager</title>
+    <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:regular,bold' rel='stylesheet'
+          type='text/css'/>
+    <link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet"/>
+</head>
+<body>
+<div id="hd">
+    <div id="logo">
+        <img src="logo.png" width="50px" height="50px" alt="Wicket Logo"/>
+
+        <h1>AMT Task Manager</h1>
+    </div>
+</div>
+<div id="main">
+
+    <span wicket:id="navigator">[dataview navigator]</span>
+
+    <div class="scrollable">
+
+
+        <table cellspacing="0" class="posttable">
+            <tr>
+                <th>Experiment ID</th>
+                <th>Creation</th>
+                <th>Name</th>
+                <th>Classname</th>
+                <th>Batches</th>
+
+
+            </tr>
+            <tr wicket:id="pageable">
+                <td><a href="#" wicket:id="manage"><span wicket:id="experimentId">[id]</span></a></td>
+                <td><span wicket:id="creation">[id]</span></td>
+                <td><span wicket:id="name">[id]</span></td>
+                <td><span wicket:id="classname">[class]</span></td>
+                <td><span wicket:id="batches">[username]</span></td>
+
+
+            </tr>
+        </table>
+
+
+    </div>
+    <div id="inputForm">
+        <form wicket:id="experimentForm">
+            <label for="classname">Class name:</label><input wicket:id="classname" id="classname" type="text" size="40"/> <br>
+            <label for="name">Experiment name:</label><input wicket:id="name" id="name" type="text" size="40"/>  <br>
+            <input type="submit" wicket:id="createButton" value="Create"/>
+
+
+        </form>
+
+    </div>
+
+
+</div>
+
+</body>
+</html>

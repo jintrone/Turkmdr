@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        >
+<head>
+    <meta charset="utf-8"/>
+    <title>MechTurk Forum Markup Task</title>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet"/>
+    <script src="js/jquery.1.8.1.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $('input[type="radio"]').click(function() {
+                $(".replyfocus").removeClass("replyfocus");
+                $(this).closest("tr").addClass("replyfocus");
+            });
+            var x = $(".focus").offset().top - $(".posttable").offset().top;
+            $('#messages').scrollTop(x);
+//            $('.messages').animate({
+//                scrollTop: $(".focus").position().top
+//            }, 2000);
+        });
+    </script>
+</head>
+<body>
+
+<div id="main">
+    <h3>Viewing posts from thread: <span wicket:id="thread">[threadid]</span></h3>
+    Target post: <span wicket:id="focuslabel">[focuslabel]</span><a href="#" wicket:id="focus"><!--nothing--></a>
+    <br/>
+    Responds to: <span wicket:id="selectionlabel">[selectionlabel]</span><a href="#" wicket:id="selection"><!--nothing--></a>
+    <button wicket:id="clearselection">Clear</button>
+    <br/>
+    <span wicket:id="navigator">[dataview navigator]</span>
+
+    <form wicket:id="form">
+        <div id="messages">
+
+            <wicket:container wicket:id="group">
+                <table cellspacing="0" class="posttable">
+                    <tr>
+                        <th class="select">Select</th>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Username</th>
+                        <th class="content">Post</th>
+                    </tr>
+                    <tr wicket:id="pageable">
+                        <td class="select"><input type="radio" wicket:id="radio"/></td>
+                        <td><span wicket:id="postid">[id]</span></td>
+                        <td><span wicket:id="date">[date]</span></td>
+                        <td><span wicket:id="username">[username]</span></td>
+                        <td class="content"><span wicket:id="content">[contact]</span></td>
+
+                    </tr>
+                </table>
+            </wicket:container>
+
+
+        </div>
+        <input id="submitchoice" wicket:id="submitchoice" type="submit" value="Submit selection"/>
+        <input id="submitnochoice" wicket:id="submitnochoice" type="submit" value="No preceding post"/>
+    </form>
+</div>
+</body>
+</html>
+

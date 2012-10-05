@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-map xmlns="http://cayenne.apache.org/schema/3.0/modelMap"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://cayenne.apache.org/schema/3.0/modelMap http://cayenne.apache.org/schema/3.0/modelMap.xsd"
+  project-version="3.0.0.1">
+	<property name="defaultPackage" value="edu.mit.cci.amtprojects.kickball.cayenne"/>
+	<db-entity name="Batch">
+		<db-attribute name="AwsId" type="VARCHAR" length="255"/>
+		<db-attribute name="AwsSecret" type="VARCHAR" length="255"/>
+		<db-attribute name="Created" type="TIMESTAMP"/>
+		<db-attribute name="Name" type="VARCHAR" length="255"/>
+		<db-attribute name="experimentId" type="BIGINT"/>
+		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="isReal" type="BIT" isMandatory="true"/>
+	</db-entity>
+	<db-entity name="Experiment">
+		<db-attribute name="Created" type="TIMESTAMP"/>
+		<db-attribute name="Name" type="VARCHAR" length="255"/>
+		<db-attribute name="classname" type="VARCHAR" length="255"/>
+		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+	</db-entity>
+	<db-entity name="TurkerLog">
+		<db-attribute name="batchId" type="BIGINT"/>
+		<db-attribute name="date" type="TIMESTAMP"/>
+		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="post" type="BIGINT"/>
+		<db-attribute name="replyto" type="BIGINT"/>
+	</db-entity>
+	<obj-entity name="Batch" className="edu.mit.cci.amtprojects.kickball.cayenne.Batch" dbEntityName="Batch">
+		<obj-attribute name="awsId" type="java.lang.String" db-attribute-path="AwsId"/>
+		<obj-attribute name="awsSecret" type="java.lang.String" db-attribute-path="AwsSecret"/>
+		<obj-attribute name="created" type="java.util.Date" db-attribute-path="Created"/>
+		<obj-attribute name="id" type="java.lang.Long" db-attribute-path="id"/>
+		<obj-attribute name="isReal" type="java.lang.Boolean" db-attribute-path="isReal"/>
+		<obj-attribute name="name" type="java.lang.String" db-attribute-path="Name"/>
+	</obj-entity>
+	<obj-entity name="Experiment" className="edu.mit.cci.amtprojects.kickball.cayenne.Experiment" dbEntityName="Experiment">
+		<obj-attribute name="classname" type="java.lang.String" db-attribute-path="classname"/>
+		<obj-attribute name="created" type="java.util.Date" db-attribute-path="Created"/>
+		<obj-attribute name="experimentId" type="java.lang.Long" db-attribute-path="id"/>
+		<obj-attribute name="name" type="java.lang.String" db-attribute-path="Name"/>
+	</obj-entity>
+	<obj-entity name="TurkerLog" className="edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog" dbEntityName="TurkerLog">
+		<obj-attribute name="date" type="java.util.Date" db-attribute-path="date"/>
+		<obj-attribute name="post" type="java.lang.Long" db-attribute-path="post"/>
+		<obj-attribute name="replyto" type="java.lang.Long" db-attribute-path="replyto"/>
+	</obj-entity>
+	<db-relationship name="toExperiment" source="Batch" target="Experiment" toMany="false">
+		<db-attribute-pair source="experimentId" target="id"/>
+	</db-relationship>
+	<db-relationship name="toLogs" source="Batch" target="TurkerLog" toMany="true">
+		<db-attribute-pair source="id" target="batchId"/>
+	</db-relationship>
+	<db-relationship name="toBatch" source="Experiment" target="Batch" toMany="true">
+		<db-attribute-pair source="id" target="experimentId"/>
+	</db-relationship>
+	<db-relationship name="toBatch" source="TurkerLog" target="Batch" toMany="false">
+		<db-attribute-pair source="batchId" target="id"/>
+	</db-relationship>
+	<obj-relationship name="toExperiment" source="Batch" target="Experiment" deleteRule="Nullify" db-relationship-path="toExperiment"/>
+	<obj-relationship name="toLogs" source="Batch" target="TurkerLog" deleteRule="Deny" db-relationship-path="toLogs"/>
+	<obj-relationship name="toBatch" source="Experiment" target="Batch" deleteRule="Deny" db-relationship-path="toBatch"/>
+	<obj-relationship name="toBatch" source="TurkerLog" target="Batch" deleteRule="Nullify" db-relationship-path="toBatch"/>
+</data-map>

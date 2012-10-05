@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        >
+<head>
+    <meta charset="utf-8"/>
+    <title>Batches</title>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet"/>
+    <script src="js/jquery.1.8.1.min.js"></script>
+
+</head>
+<body>
+
+<div id="main">
+    <h3>Batches</h3>
+    <br/>
+
+    <div id="experimentInfo">
+        Experiment Id: <span wicket:id="experimentId">[id]</span><br>
+        Experiment Name: <span wicket:id="experimentName">[id]</span><br>
+        Experiment Class: <span wicket:id="experimentClass">[id]</span><br>
+
+
+    </div>
+    <span wicket:id="navigator">[dataview navigator]</span>
+    <div class="scrollable">
+
+
+            <table  cellspacing="0" class="posttable">
+                <tr>
+
+                    <th>Name</th>
+                    <th>Creation</th>
+                    <th>AWSId</th>
+                    <th>Is Real?</th>
+
+                </tr>
+                <tr wicket:id="pageable">
+                    <td><a href="#" wicket:id="manage"><span wicket:id="name">[id]</span></a> </td>
+                    <td><span wicket:id="creation">[id]</span></td>
+                    <td><span wicket:id="AWSId">[id]</span></td>
+                    <td><span wicket:id="sandbox">[date]</span></td>
+
+
+
+                </tr>
+            </table>
+
+
+
+    </div>
+
+    <div id="inputForm">
+        <form wicket:id="batchForm">
+            <label for="name">Batch name:</label><input wicket:id="name" id="name" type="text" size="40"/> <br>
+            <label for="awsId">AWS Id:</label><input wicket:id="awsId" id="awsId" type="text" size="40"/>  <br>
+            <label for="awsSecret">AWS Secret:</label><input wicket:id="awsSecret" id="awsSecret" type="text" size="128"/>  <br>
+            <label for="awsSecret">Is Real?</label><input wicket:id="isReal" id="isReal" type="checkbox"/>  <br>
+            <form wicket:id="kickballForm">
+               <label for="threadId">ThreadId</label><input wicket:id="threadId" id="threadId" type="text" size=40/><br>
+               <label for="assignmentsPerHit">Assignments:</label><input wicket:id="assignmentsPerHit" id="assignmentsPerHit" type="text" size=40/><br>
+            </form>
+
+
+            <input type="submit" wicket:id="createButton" value="Create"/>
+
+
+        </form>
+
+    </div>
+
+</div>
+</body>
+</html>
+

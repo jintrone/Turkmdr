@@ -12,5 +12,10 @@ target
 .idea
 *.iml
 
+#emacs backup files#
+*.*~
+
 #misc#
 velocity.log
+keystore
+

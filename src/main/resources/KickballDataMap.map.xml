@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-map xmlns="http://cayenne.apache.org/schema/3.0/modelMap"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://cayenne.apache.org/schema/3.0/modelMap http://cayenne.apache.org/schema/3.0/modelMap.xsd"
+  project-version="3.0.0.1">
+	<property name="defaultPackage" value="edu.mit.cci.amtprojects.kickball.cayenne"/>
+	<db-entity name="Post" catalog="kickball">
+		<db-attribute name="authorid" type="INTEGER" length="10"/>
+		<db-attribute name="content" type="VARCHAR" length="32767"/>
+		<db-attribute name="created" type="TIMESTAMP" length="19"/>
+		<db-attribute name="eventSession" type="INTEGER" length="10"/>
+		<db-attribute name="ipAddress" type="VARCHAR" length="255"/>
+		<db-attribute name="postid" type="INTEGER" isPrimaryKey="true" isMandatory="true" length="10"/>
+		<db-attribute name="threadid" type="INTEGER" length="10"/>
+	</db-entity>
+	<db-entity name="Quote">
+		<db-attribute name="referencedPost" type="INTEGER"/>
+		<db-attribute name="referringPost" type="INTEGER"/>
+		<db-attribute name="relId" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+	</db-entity>
+	<db-entity name="Thread" catalog="kickball">
+		<db-attribute name="enddate" type="TIMESTAMP" length="19"/>
+		<db-attribute name="startdate" type="TIMESTAMP" length="19"/>
+		<db-attribute name="threadid" type="INTEGER" isPrimaryKey="true" isMandatory="true" length="10"/>
+	</db-entity>
+	<db-entity name="User" catalog="kickball">
+		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true" length="10"/>
+		<db-attribute name="username" type="VARCHAR" length="255"/>
+	</db-entity>
+	<obj-entity name="Post" className="edu.mit.cci.amtprojects.kickball.cayenne.Post" dbEntityName="Post">
+		<obj-attribute name="content" type="java.lang.String" db-attribute-path="content"/>
+		<obj-attribute name="created" type="java.util.Date" db-attribute-path="created"/>
+		<obj-attribute name="eventSession" type="java.lang.Integer" db-attribute-path="eventSession"/>
+		<obj-attribute name="ipAddress" type="java.lang.String" db-attribute-path="ipAddress"/>
+		<obj-attribute name="postid" type="java.lang.Integer" db-attribute-path="postid"/>
+		<obj-attribute name="threadid" type="java.lang.Integer" db-attribute-path="threadid"/>
+	</obj-entity>
+	<obj-entity name="Quote" className="edu.mit.cci.amtprojects.kickball.cayenne.Quote" dbEntityName="Quote">
+	</obj-entity>
+	<obj-entity name="Thread" className="edu.mit.cci.amtprojects.kickball.cayenne.Thread" dbEntityName="Thread">
+		<obj-attribute name="enddate" type="java.util.Date" db-attribute-path="enddate"/>
+		<obj-attribute name="startdate" type="java.util.Date" db-attribute-path="startdate"/>
+		<obj-attribute name="threadid" type="java.lang.Integer" db-attribute-path="threadid"/>
+	</obj-entity>
+	<obj-entity name="User" className="edu.mit.cci.amtprojects.kickball.cayenne.User" dbEntityName="User">
+		<obj-attribute name="userId" type="int" db-attribute-path="id"/>
+		<obj-attribute name="username" type="java.lang.String" db-attribute-path="username"/>
+	</obj-entity>
+	<db-relationship name="postToThread" source="Post" target="Thread" toMany="false">
+		<db-attribute-pair source="threadid" target="threadid"/>
+	</db-relationship>
+	<db-relationship name="postToUser" source="Post" target="User" toMany="false">
+		<db-attribute-pair source="authorid" target="id"/>
+	</db-relationship>
+	<db-relationship name="quotedBy" source="Post" target="Quote" toMany="true">
+		<db-attribute-pair source="postid" target="referencedPost"/>
+	</db-relationship>
+	<db-relationship name="quotes" source="Post" target="Quote" toMany="true">
+		<db-attribute-pair source="postid" target="referringPost"/>
+	</db-relationship>
+	<db-relationship name="fromPost" source="Quote" target="Post" toMany="false">
+		<db-attribute-pair source="referringPost" target="postid"/>
+	</db-relationship>
+	<db-relationship name="toQuote" source="Quote" target="Post" toMany="false">
+		<db-attribute-pair source="referencedPost" target="postid"/>
+	</db-relationship>
+	<db-relationship name="threadToPost" source="Thread" target="Post" toMany="true">
+		<db-attribute-pair source="threadid" target="threadid"/>
+	</db-relationship>
+	<db-relationship name="userToPost" source="User" target="Post" toMany="true">
+		<db-attribute-pair source="id" target="authorid"/>
+	</db-relationship>
+	<obj-relationship name="postToThread" source="Post" target="Thread" deleteRule="Nullify" db-relationship-path="postToThread"/>
+	<obj-relationship name="postToUser" source="Post" target="User" deleteRule="Nullify" db-relationship-path="postToUser"/>
+	<obj-relationship name="quotedBy" source="Post" target="Post" deleteRule="Deny" db-relationship-path="quotedBy.fromPost"/>
+	<obj-relationship name="quotes" source="Post" target="Post" deleteRule="Deny" db-relationship-path="quotes.toQuote"/>
+	<obj-relationship name="fromPost" source="Quote" target="Post" deleteRule="Nullify" db-relationship-path="fromPost"/>
+	<obj-relationship name="toQuote" source="Quote" target="Post" deleteRule="Nullify" db-relationship-path="toQuote"/>
+	<obj-relationship name="threadToPost" source="Thread" target="Post" deleteRule="Deny" db-relationship-path="threadToPost"/>
+	<obj-relationship name="userToPost" source="User" target="Post" deleteRule="Deny" db-relationship-path="userToPost"/>
+</data-map>
