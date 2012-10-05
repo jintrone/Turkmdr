@@ -320,6 +320,10 @@
     <repositories>
 
         <repository>
+            <id>project</id>
+            <url>file://${project.basedir}/repo</url>
+        </repository>
+        <repository>
             <releases>
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
@@ -341,10 +345,7 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-        <repository>
-            <id>project</id>
-            <url>file://${project.basedir}/repo</url>
-        </repository>
+
     </repositories>
 
 </project>

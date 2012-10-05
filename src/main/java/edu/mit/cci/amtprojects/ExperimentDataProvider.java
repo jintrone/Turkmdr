@@ -1,11 +1,8 @@
 package edu.mit.cci.amtprojects;
 
-import com.amazonaws.mturk.requester.HIT;
-import com.sun.tools.corba.se.idl.constExpr.Expression;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
 import edu.mit.cci.amtprojects.util.IndexedIterator;
-import org.apache.cayenne.DataObjectUtils;
 import org.apache.cayenne.query.SelectQuery;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;

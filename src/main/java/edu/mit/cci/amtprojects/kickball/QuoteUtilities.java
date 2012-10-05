@@ -1,6 +1,6 @@
 package edu.mit.cci.amtprojects.kickball;
 
-import com.sun.tools.internal.ws.wsdl.document.jaxws.*;
+
 import edu.mit.cci.amtprojects.kickball.cayenne.Post;
 import org.apache.log4j.Logger;
 
