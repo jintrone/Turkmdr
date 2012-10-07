@@ -32,7 +32,7 @@ public class PostDataProvider implements IDataProvider<Post> {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    public Iterator<? extends Post> iterator(int i, int count) {
+    public Iterator<? extends Post> iterator(long i, long count) {
         SelectQuery query = new SelectQuery(Post.class);
         query.addOrdering("created", SortOrder.ASCENDING);
        if (threadid> -1) {
@@ -42,14 +42,14 @@ public class PostDataProvider implements IDataProvider<Post> {
         if (focusid>-1)   {
             query.andQualifier(Expression.fromString("postid <= " + focusid));
         }
-        query.setPageSize(count);
+        query.setPageSize((int)count);
         //query.setFetchingDataRows(true);
         List<Post> posts = DbProvider.getContext().performQuery(query);
 
         return new IndexedIterator<Post>(posts,i,count);
     }
 
-    public int size() {
+    public long size() {
         StringBuilder where = new StringBuilder();
 
         if (threadid > -1) {

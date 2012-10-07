@@ -16,14 +16,14 @@ import java.util.List;
  */
 public class IndexedIterator<T> implements Iterator<T> {
 
-    private int start;
-    private int count;
-    private int current;
+    private long start;
+    private long count;
+    private long current;
 
     private List<T> data;
     private static Logger log = Logger.getLogger(IndexedIterator.class);
 
-    public IndexedIterator(List<T> data, int start, int count) {
+    public IndexedIterator(List<T> data, long start, long count) {
         this.start =start;
         this.count = count;
         this.current = start;
@@ -39,7 +39,7 @@ public class IndexedIterator<T> implements Iterator<T> {
 
     public T next() {
 
-        return data.get(current++);
+        return data.get((int)current++);
     }
 
     public void remove() {

@@ -112,23 +112,6 @@ public class Hits extends WebPage {
         add(container);
 
 
-        add(new AjaxLink("submitTask") {
-
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-
-                HttpServletRequest req = (HttpServletRequest)((WebRequest)RequestCycle.get().getRequest()).getContainerRequest();
-                String relativePath = urlFor(KickballPostTask.class,null).toString();
-                String url =  RequestUtils.toAbsolutePath(req.getRequestURL().toString(),relativePath);
-                DefaultEnabledHitProperties props = new DefaultEnabledHitProperties();
-                props.setTitle("Test hit");
-                props.setDescription("Establish the reply sequence in a series of message forum posts");
-                props.setMaxAssignments("1");
-                props.setRewardAmount(".01");
-                HitManager.get(batch).launch(url, 800, props);
-                log.debug("Got url: "+url);
-            }
-        });
 
 
 

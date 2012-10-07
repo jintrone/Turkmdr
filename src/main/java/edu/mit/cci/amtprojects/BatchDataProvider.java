@@ -28,13 +28,13 @@ public class BatchDataProvider implements IDataProvider<Batch> {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    public Iterator<? extends Batch> iterator(int i, int i1) {
+    public Iterator<? extends Batch> iterator(long i, long i1) {
         Experiment e = CayenneUtils.findExperiment(DbProvider.getContext(),experimentId);
         List<Batch> result = e.getToBatch();
         return new IndexedIterator<Batch>(result,i,i1);
     }
 
-    public int size() {
+    public long size() {
         return CayenneUtils.count(DbProvider.getContext(),"Batch",Batch.class,"experimentid = "+experimentId);
     }
 

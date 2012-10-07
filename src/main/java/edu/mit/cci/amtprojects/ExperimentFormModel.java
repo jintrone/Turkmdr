@@ -1,7 +1,8 @@
 package edu.mit.cci.amtprojects;
 
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
-import org.apache.wicket.IClusterable;
+
+import org.apache.wicket.util.io.IClusterable;
 import sun.security.x509.Extension;
 
 import java.util.Date;

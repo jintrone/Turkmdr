@@ -7,8 +7,11 @@ import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.log4j.Logger;
 
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -23,11 +26,15 @@ public class MturkUtils {
 
     private static HITQuestionHelper helper = new HITQuestionHelper();
 
+    private static Logger log = Logger.getLogger(MturkUtils.class);
+
+
     public static String getExternalQuestion(String url,int frameHeight) {
         String question = String.format("<ExternalQuestion xmlns=\"http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd\">" +
                 "<ExternalURL>%s</ExternalURL>" +
                 "<FrameHeight>%d</FrameHeight>" +
-                "</ExternalQuestion>", helper.urlencode(url),frameHeight);
+                "</ExternalQuestion>", url,frameHeight);
+        log.info("Attempt to launch external hit: "+question);
         return question;
     }
 
@@ -55,11 +62,16 @@ public class MturkUtils {
        props.setAnnotation(annotation);
    }
 
-    public static String addUrlParams(String url, String... params) {
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+    public static String addUrlParams(String url, String... params) throws UnsupportedEncodingException {
+        //List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+        StringBuilder buffer = new StringBuilder();
+        String sep = "";
         for (int i = 0;i<params.length/2 * 2;i+=2) {
-            pairs.add(new BasicNameValuePair(params[i],params[i+1]));
+            buffer.append(sep).append(params[i]).append("=").append(URLEncoder.encode(params[i+1],"utf-8"));
+            sep="&amp;";
+
         }
-        return url+ "?"+URLEncodedUtils.format(pairs,"utf-8");
+        return url+ "?"+ buffer.toString();
+
     }
 }

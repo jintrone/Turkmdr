@@ -17,6 +17,7 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.List;
 
@@ -44,7 +45,7 @@ public class KickballHitCreator {
         this.model = model;
     }
 
-    public void launch(String relativePath, Batch b) throws MalformedURLException {
+    public void launch(String relativePath, Batch b) throws MalformedURLException, UnsupportedEncodingException {
 
         //build url
         HttpServletRequest req = (HttpServletRequest) ((WebRequest) RequestCycle.get().getRequest()).getContainerRequest();
@@ -71,7 +72,7 @@ public class KickballHitCreator {
         log.info("Would launch: "+posts.size()+" hits");
         for (Post p:posts) {
             String launchurl = MturkUtils.addUrlParams(url,"focus",""+p.getPostid(),"batch",""+b.getId());
-            log.info("Would launch at "+launchurl);
+            log.info("Would launch at " + launchurl);
             HitManager.get(b).launch(launchurl, 800, props);
             break;
         }

@@ -22,11 +22,11 @@ public class ExperimentDataProvider implements IDataProvider<Experiment> {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    public Iterator<? extends Experiment> iterator(int i, int i1) {
+    public Iterator<? extends Experiment> iterator(long i, long i1) {
         return new IndexedIterator<Experiment>(((List<Experiment>)DbProvider.getContext().performQuery(new SelectQuery(Experiment.class))),i,i1);
     }
 
-    public int size() {
+    public long size() {
         return CayenneUtils.count(DbProvider.getContext(),"Experiment",Experiment.class,"");
     }
 

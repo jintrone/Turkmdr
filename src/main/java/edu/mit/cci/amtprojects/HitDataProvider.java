@@ -29,12 +29,12 @@ public class HitDataProvider implements IDataProvider<HIT> {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    public Iterator<? extends HIT> iterator(int i, int count) {
+    public Iterator<? extends HIT> iterator(long i, long count) {
         HitManager manager = HitManager.get(batch());
         return new IndexedIterator<HIT>(manager.getAllHits(),i,count);
     }
 
-    public int size() {
+    public long size() {
         HitManager manager = HitManager.get(batch());
         return manager.getAllHits().size();
     }

@@ -9,6 +9,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
@@ -25,7 +26,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
-
 
 import java.text.DateFormat;
 
@@ -59,13 +59,12 @@ public class KickballPostTask extends WebPage {
     public KickballPostTask(PageParameters param) {
 
 
-
         StringValue focusid = param.get("focus");
         StringValue batchid = param.get("batch");
         StringValue assignmentId = param.get("assignmentId");
         StringValue workerId = param.get("workerId");
 
-        Batch batch = CayenneUtils.findBatch(DbProvider.getContext(),batchid.toLong());
+        Batch batch = CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong());
 
 
         this.workerId = workerId.toString("NONE");
@@ -101,7 +100,26 @@ public class KickballPostTask extends WebPage {
                 return focus > -1;
             }
         };
-        focuslink.setBody(Model.<String>of(""+focus));
+        focuslink.setBody(Model.<String>of("" + focus));
+
+
+        add(new Label("focuslabel", focus > -1 ? focus + "" : "none") {
+            public boolean isVisible() {
+                return focus < 0;
+            }
+        });
+        add(focuslink);
+
+
+        final WebMarkupContainer container = new WebMarkupContainer("selectionContainer");
+        container.setOutputMarkupId(true);
+        final Label slabel = new Label("selectionlabel", "none") {
+            public boolean isVisible() {
+                return selection < 0;
+            }
+        };
+        //slabel.setOutputMarkupId(true);
+        container.add(slabel);
 
         final Link selectedlink = new Link("selection") {
             public void onClick() {
@@ -110,46 +128,25 @@ public class KickballPostTask extends WebPage {
             }
 
             public boolean isVisible() {
-              return selection > -1;
+                return selection > -1;
             }
         };
+        container.add(selectedlink);
+
         selectedlink.setBody(new PropertyModel<Integer>(this, "selection"));
-        selectedlink.setOutputMarkupId(true);
-
-        final Label slabel = new Label("selectionlabel", "none") {
-            public boolean isVisible() {
-                return selection < 0;
-            }
-        };
-        slabel.setOutputMarkupId(true);
-        add(slabel);
-        add(new Label("focuslabel",focus>-1?focus+"":"none") {
-            public boolean isVisible() {
-               return focus < 0;
-            }
-        });
-        add(focuslink);
-        add(selectedlink);
-        add(new AjaxLink("clearselection") {
+        //selectedlink.setOutputMarkupId(true);
 
 
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                selection = -1;
+        final RadioGroup<Post> group = new RadioGroup<Post>("radioGroup", new Model<Post>());
 
-            }
-        });
-
-        final RadioGroup<Post> group = new RadioGroup<Post>("group", new Model<Post>());
-
-        Form<?> form = new Form<Void>("form") {
+        final Form<?> form = new Form<Void>("form") {
 
             private boolean selection = false;
 
             {
                 this.add(new Button("submitchoice") {
                     public void onSubmit() {
-                       selection = true;
+                        selection = true;
                     }
                 });
 
@@ -161,27 +158,21 @@ public class KickballPostTask extends WebPage {
 
 
             }
+
             @Override
             protected void onSubmit() {
-                log.info(selection?("selection group1: " + group.getModelObject().getPostid()):"No selection");
+                log.info(selection ? ("selection group1: " + group.getModelObject().getPostid()) : "No selection");
 
             }
         };
+        form.setOutputMarkupId(true);
 
-        form.add(new HiddenField<String>("assignmentId",new Model<String>(this.assignmentId+"")));
+        form.add(new HiddenField<String>("assignmentId", new Model<String>(this.assignmentId + "")));
 
-        form.add(new AttributeModifier("action",batch.getIsReal()?"https://www.mturk.com/mturk/externalSubmit":"http://workersandbox.mturk.com/mturk/externalSubmit"));
-        form.add(new AttributeModifier("method","POST"));
-          add(new Label("assignmentId", this.assignmentId).setEscapeModelStrings(false));
+        form.add(new AttributeModifier("action", batch.getIsReal() ? "https://www.mturk.com/mturk/externalSubmit" : "http://workersandbox.mturk.com/mturk/externalSubmit"));
+        form.add(new AttributeModifier("method", "POST"));
+        //  add(new Label("assignmentId", this.assignmentId).setEscapeModelStrings(false));
 //        add(new Label("workerId",this.workerId).setEscapeModelStrings(false));
-
-
-
-
-
-
-
-
 
 
         DataView<Post> dataView = new DataView<Post>("pageable", new PostDataProvider(thread, focus)) {
@@ -199,7 +190,7 @@ public class KickballPostTask extends WebPage {
 
                 };
                 if (item.getModelObject().getPostid() == selection) {
-                    r.add(AttributeModifier.replace("checked","true"));
+                    r.add(AttributeModifier.replace("checked", "true"));
                 }
                 item.add(r);
 
@@ -220,9 +211,9 @@ public class KickballPostTask extends WebPage {
                 }));
 
                 if (post.getPostid() == focus) item.add(AttributeModifier.append("class", "targetfocus"));
-                if (post.getPostid() == selection) item.add(AttributeModifier.append("class","replyfocus"));
+                if (post.getPostid() == selection) item.add(AttributeModifier.append("class", "replyfocus"));
 
-                if (post.getPostid() == refocus) item.add(AttributeModifier.append("class","focus"));
+                if (post.getPostid() == refocus) item.add(AttributeModifier.append("class", "focus"));
             }
         };
 
@@ -230,12 +221,38 @@ public class KickballPostTask extends WebPage {
         //add(dataView);
         add(form);
         form.add(group);
+
+        final AjaxLink clearbutton = new AjaxLink("clearselection") {
+
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                log.info("Got clear selection");
+                selection = -1;
+                ajaxRequestTarget.add(container);
+//                 ajaxRequestTarget.add(slabel);
+//                ajaxRequestTarget.add(selectedlink);
+//                ajaxRequestTarget.add(this);
+                ajaxRequestTarget.add(group);
+
+            }
+
+            public boolean isVisible() {
+                return selection > -1;
+            }
+        };
+
+        container.add(clearbutton);
+        add(container);
+
         group.add(new AjaxFormChoiceComponentUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+
                 selection = group.getModelObject().getPostid();
-                ajaxRequestTarget.add(slabel);
-                ajaxRequestTarget.add(selectedlink);
+                log.info("Got selection: " + selection);
+                ajaxRequestTarget.add(container);
+                ajaxRequestTarget.add(form);
 
             }
         });
@@ -252,7 +269,7 @@ public class KickballPostTask extends WebPage {
     }
 
     private void configureItemsPerPage() {
-        if (focus> -1 && calculatePageForFocus(focus) > 0 &&calculateIndexForFocus(focus) == 0) {
+        if (focus > -1 && calculatePageForFocus(focus) > 0 && calculateIndexForFocus(focus) == 0) {
             itemsPerPage++;
 
 
@@ -261,9 +278,9 @@ public class KickballPostTask extends WebPage {
 
     @Override
     protected void onBeforeRender() {
-        if (refocus>-1) {
+        if (refocus > -1) {
             refocus();
-           // refocus=-1;
+            // refocus=-1;
         }
         super.onBeforeRender();
 

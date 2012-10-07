@@ -1,6 +1,7 @@
 package edu.mit.cci.amtprojects.kickball;
 
-import org.apache.wicket.IClusterable;
+
+import org.apache.wicket.util.io.IClusterable;
 
 /**
 * User: jintrone

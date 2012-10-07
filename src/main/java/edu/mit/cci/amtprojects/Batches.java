@@ -8,7 +8,7 @@ import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.IClusterable;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -24,8 +24,10 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.io.IClusterable;
 
 import java.awt.*;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.text.DateFormat;
 import java.util.Date;
@@ -137,6 +139,8 @@ public class Batches extends WebPage {
                 try {
                     KickballHitCreator.getInstance().launch(urlFor(KickballPostTask.class,null).toString(),b);
                 } catch (MalformedURLException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 }
             }

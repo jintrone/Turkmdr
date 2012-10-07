@@ -9,10 +9,7 @@
     <script src="js/jquery.1.8.1.min.js"></script>
     <script type="text/javascript">
         $(function() {
-            $('input[type="radio"]').click(function() {
-                $(".replyfocus").removeClass("replyfocus");
-                $(this).closest("tr").addClass("replyfocus");
-            });
+
             var x = $(".focus").offset().top - $(".posttable").offset().top;
             $('#messages').scrollTop(x);
 //            $('.messages').animate({
@@ -27,15 +24,18 @@
     <h3>Viewing posts from thread: <span wicket:id="thread">[threadid]</span></h3>
     Target post: <span wicket:id="focuslabel">[focuslabel]</span><a href="#" wicket:id="focus"><!--nothing--></a>
     <br/>
+    <div wicket:id="selectionContainer">
     Responds to: <span wicket:id="selectionlabel">[selectionlabel]</span><a href="#" wicket:id="selection"><!--nothing--></a>
     <button wicket:id="clearselection">Clear</button>
-    <br/>
+        </div>
+        <br/>
     <span wicket:id="navigator">[dataview navigator]</span>
 
     <form wicket:id="form">
+        <input wicket:id="assignmentId" id="assignmentId" type="hidden"/>
         <div id="messages">
 
-            <wicket:container wicket:id="group">
+            <div wicket:id="radioGroup">
                 <table cellspacing="0" class="posttable">
                     <tr>
                         <th class="select">Select</th>
@@ -53,7 +53,7 @@
 
                     </tr>
                 </table>
-            </wicket:container>
+            </div>
 
 
         </div>
