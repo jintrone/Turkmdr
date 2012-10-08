@@ -18,12 +18,13 @@ public class KickballHitForm extends Form<KickballHitModel> {
 
         add(new TextField<Long>("threadId"));
         add(new TextField<Long>("assignmentsPerHit"));
+        add(new TextField<Float>("bonus"));
+        add(new TextField<Float>("reward"));
 
 
     }
 
     public void onSubmit() {
-        System.err.println("Kickball got a submit");
         KickballHitCreator.getInstance().setModel(getModelObject());
     }
 

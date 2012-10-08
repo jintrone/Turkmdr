@@ -155,9 +155,17 @@ public class QuoteUtilities {
         Matcher m = quoteStart.matcher(content);
         StringBuffer buffer = new StringBuffer();
         while (m.find()) {
+           try {
+            String group = m.group(1);
+            group = group.replace("$","\\$");
+
             m.appendReplacement(buffer,"<div class=\"quote\">" +
-                    (m.group(1) != null && !m.group(1).isEmpty() ? "<span class=\"author\">" + m.group(1) + " writes:</span>" : "") +
+                    (group != null && !group.isEmpty() ? "<span class=\"author\">" + group + " writes:</span>" : "") +
                     "<div class=\"content\">");
+           } catch (Exception ex) {
+               ex.printStackTrace();
+               System.err.println("Problem parsing "+content);
+           }
         }
         m.appendTail(buffer);
         content = buffer.toString();
@@ -173,7 +181,7 @@ public class QuoteUtilities {
     }
 
     public static void main(String[] args) {
-        String s = "thanks, i try.\\n\\nyes, fearthefro?";
+        String s = "[quote=&quot;BigEa$y H. Whoa&quot;:2m6ldi38][quote=&quot;Fresh&quot;:2m6ldi38]\\nshe cute and innocent. you have to MAKE her get it... try harder  buddy. try harder. unless she says no. cause remember no means no.\\n\\nunless you're from florida and then no means yes and yes means.... well you know...[/quote:2m6ldi38]\\n\\nNo what does it mean?[/quote:2m6ldi38]\\n\\n\\nin da butt... \\n\\nhey whoa!";
         System.out.println(sanitize(s));
     }
 }

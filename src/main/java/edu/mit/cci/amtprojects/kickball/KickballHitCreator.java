@@ -52,8 +52,8 @@ public class KickballHitCreator {
         String url = RequestUtils.toAbsolutePath(req.getRequestURL().toString(), relativePath);
 
         //add parameters to batch
-        JSONObject obj = new JSONObject(Utils.mapify("threadid",model.getAssignmentsPerHit()));
-        b.setParameters(obj.toString());
+        MturkUtils.parameterizeBatch(b,"threadid",model.getAssignmentsPerHit(),"bonus",model.getBonus(),"reward",model.getReward());
+        log.info("Set parameters "+b.getParameters());
         DbProvider.getContext().commitChanges();
 
         //create hit properties
@@ -61,7 +61,7 @@ public class KickballHitCreator {
         props.setTitle("Indicate the reply structure of a message forum");
         props.setDescription("Establish the reply sequence in a series of message forum posts. Each HIT requires you to identify which post another post is a response to");
         props.setMaxAssignments("" + model.getAssignmentsPerHit());
-        props.setRewardAmount(".01");
+        props.setRewardAmount(""+model.getReward());
         MturkUtils.addBatchAnnotation(props, b);
 
         //launch hits

@@ -99,7 +99,7 @@ h3 {
 
 table.posttable {
     table-layout: fixed;
-    width: 740px;
+    width: 730px;
     border-collapse: collapse;
 
 }
@@ -160,11 +160,64 @@ tr.replyfocus td {
 }
 
 div#messages {
-    height: 700px;
+    height: 500px;
     width: 750px;
     overflow-y: scroll;
     overflow-x: hidden;
     border: thin solid gray;
+}
+div#main {
+    width:750px;
+    margin: 0 auto;
+
+}
+
+table.layout {
+    width: 100%;
+    font-size:14px;
+    border: none;
+    border-collapse: collapse;
+
+
+}
+
+table.layout td.vcentered {
+
+    vertical-align: middle;
+
+
+}
+
+table.layout td.hcentered {
+    text-align: center;
+}
+
+table.layout td {
+    border: none;
+
+}
+
+button, input[type="button"],input[type="submit"] {
+    background: #211c8b;
+    border: 2px #00008b;
+    color:white;
+    font-size: 14px;
+    padding: 8px;
+}
+
+button:hover, input[type="button"]:hover,input[type="submit"]:hover {
+   background: #3d35bf;
+}
+
+button:disabled, input[type="button"]:disabled,input[type="submit"]:disabled {
+  background-color: #AAA;
+  color: #DDD;
+    border: #999;
+}
+
+
+p {
+    font-size: 14px;
 }
 
 div.scrollable {

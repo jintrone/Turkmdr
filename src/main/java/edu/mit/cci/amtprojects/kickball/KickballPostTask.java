@@ -4,11 +4,17 @@ import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Post;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
+import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
+import org.apache.wicket.ajax.json.JSONException;
+import org.apache.wicket.ajax.json.JSONObject;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -19,15 +25,22 @@ import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
+import org.apache.wicket.markup.html.pages.RedirectPage;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.flow.RedirectToUrlException;
+import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.Serializable;
 import java.text.DateFormat;
+import java.util.Collections;
 
 /**
  * User: jintrone
@@ -37,7 +50,7 @@ import java.text.DateFormat;
 public class KickballPostTask extends WebPage {
 
 
-    public int itemsPerPage = 50;
+    public int itemsPerPage = 100;
 
     private static Logger log = Logger.getLogger(KickballPostTask.class);
 
@@ -49,6 +62,8 @@ public class KickballPostTask extends WebPage {
     int refocus = -1;
     String assignmentId = "NONE";
     String workerId = "NONE";
+    private float bonus = 0f;
+    boolean isPreview = false;
 
 
     public int getSelection() {
@@ -56,20 +71,35 @@ public class KickballPostTask extends WebPage {
         return selection;
     }
 
-    public KickballPostTask(PageParameters param) {
+    public KickballPostTask(final PageParameters param) {
 
 
         StringValue focusid = param.get("focus");
-        StringValue batchid = param.get("batch");
-        StringValue assignmentId = param.get("assignmentId");
+        final StringValue batchid = param.get("batch");
+        final StringValue assignmentId = param.get("assignmentId");
         StringValue workerId = param.get("workerId");
 
+        HttpServletRequest request=(HttpServletRequest)getRequestCycle().getRequest().getContainerRequest();
+
+        final String ipAddress=request.getRemoteAddr();
+
+
+
+
         Batch batch = CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong());
-
-
+        try {
+            this.bonus = (float)(new JSONObject(batch.getParameters()).getDouble("bonus"));
+        } catch (JSONException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            log.warn("No bonus found in batch; using default of "+bonus);
+        }
         this.workerId = workerId.toString("NONE");
         this.assignmentId = assignmentId.toString("NONE");
 
+        if (this.assignmentId.equals("ASSIGNMENT_ID_NOT_AVAILABLE")) {
+           focusid = StringValue.valueOf(97456);
+            isPreview = true;
+        }
 
         if (!focusid.isNull() && !focusid.isEmpty()) {
             focus = focusid.toInt(-1);
@@ -84,90 +114,112 @@ public class KickballPostTask extends WebPage {
             }
         }
 
+         CayenneUtils.logEvent(DbProvider.getContext(),
+                                     CayenneUtils.findBatch(DbProvider.getContext(),batchid.toLong()),
+                                     "VIEW_PAGE",
+                        param.get("workerId").toString("NONE"),
+                        param.get("hitId").toString("NONE"),
+                        param.get("assignmentId").toString("NONE"),
+                        param.toString(), Utils.mapify("clientip", ipAddress));
+
         configureItemsPerPage();
 
 
         //final int finalFocus = focus;
+        add(new Label("bonusLabel",String.format("$%.2f",bonus)));
 
 
-        Link focuslink = new Link("focus") {
+        Link focuslink = new Link("targetfocus") {
             public void onClick() {
                 log.info("Setting focus");
                 refocus = focus;
+                CayenneUtils.logEvent(DbProvider.getContext(),
+                                     CayenneUtils.findBatch(DbProvider.getContext(),batchid.toLong()),
+                                     "JUMP_TO_TARGET",
+                        param.get("workerId").toString("NONE"),
+                        param.get("hitId").toString("NONE"),
+                        param.get("assignmentId").toString("NONE"),
+                        param.toString(), Utils.mapify("clientip", ipAddress));
             }
 
-            public boolean isVisible() {
+            public boolean isEnabled() {
                 return focus > -1;
             }
+
+
         };
-        focuslink.setBody(Model.<String>of("" + focus));
 
 
-        add(new Label("focuslabel", focus > -1 ? focus + "" : "none") {
-            public boolean isVisible() {
-                return focus < 0;
-            }
-        });
-        add(focuslink);
 
 
         final WebMarkupContainer container = new WebMarkupContainer("selectionContainer");
         container.setOutputMarkupId(true);
-        final Label slabel = new Label("selectionlabel", "none") {
-            public boolean isVisible() {
-                return selection < 0;
-            }
-        };
+        container.add(focuslink);
         //slabel.setOutputMarkupId(true);
-        container.add(slabel);
+
 
         final Link selectedlink = new Link("selection") {
             public void onClick() {
                 log.info("Setting focus");
                 refocus = selection;
+                CayenneUtils.logEvent(DbProvider.getContext(),
+                                     CayenneUtils.findBatch(DbProvider.getContext(),batchid.toLong()),
+                                     "JUMP_TO_SELECTION",
+                        param.get("workerId").toString("NONE"),
+                        param.get("hitId").toString("NONE"),
+                        param.get("assignmentId").toString("NONE"),
+                        param.toString(), Utils.mapify("clientip", ipAddress,"selection",selection));
             }
 
-            public boolean isVisible() {
+            public boolean isEnabled() {
                 return selection > -1;
             }
         };
         container.add(selectedlink);
 
-        selectedlink.setBody(new PropertyModel<Integer>(this, "selection"));
+
         //selectedlink.setOutputMarkupId(true);
 
 
         final RadioGroup<Post> group = new RadioGroup<Post>("radioGroup", new Model<Post>());
 
-        final Form<?> form = new Form<Void>("form") {
+        final WebMarkupContainer submitcontainer = new WebMarkupContainer("submitContainer");
+        submitcontainer.setOutputMarkupId(true);
 
-            private boolean selection = false;
 
-            {
-                this.add(new Button("submitchoice") {
-                    public void onSubmit() {
-                        selection = true;
-                    }
-                });
 
-                this.add(new Button("submitnochoice") {
-                    public void onSubmit() {
+        submitcontainer.add(new Button("submitchoice") {
 
-                    }
-                });
-
+            public boolean isEnabled() {
+                return !isPreview && selection > 0;
 
             }
 
-            @Override
-            protected void onSubmit() {
-                log.info(selection ? ("selection group1: " + group.getModelObject().getPostid()) : "No selection");
 
-            }
-        };
-        form.setOutputMarkupId(true);
 
+
+        });
+
+        submitcontainer.add(new Button("submitnochoice") {
+           public boolean isEnabled() {
+               return !isPreview && selection == -1;
+           }
+
+        });
+
+        final Form<?> form = new Form<Void>("form");
+        form.add(submitcontainer);
         form.add(new HiddenField<String>("assignmentId", new Model<String>(this.assignmentId + "")));
+        form.add(new HiddenField<String>("post", new Model<String>("" + focus)));
+
+        final Component selectionfield= new HiddenField<String>("respondstoid",new Model<String>() {
+            @Override
+            public String getObject() {
+                return selection+"";
+            }
+        }).setOutputMarkupId(true);
+        form.add(selectionfield);
+
 
         form.add(new AttributeModifier("action", batch.getIsReal() ? "https://www.mturk.com/mturk/externalSubmit" : "http://workersandbox.mturk.com/mturk/externalSubmit"));
         form.add(new AttributeModifier("method", "POST"));
@@ -229,15 +281,23 @@ public class KickballPostTask extends WebPage {
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 log.info("Got clear selection");
                 selection = -1;
+
                 ajaxRequestTarget.add(container);
-//                 ajaxRequestTarget.add(slabel);
-//                ajaxRequestTarget.add(selectedlink);
-//                ajaxRequestTarget.add(this);
+
                 ajaxRequestTarget.add(group);
+                ajaxRequestTarget.add(submitcontainer);
+                ajaxRequestTarget.add(selectionfield);
+                CayenneUtils.logEvent(DbProvider.getContext(),
+                                     CayenneUtils.findBatch(DbProvider.getContext(),batchid.toLong()),
+                                     "CLEAR_SELECTION",
+                        param.get("workerId").toString("NONE"),
+                        param.get("hitId").toString("NONE"),
+                        param.get("assignmentId").toString("NONE"),
+                        param.toString(),Utils.mapify("clientip", ipAddress));
 
             }
 
-            public boolean isVisible() {
+            public boolean isEnabled() {
                 return selection > -1;
             }
         };
@@ -252,7 +312,16 @@ public class KickballPostTask extends WebPage {
                 selection = group.getModelObject().getPostid();
                 log.info("Got selection: " + selection);
                 ajaxRequestTarget.add(container);
-                ajaxRequestTarget.add(form);
+                ajaxRequestTarget.add(group);
+                ajaxRequestTarget.add(submitcontainer);
+                 ajaxRequestTarget.add(selectionfield);
+                CayenneUtils.logEvent(DbProvider.getContext(),
+                                     CayenneUtils.findBatch(DbProvider.getContext(),batchid.toLong()),
+                                     "SELECTION_UPDATED",
+                        param.get("workerId").toString("NONE"),
+                        param.get("hitId").toString("NONE"),
+                        param.get("assignmentId").toString("NONE"),
+                        param.toString(), Utils.mapify("selection",selection+"","clientip",ipAddress));
 
             }
         });
@@ -263,7 +332,7 @@ public class KickballPostTask extends WebPage {
 
         }
         add(pagingNavigator);
-        add(new Label("thread", thread + ""));
+
 
 
     }

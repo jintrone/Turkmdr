@@ -12,6 +12,7 @@
 		<db-attribute name="experimentId" type="BIGINT"/>
 		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
 		<db-attribute name="isReal" type="BIT" isMandatory="true"/>
+		<db-attribute name="parameters" type="VARCHAR" length="1028"/>
 	</db-entity>
 	<db-entity name="Experiment">
 		<db-attribute name="Created" type="TIMESTAMP"/>
@@ -20,11 +21,15 @@
 		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
 	</db-entity>
 	<db-entity name="TurkerLog">
+		<db-attribute name="assignmentId" type="VARCHAR" length="256"/>
 		<db-attribute name="batchId" type="BIGINT"/>
+		<db-attribute name="data" type="VARCHAR" length="1024"/>
 		<db-attribute name="date" type="TIMESTAMP"/>
+		<db-attribute name="hit" type="VARCHAR" length="256"/>
 		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
-		<db-attribute name="post" type="BIGINT"/>
-		<db-attribute name="replyto" type="BIGINT"/>
+		<db-attribute name="queryparams" type="VARCHAR" length="1024"/>
+		<db-attribute name="type" type="VARCHAR" length="128"/>
+		<db-attribute name="workerId" type="VARCHAR" length="256"/>
 	</db-entity>
 	<obj-entity name="Batch" className="edu.mit.cci.amtprojects.kickball.cayenne.Batch" dbEntityName="Batch">
 		<obj-attribute name="awsId" type="java.lang.String" db-attribute-path="AwsId"/>
@@ -33,6 +38,7 @@
 		<obj-attribute name="id" type="java.lang.Long" db-attribute-path="id"/>
 		<obj-attribute name="isReal" type="java.lang.Boolean" db-attribute-path="isReal"/>
 		<obj-attribute name="name" type="java.lang.String" db-attribute-path="Name"/>
+		<obj-attribute name="parameters" type="java.lang.String" db-attribute-path="parameters"/>
 	</obj-entity>
 	<obj-entity name="Experiment" className="edu.mit.cci.amtprojects.kickball.cayenne.Experiment" dbEntityName="Experiment">
 		<obj-attribute name="classname" type="java.lang.String" db-attribute-path="classname"/>
@@ -41,9 +47,13 @@
 		<obj-attribute name="name" type="java.lang.String" db-attribute-path="Name"/>
 	</obj-entity>
 	<obj-entity name="TurkerLog" className="edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog" dbEntityName="TurkerLog">
+		<obj-attribute name="assignmentId" type="java.lang.String" db-attribute-path="assignmentId"/>
+		<obj-attribute name="data" type="java.lang.String" db-attribute-path="data"/>
 		<obj-attribute name="date" type="java.util.Date" db-attribute-path="date"/>
-		<obj-attribute name="post" type="java.lang.Long" db-attribute-path="post"/>
-		<obj-attribute name="replyto" type="java.lang.Long" db-attribute-path="replyto"/>
+		<obj-attribute name="hit" type="java.lang.String" db-attribute-path="hit"/>
+		<obj-attribute name="queryParams" type="java.lang.String" db-attribute-path="queryparams"/>
+		<obj-attribute name="type" type="java.lang.String" db-attribute-path="type"/>
+		<obj-attribute name="workerId" type="java.lang.String" db-attribute-path="workerId"/>
 	</obj-entity>
 	<db-relationship name="toExperiment" source="Batch" target="Experiment" toMany="false">
 		<db-attribute-pair source="experimentId" target="id"/>

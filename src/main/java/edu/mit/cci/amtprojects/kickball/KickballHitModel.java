@@ -11,6 +11,17 @@ import org.apache.wicket.util.io.IClusterable;
 public class KickballHitModel implements IClusterable {
 
     private static final long serialVersionUID = 1L;
+    private float bonus;
+
+    public float getReward() {
+        return reward;
+    }
+
+    public void setReward(float reward) {
+        this.reward = reward;
+    }
+
+    private float reward;
 
 
     public int getAssignmentsPerHit() {
@@ -27,6 +38,14 @@ public class KickballHitModel implements IClusterable {
 
     public void setThreadId(long threadId) {
         this.threadId = threadId;
+    }
+
+    public void setBonus(float bonus) {
+        this.bonus = bonus;
+    }
+
+    public float getBonus() {
+        return bonus;
     }
 
     private long threadId;

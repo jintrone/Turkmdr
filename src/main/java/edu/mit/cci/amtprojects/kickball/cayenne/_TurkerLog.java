@@ -12,12 +12,30 @@ import org.apache.cayenne.CayenneDataObject;
  */
 public abstract class _TurkerLog extends CayenneDataObject {
 
+    public static final String ASSIGNMENT_ID_PROPERTY = "assignmentId";
+    public static final String DATA_PROPERTY = "data";
     public static final String DATE_PROPERTY = "date";
-    public static final String POST_PROPERTY = "post";
-    public static final String REPLYTO_PROPERTY = "replyto";
+    public static final String HIT_PROPERTY = "hit";
+    public static final String QUERY_PARAMS_PROPERTY = "queryParams";
+    public static final String TYPE_PROPERTY = "type";
+    public static final String WORKER_ID_PROPERTY = "workerId";
     public static final String TO_BATCH_PROPERTY = "toBatch";
 
     public static final String ID_PK_COLUMN = "id";
+
+    public void setAssignmentId(String assignmentId) {
+        writeProperty("assignmentId", assignmentId);
+    }
+    public String getAssignmentId() {
+        return (String)readProperty("assignmentId");
+    }
+
+    public void setData(String data) {
+        writeProperty("data", data);
+    }
+    public String getData() {
+        return (String)readProperty("data");
+    }
 
     public void setDate(Date date) {
         writeProperty("date", date);
@@ -26,18 +44,32 @@ public abstract class _TurkerLog extends CayenneDataObject {
         return (Date)readProperty("date");
     }
 
-    public void setPost(Long post) {
-        writeProperty("post", post);
+    public void setHit(String hit) {
+        writeProperty("hit", hit);
     }
-    public Long getPost() {
-        return (Long)readProperty("post");
+    public String getHit() {
+        return (String)readProperty("hit");
     }
 
-    public void setReplyto(Long replyto) {
-        writeProperty("replyto", replyto);
+    public void setQueryParams(String queryParams) {
+        writeProperty("queryParams", queryParams);
     }
-    public Long getReplyto() {
-        return (Long)readProperty("replyto");
+    public String getQueryParams() {
+        return (String)readProperty("queryParams");
+    }
+
+    public void setType(String type) {
+        writeProperty("type", type);
+    }
+    public String getType() {
+        return (String)readProperty("type");
+    }
+
+    public void setWorkerId(String workerId) {
+        writeProperty("workerId", workerId);
+    }
+    public String getWorkerId() {
+        return (String)readProperty("workerId");
     }
 
     public void setToBatch(Batch toBatch) {

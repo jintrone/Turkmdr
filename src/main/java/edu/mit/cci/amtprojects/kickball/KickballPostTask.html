@@ -21,32 +21,57 @@
 <body>
 
 <div id="main">
-    <h3>Viewing posts from thread: <span wicket:id="thread">[threadid]</span></h3>
-    Target post: <span wicket:id="focuslabel">[focuslabel]</span><a href="#" wicket:id="focus"><!--nothing--></a>
+    <p>
+        Select the post to which the target post (the very last post shown, highlighted yellow) is responding.
+        If the target post seems to respond to multiple posts, select the last one. Click "submit selection" at the bottom
+        when you are satisfied with your answer.
+    </p>
+
+    <p>
+        If the target post is not a response to any posts, click the "no preceding post" button at the bottom of the screen.
+    </p>
+
+    <p>
+        If other turkers agree with your answer, you will receive a bonus of <span wicket:id="bonusLabel">[bonus]</span>
+    </p>
     <br/>
-    <div wicket:id="selectionContainer">
-    Responds to: <span wicket:id="selectionlabel">[selectionlabel]</span><a href="#" wicket:id="selection"><!--nothing--></a>
-    <button wicket:id="clearselection">Clear</button>
-        </div>
-        <br/>
-    <span wicket:id="navigator">[dataview navigator]</span>
+    <table class="layout">
+        <tr>
+            <td class="fullwidth">
+                <div wicket:id="selectionContainer">
+                    <button wicket:id="targetfocus">Jump to target</button>
+                    <button wicket:id="selection">Jump to selection</button>
+                    <button wicket:id="clearselection">Clear selection</button>
+                </div>
+
+            </td>
+            <td class="vcentered">
+                <b>Page:</b>&nbsp;<span wicket:id="navigator">[dataview navigator]</span>
+            </td>
+        </tr>
+    </table>
+
+    <br/>
+
 
     <form wicket:id="form">
         <input wicket:id="assignmentId" id="assignmentId" type="hidden"/>
+        <input wicket:id="post" id="postid" type="hidden"/>
+        <input wicket:id="respondstoid" id="selectionid" type="hidden"/>
         <div id="messages">
 
             <div wicket:id="radioGroup">
                 <table cellspacing="0" class="posttable">
                     <tr>
                         <th class="select">Select</th>
-                        <th>ID</th>
+
                         <th>Date</th>
                         <th>Username</th>
                         <th class="content">Post</th>
                     </tr>
                     <tr wicket:id="pageable">
                         <td class="select"><input type="radio" wicket:id="radio"/></td>
-                        <td><span wicket:id="postid">[id]</span></td>
+
                         <td><span wicket:id="date">[date]</span></td>
                         <td><span wicket:id="username">[username]</span></td>
                         <td class="content"><span wicket:id="content">[contact]</span></td>
@@ -57,8 +82,14 @@
 
 
         </div>
-        <input id="submitchoice" wicket:id="submitchoice" type="submit" value="Submit selection"/>
-        <input id="submitnochoice" wicket:id="submitnochoice" type="submit" value="No preceding post"/>
+        <table class="layout">
+            <tr>
+                <td class="hcentered vcentered" wicket:id="submitContainer">
+                    <input id="submitchoice" wicket:id="submitchoice" type="submit" value="Submit selection"/>
+                    <input id="submitnochoice" wicket:id="submitnochoice" type="submit" value="No preceding post"/>
+                </td>
+            </tr>
+        </table>
     </form>
 </div>
 </body>

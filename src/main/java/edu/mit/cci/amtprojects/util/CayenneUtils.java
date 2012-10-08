@@ -2,6 +2,7 @@ package edu.mit.cci.amtprojects.util;
 
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
+import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
 import org.apache.cayenne.DataObjectUtils;
 import org.apache.cayenne.DataRow;
 import org.apache.cayenne.access.DataContext;
@@ -9,10 +10,12 @@ import org.apache.cayenne.access.QueryLogger;
 import org.apache.cayenne.query.SQLTemplate;
 import org.apache.log4j.Logger;
 import org.apache.velocity.test.IntrospectorTestCase2;
+import org.apache.wicket.ajax.json.JSONObject;
 
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: jintrone
@@ -58,6 +61,21 @@ public class CayenneUtils {
 
     public static Batch findBatch(DataContext context, long id) {
         return DataObjectUtils.objectForPK(context,Batch.class,id);
+
+    }
+
+    public static void logEvent(DataContext context, Batch b, String type, String workerid, String hitid, String assignmentid,
+                                String queryparams, Map<String,Object> data) {
+        TurkerLog log = context.newObject(TurkerLog.class);
+        log.setToBatch(b);
+        log.setType(type);
+        log.setWorkerId(workerid);
+        log.setHit(hitid);
+        log.setAssignmentId(assignmentid);
+        log.setQueryParams(queryparams);
+        if (data != null && !data.isEmpty()) log.setData(new JSONObject(data).toString());
+        log.setDate(new Date());
+        context.commitChanges();
 
     }
 }
