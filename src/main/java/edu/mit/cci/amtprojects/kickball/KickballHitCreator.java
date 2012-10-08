@@ -74,7 +74,7 @@ public class KickballHitCreator {
             String launchurl = MturkUtils.addUrlParams(url,"focus",""+p.getPostid(),"batch",""+b.getId());
             log.info("Would launch at " + launchurl);
             HitManager.get(b).launch(launchurl, 800, props);
-            break;
+
         }
 
     }
