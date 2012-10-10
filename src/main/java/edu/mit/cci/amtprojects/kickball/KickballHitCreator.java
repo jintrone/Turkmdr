@@ -52,7 +52,7 @@ public class KickballHitCreator {
         String url = RequestUtils.toAbsolutePath(req.getRequestURL().toString(), relativePath);
 
         //add parameters to batch
-        MturkUtils.parameterizeBatch(b,"threadid",model.getAssignmentsPerHit(),"bonus",model.getBonus(),"reward",model.getReward());
+        MturkUtils.parameterizeBatch(b,"threadid",model.getThreadId(),"assignments",model.getAssignmentsPerHit(),"bonus",model.getBonus(),"reward",model.getReward());
         log.info("Set parameters "+b.getParameters());
         DbProvider.getContext().commitChanges();
 

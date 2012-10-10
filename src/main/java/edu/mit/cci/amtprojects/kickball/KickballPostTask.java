@@ -8,13 +8,11 @@ import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.ajax.json.JSONException;
 import org.apache.wicket.ajax.json.JSONObject;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -25,22 +23,15 @@ import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
-import org.apache.wicket.markup.html.pages.RedirectPage;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.protocol.http.WebApplication;
-import org.apache.wicket.request.flow.RedirectToUrlException;
-import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.Serializable;
 import java.text.DateFormat;
-import java.util.Collections;
 
 /**
  * User: jintrone
@@ -79,25 +70,23 @@ public class KickballPostTask extends WebPage {
         final StringValue assignmentId = param.get("assignmentId");
         StringValue workerId = param.get("workerId");
 
-        HttpServletRequest request=(HttpServletRequest)getRequestCycle().getRequest().getContainerRequest();
+        HttpServletRequest request = (HttpServletRequest) getRequestCycle().getRequest().getContainerRequest();
 
-        final String ipAddress=request.getRemoteAddr();
-
-
+        final String ipAddress = request.getRemoteAddr();
 
 
         Batch batch = CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong());
         try {
-            this.bonus = (float)(new JSONObject(batch.getParameters()).getDouble("bonus"));
+            this.bonus = (float) (new JSONObject(batch.getParameters()).getDouble("bonus"));
         } catch (JSONException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            log.warn("No bonus found in batch; using default of "+bonus);
+            log.warn("No bonus found in batch; using default of " + bonus);
         }
         this.workerId = workerId.toString("NONE");
         this.assignmentId = assignmentId.toString("NONE");
 
         if (this.assignmentId.equals("ASSIGNMENT_ID_NOT_AVAILABLE")) {
-           focusid = StringValue.valueOf(97456);
+            focusid = StringValue.valueOf(97456);
             isPreview = true;
         }
 
@@ -114,19 +103,19 @@ public class KickballPostTask extends WebPage {
             }
         }
 
-         CayenneUtils.logEvent(DbProvider.getContext(),
-                                     CayenneUtils.findBatch(DbProvider.getContext(),batchid.toLong()),
-                                     "VIEW_PAGE",
-                        param.get("workerId").toString("NONE"),
-                        param.get("hitId").toString("NONE"),
-                        param.get("assignmentId").toString("NONE"),
-                        param.toString(), Utils.mapify("clientip", ipAddress));
+        CayenneUtils.logEvent(DbProvider.getContext(),
+                CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong()),
+                "VIEW_PAGE",
+                param.get("workerId").toString("NONE"),
+                param.get("hitId").toString("NONE"),
+                param.get("assignmentId").toString("NONE"),
+                param.toString(), Utils.mapify("clientip", ipAddress));
 
         configureItemsPerPage();
 
 
         //final int finalFocus = focus;
-        add(new Label("bonusLabel",String.format("$%.2f",bonus)));
+        add(new Label("bonusLabel", String.format("$%.2f", bonus)));
 
 
         Link focuslink = new Link("targetfocus") {
@@ -134,8 +123,8 @@ public class KickballPostTask extends WebPage {
                 log.info("Setting focus");
                 refocus = focus;
                 CayenneUtils.logEvent(DbProvider.getContext(),
-                                     CayenneUtils.findBatch(DbProvider.getContext(),batchid.toLong()),
-                                     "JUMP_TO_TARGET",
+                        CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong()),
+                        "JUMP_TO_TARGET",
                         param.get("workerId").toString("NONE"),
                         param.get("hitId").toString("NONE"),
                         param.get("assignmentId").toString("NONE"),
@@ -150,8 +139,6 @@ public class KickballPostTask extends WebPage {
         };
 
 
-
-
         final WebMarkupContainer container = new WebMarkupContainer("selectionContainer");
         container.setOutputMarkupId(true);
         container.add(focuslink);
@@ -163,12 +150,12 @@ public class KickballPostTask extends WebPage {
                 log.info("Setting focus");
                 refocus = selection;
                 CayenneUtils.logEvent(DbProvider.getContext(),
-                                     CayenneUtils.findBatch(DbProvider.getContext(),batchid.toLong()),
-                                     "JUMP_TO_SELECTION",
+                        CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong()),
+                        "JUMP_TO_SELECTION",
                         param.get("workerId").toString("NONE"),
                         param.get("hitId").toString("NONE"),
                         param.get("assignmentId").toString("NONE"),
-                        param.toString(), Utils.mapify("clientip", ipAddress,"selection",selection));
+                        param.toString(), Utils.mapify("clientip", ipAddress, "selection", selection));
             }
 
             public boolean isEnabled() {
@@ -187,7 +174,6 @@ public class KickballPostTask extends WebPage {
         submitcontainer.setOutputMarkupId(true);
 
 
-
         submitcontainer.add(new Button("submitchoice") {
 
             public boolean isEnabled() {
@@ -196,14 +182,12 @@ public class KickballPostTask extends WebPage {
             }
 
 
-
-
         });
 
         submitcontainer.add(new Button("submitnochoice") {
-           public boolean isEnabled() {
-               return !isPreview && selection == -1;
-           }
+            public boolean isEnabled() {
+                return !isPreview && selection == -1;
+            }
 
         });
 
@@ -212,10 +196,10 @@ public class KickballPostTask extends WebPage {
         form.add(new HiddenField<String>("assignmentId", new Model<String>(this.assignmentId + "")));
         form.add(new HiddenField<String>("post", new Model<String>("" + focus)));
 
-        final Component selectionfield= new HiddenField<String>("respondstoid",new Model<String>() {
+        final Component selectionfield = new HiddenField<String>("respondstoid", new Model<String>() {
             @Override
             public String getObject() {
-                return selection+"";
+                return selection + "";
             }
         }).setOutputMarkupId(true);
         form.add(selectionfield);
@@ -247,7 +231,7 @@ public class KickballPostTask extends WebPage {
                 item.add(r);
 
 
-                item.add(new Label("postid", String.valueOf(post.getPostid())));
+
                 item.add(new Label("date", DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(post.getCreated())));
                 item.add(new Label("username", post.getPostToUser().getUsername()));
                 item.add(new Label("content", post.getContent()).setEscapeModelStrings(false));
@@ -288,12 +272,12 @@ public class KickballPostTask extends WebPage {
                 ajaxRequestTarget.add(submitcontainer);
                 ajaxRequestTarget.add(selectionfield);
                 CayenneUtils.logEvent(DbProvider.getContext(),
-                                     CayenneUtils.findBatch(DbProvider.getContext(),batchid.toLong()),
-                                     "CLEAR_SELECTION",
+                        CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong()),
+                        "CLEAR_SELECTION",
                         param.get("workerId").toString("NONE"),
                         param.get("hitId").toString("NONE"),
                         param.get("assignmentId").toString("NONE"),
-                        param.toString(),Utils.mapify("clientip", ipAddress));
+                        param.toString(), Utils.mapify("clientip", ipAddress));
 
             }
 
@@ -314,14 +298,14 @@ public class KickballPostTask extends WebPage {
                 ajaxRequestTarget.add(container);
                 ajaxRequestTarget.add(group);
                 ajaxRequestTarget.add(submitcontainer);
-                 ajaxRequestTarget.add(selectionfield);
+                ajaxRequestTarget.add(selectionfield);
                 CayenneUtils.logEvent(DbProvider.getContext(),
-                                     CayenneUtils.findBatch(DbProvider.getContext(),batchid.toLong()),
-                                     "SELECTION_UPDATED",
+                        CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong()),
+                        "SELECTION_UPDATED",
                         param.get("workerId").toString("NONE"),
                         param.get("hitId").toString("NONE"),
                         param.get("assignmentId").toString("NONE"),
-                        param.toString(), Utils.mapify("selection",selection+"","clientip",ipAddress));
+                        param.toString(), Utils.mapify("selection", selection + "", "clientip", ipAddress));
 
             }
         });
@@ -334,8 +318,10 @@ public class KickballPostTask extends WebPage {
         add(pagingNavigator);
 
 
-
     }
+
+
+
 
     private void configureItemsPerPage() {
         if (focus > -1 && calculatePageForFocus(focus) > 0 && calculateIndexForFocus(focus) == 0) {

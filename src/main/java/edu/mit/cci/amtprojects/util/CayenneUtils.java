@@ -46,6 +46,14 @@ public class CayenneUtils {
 
     }
 
+    public static List<TurkerLog> getTurkerLogForAssignment(DataContext context, String assignmentId, String type) {
+
+        final String queryString = "select * from TurkerLog  where assignmentId like '"+assignmentId+"' and type like '"+type+"'";
+        final SQLTemplate queryTemplate = new SQLTemplate(TurkerLog.class, queryString);
+        return (List<TurkerLog>)context.performQuery(queryTemplate);
+
+    }
+
     public static String dbDateFormat(Date d) {
         return new Timestamp(d.getTime()).toString();
     }

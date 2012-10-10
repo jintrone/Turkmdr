@@ -234,3 +234,32 @@ div#commands {
     background-color: #FCFCFC;
     border: thin solid #d3d3d3;
 }
+
+table.results {
+    width: 730px;
+    border-collapse: collapse;
+
+}
+
+table.results td.postcolumn {
+    font-weight: bold;
+
+}
+
+table.results tr.noanswer {
+    background-color: #e49595
+}
+
+table.results tr.complete {
+    background-color: #8586ff
+}
+
+table.results tr.partial {
+    background-color: #b3b4ff
+}
+
+table.results tr.none {
+    background-color: #d9daff
+}
+
+

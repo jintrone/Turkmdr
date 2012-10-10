@@ -56,13 +56,7 @@
             <label for="awsId">AWS Id:</label><input wicket:id="awsId" id="awsId" type="text" size="40"/>  <br>
             <label for="awsSecret">AWS Secret:</label><input wicket:id="awsSecret" id="awsSecret" type="text" size="128"/>  <br>
             <label for="awsSecret">Is Real?</label><input wicket:id="isReal" id="isReal" type="checkbox"/>  <br>
-            <form wicket:id="kickballForm">
-               <label for="threadId">ThreadId</label><input wicket:id="threadId" id="threadId" type="text" size=40/><br>
-               <label for="assignmentsPerHit">Assignments:</label><input wicket:id="assignmentsPerHit" id="assignmentsPerHit" type="text" size=40/><br>
-                <label for="bonus">Bonus:</label><input wicket:id="bonus" id="bonus" type="text" size=40/><br>
-                <label for="reward">Reward:</label><input wicket:id="reward" id="reward" type="text" size=40/><br>
-
-            </form>
+            <div wicket:id="pluginPanel">[any plugin specific]</div>
 
 
             <input type="submit" wicket:id="createButton" value="Create"/>

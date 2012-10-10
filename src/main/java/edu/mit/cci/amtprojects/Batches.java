@@ -1,7 +1,8 @@
 package edu.mit.cci.amtprojects;
 
 import edu.mit.cci.amtprojects.kickball.KickballHitCreator;
-import edu.mit.cci.amtprojects.kickball.KickballHitForm;
+
+import edu.mit.cci.amtprojects.kickball.KickballHitFormPanel;
 import edu.mit.cci.amtprojects.kickball.KickballPostTask;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
@@ -120,7 +121,7 @@ public class Batches extends WebPage {
                 add(new TextField<String>("awsSecret"));
                 add(new CheckBox("isReal"));
                 add(new Button("createButton"));
-                add(new KickballHitForm("kickballForm"));
+                add(new KickballHitFormPanel("pluginPanel"));
 
             }
 

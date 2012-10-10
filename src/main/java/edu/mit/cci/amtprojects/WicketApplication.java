@@ -1,5 +1,6 @@
 package edu.mit.cci.amtprojects;
 
+import edu.mit.cci.amtprojects.kickball.KickballHitProcessor;
 import edu.mit.cci.amtprojects.kickball.KickballPostTask;
 import org.apache.cayenne.access.DataContext;
 import org.apache.wicket.core.request.mapper.MountedMapper;
@@ -36,5 +37,6 @@ public class WicketApplication extends WebApplication
         getRootRequestMapperAsCompound().add(new MountedMapper("/manage/${experiment}", Batches.class));
 		mountPage("/manage/${experiment}/${batch}", Hits.class);
 	    mountPage("/task/kickball",KickballPostTask.class);
+        mountPage("/manage/kickball/${batch}", KickballHitProcessor.class);
     }
 }
