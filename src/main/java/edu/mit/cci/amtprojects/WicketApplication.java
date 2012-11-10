@@ -2,6 +2,10 @@ package edu.mit.cci.amtprojects;
 
 import edu.mit.cci.amtprojects.kickball.KickballHitProcessor;
 import edu.mit.cci.amtprojects.kickball.KickballPostTask;
+import edu.mit.cci.amtprojects.solver.SolverGenerationTask;
+import edu.mit.cci.amtprojects.solver.SolverManager;
+import edu.mit.cci.amtprojects.solver.SolverRankingTask;
+import edu.mit.cci.amtprojects.solver.SolverTask;
 import org.apache.cayenne.access.DataContext;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.protocol.http.WebApplication;
@@ -33,10 +37,13 @@ public class WicketApplication extends WebApplication
 	public void init()
 	{
 		super.init();
-
+        getDebugSettings().setComponentUseCheck(false);
         getRootRequestMapperAsCompound().add(new MountedMapper("/manage/${experiment}", Batches.class));
 		mountPage("/manage/${experiment}/${batch}", Hits.class);
 	    mountPage("/task/kickball",KickballPostTask.class);
         mountPage("/manage/kickball/${batch}", KickballHitProcessor.class);
+        mountPage("/task/solver/generate", SolverGenerationTask.class);
+        mountPage("/task/solver/rank", SolverRankingTask.class);
+        mountPage("/manage/solver/${batch}", SolverManager.class);
     }
 }

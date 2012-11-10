@@ -3,20 +3,16 @@ package edu.mit.cci.amtprojects.kickball;
 import edu.cci.amtprojects.DefaultEnabledHitProperties;
 import edu.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.DbProvider;
+import edu.mit.cci.amtprojects.HitCreator;
+import edu.mit.cci.amtprojects.UrlCreator;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Post;
 import edu.mit.cci.amtprojects.util.MturkUtils;
-import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.cayenne.exp.Expression;
 import org.apache.cayenne.query.SelectQuery;
 import org.apache.cayenne.query.SortOrder;
 import org.apache.log4j.Logger;
-import org.apache.sling.commons.json.JSONObject;
-import org.apache.wicket.protocol.http.RequestUtils;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.http.WebRequest;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.List;
@@ -26,7 +22,7 @@ import java.util.List;
  * Date: 10/4/12
  * Time: 11:17 PM
  */
-public class KickballHitCreator {
+public class KickballHitCreator implements HitCreator {
 
     private static KickballHitCreator instance;
 
@@ -39,17 +35,17 @@ public class KickballHitCreator {
         return instance;
     }
 
-    private KickballHitModel model;
 
-    public void setModel(KickballHitModel model) {
-        this.model = model;
-    }
 
-    public void launch(String relativePath, Batch b) throws MalformedURLException, UnsupportedEncodingException {
+
+
+    public void launch(UrlCreator creator, Object m, Batch b) throws MalformedURLException, UnsupportedEncodingException {
+
+        KickballHitModel model = (KickballHitModel)m;
+        String url = creator.getUrlFor(KickballPostTask.class);
 
         //build url
-        HttpServletRequest req = (HttpServletRequest) ((WebRequest) RequestCycle.get().getRequest()).getContainerRequest();
-        String url = RequestUtils.toAbsolutePath(req.getRequestURL().toString(), relativePath);
+
 
         //add parameters to batch
         MturkUtils.parameterizeBatch(b,"threadid",model.getThreadId(),"assignments",model.getAssignmentsPerHit(),"bonus",model.getBonus(),"reward",model.getReward());

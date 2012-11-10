@@ -6,4 +6,6 @@ package edu.mit.cci.amtprojects;
  * Time: 10:05 AM
  */
 public interface TurkLogger {
+
+    public void logEvent(String type, Object... params);
 }

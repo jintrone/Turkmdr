@@ -5,5 +5,7 @@ package edu.mit.cci.amtprojects;
  * Date: 10/17/12
  * Time: 10:24 PM
  */
-public class UrlCreator {
+public interface UrlCreator {
+
+    public String getUrlFor(Class c);
 }

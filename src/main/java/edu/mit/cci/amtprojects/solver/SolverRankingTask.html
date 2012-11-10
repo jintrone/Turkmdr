@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<head>
+    <meta charset="utf-8"/>
+    <title>MechTurk Solution Task</title>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="solver.css" type="text/css" media="screen" title="Stylesheet"/>
+    <script src="js/jquery.1.8.1.min.js"></script>
+    <script type="text/javascript" wicket:id="script"></script>
+
+    <script type="text/javascript">
+        function validateForm() {
+            alert("Validating");
+            var count=0;
+            var ranks = $("input.solutionRank").map(function() {
+                count++;
+                if (this.value) return parseInt(this.value);
+            }).get();
+
+            if (count!= ranks.length) {
+                alert("Please rank all items");
+                return false;
+            }
+
+            ranks.sort();
+            for (var i = 0;i<count;i++) {
+                if (i+1!=ranks[i]) {
+                   alert("Please rank all items from 1 to "+count);
+                    return false;
+                }
+            }
+
+
+
+            return true;
+
+
+        }
+
+
+    </script>
+</head>
+<body>
+<div wicket:id="demographicsPanel">[demographics panel]</div>
+<div>
+     <p class="question">
+        <span wicket:id="question">[the question]</span>
+    </p>
+    <p class="instructions">
+    Please rank the following answers to the above question. 1 is the best. All answers must
+    be assigned a unique rank. Rank answers according to how feasible they are, and how well they are presented.
+  </p>
+
+
+    <div class="inset">
+        <span class="smallinfo">Current Answers:</span>
+        <form wicket:id="hitForm" onsubmit="return validateForm();">
+            <input wicket:id="assignmentId" id="assignmentId" type="hidden"/>
+            <input wicket:id="round" id="round" type="hidden"/>
+             <input wicket:id="phase" id="phase" type="hidden"/>
+            <table id="answers">
+                <tr>
+                  <th id="rankcol">Rank</th>
+                  <th>Answer</th>
+                 </tr>
+                <tr wicket:id="answers">
+                    <td class="checkbox">
+                        <input type="text" wicket:id="rank" class="solutionRank"/>
+
+                    </td>
+                    <td class="answer">
+                         <span wicket:id="text">[answer]</span>
+                    </td>
+                 </tr>
+            </table>
+            <div class="submitBlock"><input type="submit" value="Submit ranking" wicket:id="submit"/></div>
+        </form>
+
+    </div>
+
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,67 @@
+body, p, li, a {
+    font-family: 'Source+Sans+Pro', sans-serif;
+    font-size: 10pt;
+}
+
+h1, h2, h3 {
+    font-family: 'Source+Sans+Pro', sans-serif;
+}
+
+body {
+    margin: 0 auto;
+    padding: 0;
+    width: 700px;
+}
+
+.instructions {font-size:15px; font-style:italic; color:#909090}
+p.question {font-size:32px}
+div.inset {width: 700px;margin: 0 auto}
+
+table#answers {width:100%}
+table#answers th {background-color: #C0C0C0; padding: 5px;}
+table#answers th#rankcol {width:25px}
+table#answers input.solutionRank {width:25px}
+table#answers td {padding: 15px 10px; vertical-align: top}
+table#answers td.answer p {font-size:16px; margin:0}
+
+div.workpanel {margin-top:40px}
+
+.smallinfo {font-size:16px; margin-top:40px}
+table.buttonlayout {width:90%;border-collapse: collapse;border-width: 0px; margin: 0 auto}
+table.buttonlayout td {text-align: center;vertical-align: middle;}
+table.buttonlayout td.button {width:200px}
+table.buttonlayout td.instructions {padding-top:20px}
+
+
+
+.bigtext {font-size:42px}
+button.choicebutton {width:200px; height:100px;}
+button,  input[type="submit"] {background: #305090; border:none; color:#d3d3d3; padding: 10px; font-size:22px}
+button:hover, input[type="submit"]:hover {background: #103060;}
+
+button:disabled,  input[type="submit"][enabled="false"]:disabled {background: #606161}
+
+.submitBlock {text-align: center; margin-top:20px}
+div.popup {display:none; width:200px; font-size:12px; font-style:italic; color:#030303; background-color: #fce174; border: thin solid #030303; position: absolute; padding: 10px}
+.popupTrigger {padding: 1px 3px; background: #999999; color:#333; font-weight:bold; border: thin solid #555}
+
+ol.instructions li {font-size:14px; color:#333; font-style: normal; margin-top:5px}
+span.done {text-decoration: line-through; color:#778899;}
+span.disabled {color:#778899;}
+
+div.answerBlock {text-align: center}
+
+
+
+div.overlay {position:absolute;left: 0;top: 0; width:100%; height:100%; background-color: rgba(40,40,40,.50); z-index: 1000;}
+div.overlay div.modal {margin: 100px auto; width:600px; padding: 50px; border: thin solid rgb(202,202,174); background:rgb(245,245,223);}
+.biginfo, .biginfo a{font-size:18px}
+.biginfo {color:#444;}
+table.formLayout {margin: 20px auto; font-size:18px}
+div.feedback {color: #962626; font-size:18px}
+
+
+
+
+
+

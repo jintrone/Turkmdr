@@ -1,5 +1,6 @@
 package edu.mit.cci.amtprojects.kickball;
 
+import edu.mit.cci.amtprojects.InnerFormCallback;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -13,13 +14,13 @@ import org.apache.wicket.model.CompoundPropertyModel;
 public class KickballHitFormPanel extends Panel {
 
 
-    public KickballHitFormPanel(String id) {
+    public KickballHitFormPanel(String id, final InnerFormCallback callback) {
         super(id);
         Form<KickballHitModel> form = new Form<KickballHitModel>("kickballHitForm",
                 new CompoundPropertyModel<KickballHitModel>(new KickballHitModel())) {
 
             public void onSubmit() {
-                KickballHitCreator.getInstance().setModel(getModelObject());
+               callback.setData(getModelObject());
             }
 
         };

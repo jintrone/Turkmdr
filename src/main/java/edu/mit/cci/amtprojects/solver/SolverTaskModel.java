@@ -1,9 +1,20 @@
 package edu.mit.cci.amtprojects.solver;
 
+import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
+import edu.mit.cci.amtprojects.util.CayenneUtils;
+import edu.mit.cci.amtprojects.util.Utils;
+import org.apache.cayenne.DataObjectUtils;
+import org.apache.cayenne.exp.Expression;
+import org.apache.cayenne.query.SelectQuery;
+import org.apache.log4j.Logger;
+import org.apache.wicket.ajax.json.JSONArray;
+import org.apache.wicket.ajax.json.JSONException;
+import org.apache.wicket.ajax.json.JSONObject;
 import org.apache.wicket.util.io.IClusterable;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -14,64 +25,341 @@ import java.util.List;
 public class SolverTaskModel implements IClusterable {
 
 
+    //serializaed props
 
-    public SolverTaskModel() {}
+    public String groupName = "";
+    public int numberOfGenerators = 0;
+    public int numberOfRankers = 0;
+    public int numberOfRounds = 0;
+    public int sizeOfFront = 0;
+    public float maxRankingBonus = 0;
+    public float maxGeneratingBonus = 0;
+    public float maxCombiningBonus = 0;
+    public float baseReward = 0;
+    public List<Long> initialAnswerIds = new ArrayList<Long>();
+    public Long questionId;
 
 
-    public void updateBatchParameters(Batch b) {
+    //other props
+    static String[] names = new String[]{"groupName","numberOfGenerators", "numberOfRankers", "numberOfRounds", "sizeOfFront",
+            "maxRankingBonus", "maxGeneratingBonus", "maxCombiningBonus", "baseReward", "initialAnswerIds", "questionId"};
+
+    String[] initialAnswerText = new String[10];
+    String questionText;
+    private Long batchId;
+    private SolverTaskStatus currentStatus;
+    private static Logger log = Logger.getLogger(SolverTaskModel.class);
+
+
+    public SolverTaskModel(Batch b) throws JSONException {
+        this.batchId = b.getId();
+        readFromBatch(b);
+    }
+
+    public SolverTaskModel() {
+    }
+
+
+    public void saveToBatch(Batch b) throws JSONException {
+        this.batchId = b.getId();
+        Question q;
+        if (questionId == null) {
+            if (questionText == null || questionText.isEmpty())
+                throw new RuntimeException("Must specify question text before saving solver task");
+            q = DbProvider.getContext().newObject(Question.class);
+            q.setText(questionText);
+            q.setToBatch(b);
+            DbProvider.getContext().commitChanges();
+            questionId = q.getId();
+
+
+        } else {
+            q = DataObjectUtils.objectForPK(DbProvider.getContext(), Question.class, questionId);
+
+
+        }
+        if (initialAnswerIds.isEmpty()) {
+
+            List<Solution> solutions = new ArrayList<Solution>();
+            for (String txt : initialAnswerText) {
+                if (txt != null && !txt.isEmpty()) {
+                    Solution s = DbProvider.getContext().newObject(Solution.class);
+                    s.setText(txt);
+                    s.setAssignmentId("<none>");
+                    s.setRound(-1);
+                    s.setCreation(new Date());
+                    s.setWorkerId("<none>");
+                    s.setToQuestion(q);
+                    solutions.add(s);
+
+                }
+            }
+
+            DbProvider.getContext().commitChanges();
+            for (Solution s : solutions) {
+                initialAnswerIds.add(s.getId());
+            }
+
+        }
+        b.setParameters(this.toJSONString());
+        DbProvider.getContext().commitChanges();
+    }
+
+    public SolverTaskStatus getCurrentStatus() {
+        if (currentStatus == null) {
+            if (batchId == null) {
+                log.warn("Cannot retrieve status if no batchid is available");
+            } else {
+                Batch b = CayenneUtils.findBatch(DbProvider.getContext(), batchId);
+                if (b == null) {
+                    log.error("Invalid batch id: " + batchId);
+                    return null;
+                }
+                currentStatus = new SolverTaskStatus(b);
+                try {
+                    if (b.getToStatus().isEmpty()) {
+                        currentStatus.setCurrentAnswers(getInitialAnswers());
+                        currentStatus.setPhase(SolverProcessMonitor.Phase.INIT);
+                        currentStatus.setCurrentRound(0);
+                        currentStatus.update();
+                    } else {
+                        currentStatus.read();
+                    }
+                } catch (JSONException ex) {
+                    ex.printStackTrace();
+                    log.error("Error parsing BatchStatus");
+                    throw new RuntimeException("Error parsing batch status");
+                }
+
+            }
+        }
+        return currentStatus;
+    }
+
+
+    private void readFromBatch(Batch b) throws JSONException {
+        String parameters = b.getParameters();
+        setGroupName(Utils.extractJsonProperty(parameters, "groupName"));
+        setNumberOfGenerators(Integer.parseInt(Utils.extractJsonProperty(parameters, "numberOfGenerators")));
+        setNumberOfRankers(Integer.parseInt(Utils.extractJsonProperty(parameters, "numberOfRankers")));
+        setNumberOfRounds(Integer.parseInt(Utils.extractJsonProperty(parameters, "numberOfRounds")));
+        setSizeOfFront(Integer.parseInt(Utils.extractJsonProperty(parameters, "sizeOfFront")));
+        setMaxCombiningBonus(Float.parseFloat(Utils.extractJsonProperty(parameters, "maxCombiningBonus")));
+        setMaxRankingBonus(Float.parseFloat(Utils.extractJsonProperty(parameters, "maxRankingBonus")));
+        setMaxGeneratingBonus(Float.parseFloat(Utils.extractJsonProperty(parameters, "maxGeneratingBonus")));
+        setBaseReward(Float.parseFloat(Utils.extractJsonProperty(parameters, "baseReward")));
+        questionId = Long.parseLong(Utils.extractJsonProperty(parameters, "questionId"));
+        String answerArray = Utils.extractJsonProperty(parameters, "initialAnswerIds");
+        JSONArray array = new JSONArray(answerArray);
+        initialAnswerIds = new ArrayList<Long>();
+        for (int i = 0; i < array.length(); i++) {
+            initialAnswerIds.add(array.getLong(i));
+        }
 
     }
 
-    public void updateBatchStatus(Batch b) {
-
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
-    public SolverTaskModel readFromBatch(Batch b) {
-        return this;
+    public String getGroupName() {
+        return groupName;
     }
 
-    //
-
-    public int getNumberGenerators() {
-        return 0;
+    public void setQuestionText(String q) {
+        this.questionText = q;
     }
 
-    public int getNumberOfRankers() {
-        return 0;
+    public String getQuestionText() {
+        return questionText;
     }
 
-    public int getNumberOfRounds() {
-       return 0;
+
+    private String toJSONString() throws JSONException {
+        String result = new JSONObject(this, names).toString();
+        return result;
     }
 
-    public int getSizeOfFront() {
-        return 0;
+
+    public float getBaseReward() {
+        return baseReward;
     }
 
-    public float getMaxRankingBonus() {
-        return 0;
+    public void setBaseReward(float baseReward) {
+        this.baseReward = baseReward;
     }
 
-    public float getMaxGeneratingBonus() {
-        return 0;
+
+    public List<Solution> getInitialAnswers() {
+        String exp = "id in (" + Utils.join(initialAnswerIds, ",") + ")";
+        log.debug("Expression string "+exp);
+
+        SelectQuery query = new SelectQuery(Solution.class, Expression.fromString(exp));
+        List<Solution> result = DbProvider.getContext().performQuery(query);
+        return result;
+    }
+
+
+    public void setInitialAnswers(List<Solution> currentAnswers) {
+        this.initialAnswerIds.clear();
+        for (Solution s : currentAnswers) {
+            this.initialAnswerIds.add(Long.valueOf(s.getObjectId().toString()));
+        }
+
+
     }
 
     public float getMaxCombiningBonus() {
-        return 0;
+        return maxCombiningBonus;
     }
 
-    public float getBaseReward() {
-        return 0;
+    public void setMaxCombiningBonus(float maxCombiningBonus) {
+        this.maxCombiningBonus = maxCombiningBonus;
     }
 
-    public List<String> getInitialAnswers() {
-        return Collections.emptyList();
+    public float getMaxGeneratingBonus() {
+        return maxGeneratingBonus;
     }
 
-    public String getQuestion() {
-        return "";
+    public void setMaxGeneratingBonus(float maxGeneratingBonus) {
+        this.maxGeneratingBonus = maxGeneratingBonus;
     }
 
+    public float getMaxRankingBonus() {
+        return maxRankingBonus;
+    }
+
+    public void setMaxRankingBonus(float maxRankingBonus) {
+        this.maxRankingBonus = maxRankingBonus;
+    }
+
+    public int getNumberOfGenerators() {
+        return numberOfGenerators;
+    }
+
+    public void setNumberOfGenerators(int numberOfGenerators) {
+        this.numberOfGenerators = numberOfGenerators;
+    }
+
+    public int getNumberOfRankers() {
+        return numberOfRankers;
+    }
+
+    public void setNumberOfRankers(int numberOfRankers) {
+        this.numberOfRankers = numberOfRankers;
+    }
+
+    public int getNumberOfRounds() {
+        return numberOfRounds;
+    }
+
+    public void setNumberOfRounds(int numberOfRounds) {
+        this.numberOfRounds = numberOfRounds;
+    }
+
+
+    public int getSizeOfFront() {
+        return sizeOfFront;
+    }
+
+    public void setSizeOfFront(int sizeOfFront) {
+        this.sizeOfFront = sizeOfFront;
+    }
+
+
+    //why you ask?  because building a dynamically size list in a wicket form
+    //is not at all straightforward
+
+    public void setInitialAnswer0(String answer) {
+        initialAnswerText[0] = answer;
+    }
+
+    public void setInitialAnswer1(String answer) {
+        initialAnswerText[1] = answer;
+    }
+
+    public void setInitialAnswer2(String answer) {
+        initialAnswerText[2] = answer;
+    }
+
+    public void setInitialAnswer3(String answer) {
+        initialAnswerText[3] = answer;
+    }
+
+    public void setInitialAnswer4(String answer) {
+        initialAnswerText[4] = answer;
+    }
+
+    public void setInitialAnswer5(String answer) {
+        initialAnswerText[5] = answer;
+    }
+
+    public void setInitialAnswer6(String answer) {
+        initialAnswerText[6] = answer;
+    }
+
+    public void setInitialAnswer7(String answer) {
+        initialAnswerText[7] = answer;
+    }
+
+    public void setInitialAnswer8(String answer) {
+        initialAnswerText[8] = answer;
+    }
+
+    public void setInitialAnswer9(String answer) {
+        initialAnswerText[9] = answer;
+    }
+
+    public String getInitialAnswer0() {
+        return initialAnswerText[0];
+    }
+
+    public String getInitialAnswer1() {
+        return initialAnswerText[1];
+    }
+
+    public String getInitialAnswer2() {
+        return initialAnswerText[2];
+    }
+
+    public String getInitialAnswer3() {
+        return initialAnswerText[3];
+    }
+
+    public String getInitialAnswer4() {
+        return initialAnswerText[4];
+    }
+
+    public String getInitialAnswer5() {
+        return initialAnswerText[5];
+    }
+
+    public String getInitialAnswer6() {
+        return initialAnswerText[6];
+    }
+
+    public String getInitialAnswer7() {
+        return initialAnswerText[7];
+    }
+
+    public String getInitialAnswer8() {
+        return initialAnswerText[8];
+    }
+
+    public String getInitialAnswer9() {
+        return initialAnswerText[9];
+    }
+
+
+    public Question getQuestion() {
+        return questionId != null ? DataObjectUtils.objectForPK(DbProvider.getContext(), Question.class, questionId) : null;
+    }
+
+
+    public Batch getBatch() {
+        if (batchId == null) return null;
+        else return CayenneUtils.findBatch(DbProvider.getContext(), batchId);
+    }
 
 
 }

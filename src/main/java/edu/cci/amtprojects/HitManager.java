@@ -240,7 +240,7 @@ public class HitManager {
             GetAssignmentResult result = requesterService.getAssignment(id);
             if (result.getAssignment() != null) {
                 Assignment a = result.getAssignment();
-                requesterService.grantBonus(a.getWorkerId(), amount, a.getAssignmentId(), feedback);
+                requesterService.grantBonus(a.getWorkerId(), Double.parseDouble(String.format("%.2f",amount)), a.getAssignmentId(), feedback);
                 TurkerLog nlog = DbProvider.getContext().newObject(TurkerLog.class);
                 nlog.setAssignmentId(a.getAssignmentId());
                 nlog.setHit(a.getHITId());
@@ -250,7 +250,7 @@ public class HitManager {
                 nlog.setWorkerId(a.getWorkerId());
                 Map<String, String> data = new HashMap<String, String>();
                 data.put("response", feedback);
-                data.put("amount", String.format("%f.2", amount));
+                data.put("amount", String.format("%.2f", amount));
                 JSONObject obj = new JSONObject(data);
                 nlog.setData(obj.toString());
                 DbProvider.getContext().commitChanges();

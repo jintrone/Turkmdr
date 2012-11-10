@@ -1,6 +1,7 @@
 package edu.mit.cci.amtprojects.kickball;
 
 import edu.mit.cci.amtprojects.DbProvider;
+import edu.mit.cci.amtprojects.HomePage;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Post;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
@@ -8,6 +9,7 @@ import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.ajax.json.JSONException;
@@ -76,6 +78,9 @@ public class KickballPostTask extends WebPage {
 
 
         Batch batch = CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong());
+        if (batch == null) {
+            throw new RestartResponseException(HomePage.class);
+        }
         try {
             this.bonus = (float) (new JSONObject(batch.getParameters()).getDouble("bonus"));
         } catch (JSONException e) {
@@ -103,13 +108,7 @@ public class KickballPostTask extends WebPage {
             }
         }
 
-        CayenneUtils.logEvent(DbProvider.getContext(),
-                CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong()),
-                "VIEW_PAGE",
-                param.get("workerId").toString("NONE"),
-                param.get("hitId").toString("NONE"),
-                param.get("assignmentId").toString("NONE"),
-                param.toString(), Utils.mapify("clientip", ipAddress));
+
 
         configureItemsPerPage();
 

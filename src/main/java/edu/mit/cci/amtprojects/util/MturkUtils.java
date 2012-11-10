@@ -7,6 +7,7 @@ import com.amazonaws.mturk.requester.HIT;
 import com.amazonaws.mturk.service.axis.RequesterService;
 import edu.cci.amtprojects.DefaultEnabledHitProperties;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
+import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
@@ -102,7 +103,8 @@ public class MturkUtils {
 
     }
 
-    public static String extractAnswer(String key, String answerdata) {
+    public static String extractAnswer(TurkerLog log,String key) {
+        String answerdata = Utils.extractJsonProperty(log.getData(),"answer");
         QuestionFormAnswers answers = RequesterService.parseAnswers(answerdata);
         for (QuestionFormAnswersType.AnswerType a:(List< QuestionFormAnswersType.AnswerType>) answers.getAnswer()) {
           if (a.getQuestionIdentifier().equals(key)) return a.getFreeText();

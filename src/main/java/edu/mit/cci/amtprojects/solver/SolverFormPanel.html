@@ -1,10 +1,40 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
 <head>
     <title></title>
 </head>
 <body>
+ <wicket:panel>
+
+    <form wicket:id="solverHitForm">
+        <label for="numberOfGenerators">Group name</label><input wicket:id="groupName" id="groupName" type="text" size=40/><br>
+        <label for="numberOfGenerators">Number of Generators</label><input wicket:id="numberOfGenerators" id="numberOfGenerators" type="text" size=40/><br>
+        <label for="numberOfRankers">Number of Rankers</label><input wicket:id="numberOfRankers" id="numberOfRankers" type="text" size=40/><br>
+        <label for="numberOfRounds">Number of Rounds</label><input wicket:id="numberOfRounds" id="numberOfRounds" type="text" size=40/><br>
+        <label for="sizeOfFront">Size of Front</label><input wicket:id="sizeOfFront" id="sizeOfFront" type="text" size=40/><br>
+        <label for="maxRankingBonus">Rank bonus</label><input wicket:id="maxRankingBonus" id="maxRankingBonus" type="text" size=40/><br>
+        <label for="maxGeneratingBonus">Exploration bonus</label><input wicket:id="maxGeneratingBonus" id="maxGeneratingBonus" type="text" size=40/><br>
+        <label for="maxCombiningBonus">Exploitation bonus</label><input wicket:id="maxCombiningBonus" id="maxCombiningBonus" type="text" size=40/><br>
+        <label for="baseReward">Base reward</label><input wicket:id="baseReward" id="baseReward" type="text" size=40/><br>
+        <label for="questionText">Question</label><input wicket:id="questionText" id="questionText" type="text" size=40/><br>
+        <label for="initialAnswers">Answer 1:</label><input wicket:id="initialAnswer0" id="initialAnswer0" type="text" size=80/><br>
+        <label for="initialAnswers">Answer 2:</label><input wicket:id="initialAnswer1" id="initialAnswer1" type="text" size=80/><br>
+        <label for="initialAnswers">Answer 3:</label><input wicket:id="initialAnswer2" id="initialAnswer2" type="text" size=80/><br>
+        <label for="initialAnswers">Answer 4:</label><input wicket:id="initialAnswer3" id="initialAnswer3" type="text" size=80/><br>
+        <label for="initialAnswers">Answer 5:</label><input wicket:id="initialAnswer4" id="initialAnswer4" type="text" size=80/><br>
+        <label for="initialAnswers">Answer 6:</label><input wicket:id="initialAnswer5" id="initialAnswer5" type="text" size=80/><br>
+        <label for="initialAnswers">Answer 7:</label><input wicket:id="initialAnswer6" id="initialAnswer6" type="text" size=80/><br>
+        <label for="initialAnswers">Answer 8:</label><input wicket:id="initialAnswer7" id="initialAnswer7" type="text" size=80/><br>
+        <label for="initialAnswers">Answer 9:</label><input wicket:id="initialAnswer8" id="initialAnswer8" type="text" size=80/><br>
+        <label for="initialAnswers">Answer 10:</label><input wicket:id="initialAnswer9" id="initialAnswer9" type="text" size=80/><br>
+
+
+
+
+    </form>
+
+</wicket:panel>
 
 </body>
 </html>

@@ -218,6 +218,14 @@
             <version>2.0.6</version>
         </dependency>
 
+        <!-- UNSUPPORTED stats package: http://www.jsc.nildram.co.uk/ -->
+        <dependency>
+          <groupId>jsc</groupId>
+          <artifactId>jsc</artifactId>
+          <version>0.5</version>
+        </dependency>
+
+
     </dependencies>
     <build>
         <resources>

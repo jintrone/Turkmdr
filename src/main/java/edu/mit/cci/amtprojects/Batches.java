@@ -1,16 +1,14 @@
 package edu.mit.cci.amtprojects;
 
-import edu.mit.cci.amtprojects.kickball.KickballHitCreator;
-
-import edu.mit.cci.amtprojects.kickball.KickballHitFormPanel;
 import edu.mit.cci.amtprojects.kickball.KickballPostTask;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
+import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
-
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.json.JSONException;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
@@ -23,11 +21,10 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.CompoundPropertyModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.io.IClusterable;
+import org.clapper.util.classutil.ClassUtilException;
 
-import java.awt.*;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.text.DateFormat;
@@ -47,28 +44,37 @@ public class Batches extends WebPage {
     PagingNavigator pagingNavigator;
 
 
-
-
     public Batches(PageParameters parameters) {
 
 
         if (parameters.get("experiment").isEmpty()) {
-            parameters.set("error","No experiment specified!");
-           throw new RestartResponseException(HomePage.class,parameters);
+            parameters.set("error", "No experiment specified!");
+            throw new RestartResponseException(HomePage.class, parameters);
         } else {
             long id = parameters.get("experiment").toLong();
-            experiment = CayenneUtils.findExperiment(DbProvider.getContext(),id);
+            experiment = CayenneUtils.findExperiment(DbProvider.getContext(), id);
             if (experiment == null) {
-                parameters.set("error","Experiment not valid");
-                 throw new RestartResponseException(HomePage.class,parameters);
+                parameters.set("error", "Experiment not valid");
+                throw new RestartResponseException(HomePage.class, parameters);
             }
 
         }
 
 
-        add(new Label("experimentId",experiment.getExperimentId()+""));
-        add(new Label("experimentName",experiment.getName()+""));
-        add(new Label("experimentClass",experiment.getClassname()));
+        add(new Label("experimentId", experiment.getExperimentId() + ""));
+        add(new Label("experimentName", experiment.getName() + ""));
+        add(new Label("experimentClass", experiment.getClassname()));
+
+        final PluginFactory pluginFactory;
+
+        try {
+            Class c = Class.forName(experiment.getClassname());
+            pluginFactory = (PluginFactory)c.newInstance();
+        } catch (Exception e) {
+            parameters.set("error", "Experiment does not specify a valid plugin factory");
+            throw new RestartResponseException(HomePage.class, parameters);
+        }
+
 
 
         final DataView<Batch> dataView = new DataView<Batch>("pageable", new BatchDataProvider(experiment)) {
@@ -78,21 +84,21 @@ public class Batches extends WebPage {
             protected void populateItem(final Item<Batch> item) {
                 final Batch batch = item.getModelObject();
 
-                item.add(new Label("AWSId",batch.getAwsId()));
+                item.add(new Label("AWSId", batch.getAwsId()));
                 item.add(new Label("creation", DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(batch.getCreated())));
-                item.add(new Label("sandbox",String.valueOf(batch.getIsReal())));
+                item.add(new Label("sandbox", String.valueOf(batch.getIsReal())));
                 Link<Batch> l = new Link<Batch>("manage", item.getModel()) {
 
                     @Override
                     public void onClick() {
                         Batch b = getModelObject();
                         PageParameters params = new PageParameters();
-                        params.add("experiment",experiment.getExperimentId());
-                        params.add("batch",batch.getId());
+                        params.add("experiment", experiment.getExperimentId());
+                        params.add("batch", batch.getId());
                         setResponsePage(Hits.class, params);
                     }
                 };
-                l.add(new Label("name",batch.getName()));
+                l.add(new Label("name", batch.getName()));
                 item.add(l);
                 item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
                     private static final long serialVersionUID = 1L;
@@ -111,37 +117,41 @@ public class Batches extends WebPage {
         dataView.setItemsPerPage(itemsPerPage);
         pagingNavigator = new PagingNavigator("navigator", dataView);
         add(pagingNavigator);
+        final Object[] innerFormData = new Object[1];
 
-        add(new Form<BatchFormModel>("batchForm",new CompoundPropertyModel<BatchFormModel>(new BatchFormModel(experiment.getExperimentId()))) {
+
+
+        add(new Form<BatchFormModel>("batchForm", new CompoundPropertyModel<BatchFormModel>(new BatchFormModel(experiment.getExperimentId()))) {
             {
 
-
+                log.debug("I am creating the form");
                 add(new TextField<String>("name"));
                 add(new TextField<String>("awsId"));
                 add(new TextField<String>("awsSecret"));
                 add(new CheckBox("isReal"));
-                add(new Button("createButton"));
-                add(new KickballHitFormPanel("pluginPanel"));
+                add(new Button("createButton") {
+
+                });
+                add(pluginFactory.getFormPanel("pluginPanel",new InnerFormCallback.Basic(innerFormData)));
 
             }
 
+            public void onValidate() {
+                log.debug("Running validation");
+                super.onValidate();
+            }
+
             public void onSubmit() {
-
-               System.err.println("Outer submit ");
-
-                try {
-                    Class.forName(experiment.getClassname());
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                    return;
-                }
+                log.debug("I am submitting!");
 
                 Batch b = getModelObject().create();
                 try {
-                    KickballHitCreator.getInstance().launch(urlFor(KickballPostTask.class,null).toString(),b);
+                    pluginFactory.getHitCreator().launch(Utils.getUrlCreator(this), innerFormData[0], b);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                } catch (JSONException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 }
             }
@@ -152,12 +162,11 @@ public class Batches extends WebPage {
     }
 
 
-
     private static class BatchFormModel implements IClusterable {
 
         private String awsId;
 
-         private String awsSecret;
+        private String awsSecret;
         private boolean isReal = false;
         private String name;
         private Long experimentId;
@@ -214,11 +223,10 @@ public class Batches extends WebPage {
             b.setCreated(new Date());
             b.setName(name);
             b.setIsReal(isReal);
-            b.setToExperiment(CayenneUtils.findExperiment(DbProvider.getContext(),experimentId));
+            b.setToExperiment(CayenneUtils.findExperiment(DbProvider.getContext(), experimentId));
             DbProvider.getContext().commitChanges();
             return b;
         }
-
 
 
     }

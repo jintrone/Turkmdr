@@ -11,8 +11,14 @@
 		<db-attribute name="Name" type="VARCHAR" length="255"/>
 		<db-attribute name="experimentId" type="BIGINT"/>
 		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
-		<db-attribute name="isReal" type="BIT" isMandatory="true"/>
-		<db-attribute name="parameters" type="VARCHAR" length="1028"/>
+		<db-attribute name="isReal" type="BIT"/>
+		<db-attribute name="parameters" type="LONGVARCHAR"/>
+	</db-entity>
+	<db-entity name="BatchStatus">
+		<db-attribute name="batchId" type="BIGINT"/>
+		<db-attribute name="creation" type="TIMESTAMP"/>
+		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="jsonStatus" type="LONGVARCHAR"/>
 	</db-entity>
 	<db-entity name="Experiment">
 		<db-attribute name="Created" type="TIMESTAMP"/>
@@ -23,7 +29,7 @@
 	<db-entity name="TurkerLog">
 		<db-attribute name="assignmentId" type="VARCHAR" length="256"/>
 		<db-attribute name="batchId" type="BIGINT"/>
-		<db-attribute name="data" type="VARCHAR" length="1024"/>
+		<db-attribute name="data" type="LONGVARCHAR"/>
 		<db-attribute name="date" type="TIMESTAMP"/>
 		<db-attribute name="hit" type="VARCHAR" length="256"/>
 		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
@@ -35,10 +41,13 @@
 		<obj-attribute name="awsId" type="java.lang.String" db-attribute-path="AwsId"/>
 		<obj-attribute name="awsSecret" type="java.lang.String" db-attribute-path="AwsSecret"/>
 		<obj-attribute name="created" type="java.util.Date" db-attribute-path="Created"/>
-		<obj-attribute name="id" type="java.lang.Long" db-attribute-path="id"/>
 		<obj-attribute name="isReal" type="java.lang.Boolean" db-attribute-path="isReal"/>
 		<obj-attribute name="name" type="java.lang.String" db-attribute-path="Name"/>
 		<obj-attribute name="parameters" type="java.lang.String" db-attribute-path="parameters"/>
+	</obj-entity>
+	<obj-entity name="BatchStatus" className="edu.mit.cci.amtprojects.kickball.cayenne.BatchStatus" dbEntityName="BatchStatus">
+		<obj-attribute name="creation" type="java.util.Date" db-attribute-path="creation"/>
+		<obj-attribute name="jsonStatus" type="java.lang.String" db-attribute-path="jsonStatus"/>
 	</obj-entity>
 	<obj-entity name="Experiment" className="edu.mit.cci.amtprojects.kickball.cayenne.Experiment" dbEntityName="Experiment">
 		<obj-attribute name="classname" type="java.lang.String" db-attribute-path="classname"/>
@@ -61,6 +70,15 @@
 	<db-relationship name="toLogs" source="Batch" target="TurkerLog" toMany="true">
 		<db-attribute-pair source="id" target="batchId"/>
 	</db-relationship>
+	<db-relationship name="toQuestion" source="Batch" target="Question" toMany="true">
+		<db-attribute-pair source="id" target="batchid"/>
+	</db-relationship>
+	<db-relationship name="toStatus" source="Batch" target="BatchStatus" toMany="true">
+		<db-attribute-pair source="id" target="batchId"/>
+	</db-relationship>
+	<db-relationship name="toBatch" source="BatchStatus" target="Batch" toMany="false">
+		<db-attribute-pair source="batchId" target="id"/>
+	</db-relationship>
 	<db-relationship name="toBatch" source="Experiment" target="Batch" toMany="true">
 		<db-attribute-pair source="id" target="experimentId"/>
 	</db-relationship>
@@ -69,6 +87,9 @@
 	</db-relationship>
 	<obj-relationship name="toExperiment" source="Batch" target="Experiment" deleteRule="Nullify" db-relationship-path="toExperiment"/>
 	<obj-relationship name="toLogs" source="Batch" target="TurkerLog" deleteRule="Deny" db-relationship-path="toLogs"/>
+	<obj-relationship name="toQuestion" source="Batch" target="Question" deleteRule="Nullify" db-relationship-path="toQuestion"/>
+	<obj-relationship name="toStatus" source="Batch" target="BatchStatus" deleteRule="Nullify" db-relationship-path="toStatus"/>
+	<obj-relationship name="toBatch" source="BatchStatus" target="Batch" deleteRule="Deny" db-relationship-path="toBatch"/>
 	<obj-relationship name="toBatch" source="Experiment" target="Batch" deleteRule="Deny" db-relationship-path="toBatch"/>
 	<obj-relationship name="toBatch" source="TurkerLog" target="Batch" deleteRule="Nullify" db-relationship-path="toBatch"/>
 </data-map>

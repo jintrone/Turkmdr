@@ -1,21 +1,28 @@
 package edu.mit.cci.amtprojects.util;
 
+import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
+import org.apache.cayenne.DataObject;
 import org.apache.cayenne.DataObjectUtils;
 import org.apache.cayenne.DataRow;
 import org.apache.cayenne.access.DataContext;
 import org.apache.cayenne.access.QueryLogger;
+import org.apache.cayenne.exp.Expression;
 import org.apache.cayenne.query.SQLTemplate;
+import org.apache.cayenne.query.SelectQuery;
 import org.apache.log4j.Logger;
 import org.apache.velocity.test.IntrospectorTestCase2;
 import org.apache.wicket.ajax.json.JSONObject;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * User: jintrone
@@ -72,6 +79,11 @@ public class CayenneUtils {
 
     }
 
+    public static Long extractObjectId(DataObject obj) {
+        return (Long)obj.getObjectId().getIdSnapshot().get("id");
+    }
+
+
     public static void logEvent(DataContext context, Batch b, String type, String workerid, String hitid, String assignmentid,
                                 String queryparams, Map<String,Object> data) {
         TurkerLog log = context.newObject(TurkerLog.class);
@@ -85,5 +97,27 @@ public class CayenneUtils {
         log.setDate(new Date());
         context.commitChanges();
 
+    }
+
+    public static TurkerLog findWorkerDemographics(DataContext context, String workerId) {
+       final String queryString = "select * from TurkerLog  where workerId like '"+workerId+"' and type like 'DEMOGRAPHICS'";
+        final SQLTemplate queryTemplate = new SQLTemplate(TurkerLog.class, queryString);
+        List<TurkerLog> logs = (List<TurkerLog>)context.performQuery(queryTemplate);
+        return logs.isEmpty()?null:logs.get(0);
+    }
+
+    public static Set<Batch> findWorkerBatches(String workerId, Experiment e) {
+        SelectQuery query = new SelectQuery(TurkerLog.class);
+        query.andQualifier(Expression.fromString("workerId='"+workerId+"'"));
+        Expression t = Expression.fromString("toBatch.toExperiment = $exp");
+
+        query.andQualifier(t.expWithParameters(Collections.singletonMap("exp",e)));
+        query.andQualifier(Expression.fromString("type="+"'RESULTS'"));
+        List<TurkerLog> logs = (List<TurkerLog>)DbProvider.getContext().performQuery(query);
+        Set<Batch> batches = new HashSet<Batch>();
+        for (TurkerLog l:logs) {
+            batches.add(l.getToBatch());
+        }
+        return batches;
     }
 }

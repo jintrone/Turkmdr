@@ -1,10 +1,85 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<html xmlns:wicket="http://wicket.apache.org">
 <head>
     <title></title>
+    <link rel="stylesheet" href="solver.css" type="text/css" media="screen" title="Stylesheet"/>
 </head>
 <body>
+<wicket:panel>
+
+    <div class="overlay">
+        <div class="modal">
+            <div>
+                <div class="biginfo">
+                    Hi! This HIT is part of a study at the <a href="http://cci.mit.edu" target="_blank">MIT Center for
+                    Collective Intelligence</a>. We are researching
+                    new ways to use crowdsourcing to solve hard problems, like global climate change. For research
+                    purposes,
+                    please provide the following information. This information is necessary if you would like to
+                    continue
+                    with this HIT. You will not be asked for this information again during this study.
+
+                    If you've any questions about this study, or the Center for Collective Intelligence, please email <a
+                        href="mailto://jintrone@mit.edu">Josh Introne</a>.
+
+                </div>
+                <form wicket:id="demographics">
+                    <table class="formLayout">
+                        <tr>
+                            <td class="label">
+                                Age:
+                            </td>
+                            <td>
+                                <input type="text" wicket:id="age" cols="40"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label">
+                                Gender:
+                            </td>
+                            <td>
+                                <select wicket:id="gender"></select>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="label">
+                                Native language:
+                            </td>
+                            <td>
+                                <input type="text" wicket:id="language" cols="40"/>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="label">
+                                Country of residence:
+                            </td>
+                            <td>
+                                <input type="text" wicket:id="countryOfOrigin" cols="40"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="submitBlock">
+                                    <input type="submit" wicket:id="submit"/>
+                                </div>
+                            </td>
+                        </tr>
+
+                    </table>
+
+
+                </form>
+                <div id="feedback" wicket:id="feedback">[feedback]</div>
+
+
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+
 
 </body>
 </html>
