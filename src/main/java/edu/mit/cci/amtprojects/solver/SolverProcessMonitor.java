@@ -188,7 +188,7 @@ public class SolverProcessMonitor {
 
         Map<TurkerLog, double[]> response = new HashMap<TurkerLog, double[]>();
         SolverTaskStatus status = model.getCurrentStatus();
-        List<Solution> answers = status.getCurrentAnswers();
+        List<Solution> answers = new ArrayList<Solution>(status.getCurrentAnswers());
 
         for (TurkerLog log : logs) {
 
