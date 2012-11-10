@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-map xmlns="http://cayenne.apache.org/schema/3.0/modelMap"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://cayenne.apache.org/schema/3.0/modelMap http://cayenne.apache.org/schema/3.0/modelMap.xsd"
+  project-version="3.0.0.1">
+	<property name="defaultPackage" value="edu.mit.cci.amtprojects.solver"/>
+	<property name="quoteSqlIdentifiers" value="true"/>
+	<db-entity name="Question">
+		<db-attribute name="batchid" type="BIGINT"/>
+		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="text" type="VARCHAR" length="2048"/>
+	</db-entity>
+	<db-entity name="Solution">
+		<db-attribute name="assignmentId" type="VARCHAR" length="256"/>
+		<db-attribute name="creation" type="TIMESTAMP"/>
+		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="questionId" type="BIGINT"/>
+		<db-attribute name="round" type="INTEGER"/>
+		<db-attribute name="text" type="LONGVARCHAR"/>
+		<db-attribute name="workerId" type="VARCHAR" length="256"/>
+	</db-entity>
+	<db-entity name="SolutionMap">
+		<db-attribute name="from" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="to" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+	</db-entity>
+	<db-entity name="SolutionRank">
+		<db-attribute name="date" type="TIMESTAMP"/>
+		<db-attribute name="hitId" type="VARCHAR" length="1024"/>
+		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="rank" type="VARCHAR" length="1024"/>
+		<db-attribute name="round" type="INTEGER"/>
+		<db-attribute name="solutionid" type="BIGINT"/>
+	</db-entity>
+	<obj-entity name="Question" className="edu.mit.cci.amtprojects.solver.Question" dbEntityName="Question">
+		<obj-attribute name="text" type="java.lang.String" db-attribute-path="text"/>
+	</obj-entity>
+	<obj-entity name="Solution" className="edu.mit.cci.amtprojects.solver.Solution" dbEntityName="Solution">
+		<obj-attribute name="assignmentId" type="java.lang.String" db-attribute-path="assignmentId"/>
+		<obj-attribute name="creation" type="java.util.Date" db-attribute-path="creation"/>
+		<obj-attribute name="id" type="java.lang.Long" db-attribute-path="id"/>
+		<obj-attribute name="round" type="java.lang.Integer" db-attribute-path="round"/>
+		<obj-attribute name="text" type="java.lang.String" db-attribute-path="text"/>
+		<obj-attribute name="workerId" type="java.lang.String" db-attribute-path="workerId"/>
+	</obj-entity>
+	<obj-entity name="SolutionRank" className="edu.mit.cci.amtprojects.solver.SolutionRank" dbEntityName="SolutionRank">
+		<obj-attribute name="date" type="java.util.Date" db-attribute-path="date"/>
+		<obj-attribute name="hitId" type="java.lang.String" db-attribute-path="hitId"/>
+		<obj-attribute name="rank" type="java.lang.String" db-attribute-path="rank"/>
+		<obj-attribute name="round" type="java.lang.Integer" db-attribute-path="round"/>
+	</obj-entity>
+	<db-relationship name="toBatch" source="Question" target="Batch" toMany="false">
+		<db-attribute-pair source="batchid" target="id"/>
+	</db-relationship>
+	<db-relationship name="toSolutions" source="Question" target="Solution" toMany="true">
+		<db-attribute-pair source="id" target="questionId"/>
+	</db-relationship>
+	<db-relationship name="toChildrenMap" source="Solution" target="SolutionMap" toDependentPK="true" toMany="true">
+		<db-attribute-pair source="id" target="from"/>
+	</db-relationship>
+	<db-relationship name="toParentsMap" source="Solution" target="SolutionMap" toDependentPK="true" toMany="true">
+		<db-attribute-pair source="id" target="to"/>
+	</db-relationship>
+	<db-relationship name="toQuestion" source="Solution" target="Question" toMany="false">
+		<db-attribute-pair source="questionId" target="id"/>
+	</db-relationship>
+	<db-relationship name="toRanks" source="Solution" target="SolutionRank" toMany="true">
+		<db-attribute-pair source="id" target="solutionid"/>
+	</db-relationship>
+	<db-relationship name="toChildren" source="SolutionMap" target="Solution" toMany="false">
+		<db-attribute-pair source="to" target="id"/>
+	</db-relationship>
+	<db-relationship name="toParents" source="SolutionMap" target="Solution" toMany="false">
+		<db-attribute-pair source="from" target="id"/>
+	</db-relationship>
+	<db-relationship name="toSolution" source="SolutionRank" target="Solution" toMany="false">
+		<db-attribute-pair source="solutionid" target="id"/>
+	</db-relationship>
+	<obj-relationship name="toBatch" source="Question" target="Batch" deleteRule="Nullify" db-relationship-path="toBatch"/>
+	<obj-relationship name="toSolutions" source="Question" target="Solution" deleteRule="Nullify" db-relationship-path="toSolutions"/>
+	<obj-relationship name="toChildren" source="Solution" target="Solution" deleteRule="Nullify" db-relationship-path="toChildrenMap.toChildren"/>
+	<obj-relationship name="toParents" source="Solution" target="Solution" deleteRule="Nullify" db-relationship-path="toParentsMap.toParents"/>
+	<obj-relationship name="toQuestion" source="Solution" target="Question" deleteRule="Nullify" db-relationship-path="toQuestion"/>
+	<obj-relationship name="toRanks" source="Solution" target="SolutionRank" deleteRule="Nullify" db-relationship-path="toRanks"/>
+	<obj-relationship name="toSolution" source="SolutionRank" target="Solution" deleteRule="Deny" db-relationship-path="toSolution"/>
+</data-map>
