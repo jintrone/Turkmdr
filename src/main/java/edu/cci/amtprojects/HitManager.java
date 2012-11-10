@@ -4,6 +4,8 @@ import com.amazonaws.mturk.requester.Assignment;
 import com.amazonaws.mturk.requester.AssignmentStatus;
 import com.amazonaws.mturk.requester.GetAssignmentResult;
 import com.amazonaws.mturk.requester.HIT;
+import com.amazonaws.mturk.requester.HITReviewStatus;
+import com.amazonaws.mturk.requester.HITStatus;
 import com.amazonaws.mturk.requester.QualificationRequirement;
 import com.amazonaws.mturk.service.axis.RequesterService;
 import com.amazonaws.mturk.util.ClientConfig;
@@ -127,6 +129,9 @@ public class HitManager {
     public void populateResults() {
         updateHits();
         for (HIT h : getAllHits()) {
+            //only process completed hits
+            //TODO do a better job with this, so that clients can choose completed hits or not
+            if (h.getHITStatus() != HITStatus.Reviewable) continue;
             Assignment[] assignments = requesterService.getAllAssignmentsForHIT(h.getHITId());
             for (Assignment a : assignments) {
                 List<TurkerLog> log = CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), a.getAssignmentId(), "RESULTS");

@@ -69,6 +69,7 @@ public class SolverProcessMonitor {
     }
 
     public void checkStatus() throws UnsupportedEncodingException, JSONException {
+        logger.info("Checking status");
         for (Batch b : experiment().getToBatch()) {
             SolverTaskModel model = new SolverTaskModel(b);
             SolverTaskStatus status = model.getCurrentStatus();

@@ -134,10 +134,7 @@ public abstract class GenericTask extends WebPage implements TurkLogger {
                         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                     }
                 }
-                if (!batches.isEmpty()) {
-                   log.info("Adding reject text");
 
-                }
 
             }
 
