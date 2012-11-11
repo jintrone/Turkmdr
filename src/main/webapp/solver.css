@@ -23,6 +23,8 @@ table#answers th#rankcol {width:25px}
 table#answers input.solutionRank {width:25px}
 table#answers td {padding: 15px 10px; vertical-align: top}
 table#answers td.answer p {font-size:16px; margin:0}
+table#answers td.score {width:20px; text-align: center}
+table#answers td.checkbox {width:20px;text-align: center}
 
 div.workpanel {margin-top:40px}
 
@@ -35,7 +37,7 @@ table.buttonlayout td.instructions {padding-top:20px}
 
 
 .bigtext {font-size:42px}
-button.choicebutton {width:200px; height:100px;}
+button.choicebutton {width:220px; height:100px;}
 button,  input[type="submit"] {background: #305090; border:none; color:#d3d3d3; padding: 10px; font-size:22px}
 button:hover, input[type="submit"]:hover {background: #103060;}
 

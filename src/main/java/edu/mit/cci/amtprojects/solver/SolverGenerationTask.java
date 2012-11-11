@@ -31,6 +31,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -68,7 +69,13 @@ public class SolverGenerationTask extends GenericTask {
         }
         add(new Label("question", model.getQuestion().getText()));
 
-        List<Solution> sols = model.getCurrentStatus().getCurrentAnswers();
+        List<Solution> sols = new ArrayList<Solution>(model.getCurrentStatus().getCurrentAnswers());
+        for (Iterator<Solution> sit = sols.iterator();sit.hasNext();) {
+            Solution s =  sit.next();
+            if (s.getRound() == model.getCurrentStatus().getCurrentRound()) {
+                sit.remove();
+            }
+        }
 
 
         group = new CheckGroup<Solution>("progenitors", new HashSet<Solution>()) {

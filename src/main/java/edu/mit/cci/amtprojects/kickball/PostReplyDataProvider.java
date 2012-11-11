@@ -65,16 +65,9 @@ public class PostReplyDataProvider implements IDataProvider<Set<PostReplyDataPro
         HitManager manager = HitManager.get(batch());
         Map<Integer,Set<PostReplyResult>> resultmap = new HashMap<Integer, Set<PostReplyResult>>();
         for (TurkerLog log:manager.getFilteredLogs("RESULTS")) {
-            String answer = "";
-            try {
-                JSONObject obj = new JSONObject(log.getData());
-                answer = ""+obj.get("answer");
-            } catch (JSONException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                return;
-            }
-            Integer postid = Integer.parseInt(MturkUtils.extractAnswer("post", answer));
-            Integer respondsto = Integer.parseInt(MturkUtils.extractAnswer("respondstoid", answer));
+
+            Integer postid = Integer.parseInt(MturkUtils.extractAnswer(log,"post"));
+            Integer respondsto = Integer.parseInt(MturkUtils.extractAnswer(log,"respondstoid"));
             Set<PostReplyResult> results = resultmap.get(postid);
             if (results == null) {
                 resultmap.put(postid,results = new HashSet<PostReplyResult>());

@@ -72,40 +72,40 @@ public class SolverProcessMonitor {
         logger.info("Checking status");
         for (Batch b : experiment().getToBatch()) {
             SolverTaskModel model = new SolverTaskModel(b);
-            SolverTaskStatus status = model.getCurrentStatus();
-            if (status.getPhase() == Phase.COMPLETE) continue;
 
-            int currentRound = status.getCurrentRound();
+            if (model.getCurrentStatus().getPhase() == Phase.COMPLETE) continue;
+
+            int currentRound = model.getCurrentStatus().getCurrentRound();
             HitManager manager = HitManager.get(b);
 
             List<TurkerLog> logs = manager.getFilteredLogs("RESULTS");
-            List<TurkerLog> roundLogs = findCurrentLogs(currentRound, status.getPhase(), logs);
+            List<TurkerLog> roundLogs = findCurrentLogs(currentRound, model.getCurrentStatus().getPhase(), logs);
 
             if (!roundLogs.isEmpty()) {
-                if (status.getPhase() == Phase.INIT) {
+                if (model.getCurrentStatus().getPhase() == Phase.INIT) {
 
                     updateRanks(b, model, roundLogs);
-                    status.setPhase(Phase.GENERATE);
+                    model.getCurrentStatus().setPhase(Phase.GENERATE);
 
-                } else if (status.getPhase() == Phase.RANK) {
+                } else if (model.getCurrentStatus().getPhase() == Phase.RANK) {
 
                     updateRanks(b, model, roundLogs);
                     pruneSolutions(model);
                     if (currentRound + 1 == model.getNumberOfRounds()) {
-                        status.setPhase(Phase.COMPLETE);
+                        model.getCurrentStatus().setPhase(Phase.COMPLETE);
                     } else {
-                        status.setPhase(Phase.GENERATE);
-                        status.setCurrentRound(currentRound + 1);
+                        model.getCurrentStatus().setPhase(Phase.GENERATE);
+                        model.getCurrentStatus().setCurrentRound(currentRound + 1);
                     }
 
-                } else if (status.getPhase() == Phase.GENERATE) {
+                } else if (model.getCurrentStatus().getPhase() == Phase.GENERATE) {
                     updateAnswers(model, roundLogs);
-                    status.setPhase(Phase.RANK);
+                    model.getCurrentStatus().setPhase(Phase.RANK);
                 }
 
-                status.update();
+                model.updateCurrentStatus();
                 DbProvider.getContext().commitChanges();
-                if (status.getPhase() != Phase.COMPLETE) {
+                if (model.getCurrentStatus().getPhase() != Phase.COMPLETE) {
                     SolverHitCreator.getInstance().launch(null, null, b);
 
                 }
@@ -119,7 +119,7 @@ public class SolverProcessMonitor {
 
     private void pruneSolutions(SolverTaskModel model) throws JSONException {
         List<Solution> sol = new ArrayList<Solution>(model.getCurrentStatus().getCurrentAnswers());
-        if (sol.size() <= model.getSizeOfFront()) {
+        if (sol.size() > model.getSizeOfFront()) {
             Collections.sort(sol, new Comparator<Solution>() {
 
                 public int compare(Solution solution, Solution solution1) {
@@ -129,10 +129,11 @@ public class SolverProcessMonitor {
 
                 }
             });
+
+            sol = sol.subList(0, model.getSizeOfFront());
+            model.getCurrentStatus().setCurrentAnswers(sol);
+            model.updateCurrentStatus();
         }
-        sol.subList(0,model.getSizeOfFront());
-        model.getCurrentStatus().setCurrentAnswers(sol);
-        model.getCurrentStatus().update();
 
     }
 
@@ -205,9 +206,13 @@ public class SolverProcessMonitor {
         }
 
         double[][] ranks = response.values().toArray(new double[response.size()][]);
+        logger.info("Ranks are:");
+        for (double[] rank1 : ranks) {
+            logger.info(Arrays.toString(rank1));
+        }
         double[] finalRanks = new double[answers.size()];
         float w = (float) new FriedmanTest(new MatchedData(ranks)).getW();
-
+        logger.info("W = " + w);
         //update ranks
         for (int s = 0; s < answers.size(); s++) {
             double[] row = new double[logs.size()];
@@ -243,13 +248,13 @@ public class SolverProcessMonitor {
         }
 
         //assign bonus to generators
-        Collections.sort(answers,new Comparator<Solution>() {
+        Collections.sort(answers, new Comparator<Solution>() {
             public int compare(Solution solution, Solution solution1) {
-                return -1* ((Float)solution.getLastRank().getRankValue()).compareTo(solution1.getLastRank().getRankValue());
+                return -1 * ((Float) solution.getLastRank().getRankValue()).compareTo(solution1.getLastRank().getRankValue());
             }
         });
 
-        for (int i=0;i<model.getSizeOfFront();i++) {
+        for (int i = 0; i < model.getSizeOfFront(); i++) {
             Solution s = answers.get(i);
             if (s.getToParents().isEmpty() && s.getRound() == status.getCurrentRound()) {
                 float rank = s.getLastRank().getRankValue();

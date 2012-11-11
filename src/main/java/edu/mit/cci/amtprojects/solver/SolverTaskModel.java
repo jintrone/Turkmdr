@@ -105,6 +105,16 @@ public class SolverTaskModel implements IClusterable {
         DbProvider.getContext().commitChanges();
     }
 
+    public void updateCurrentStatus() {
+        try {
+            getCurrentStatus().update();
+        } catch (JSONException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        currentStatus = null;
+
+    }
+
     public SolverTaskStatus getCurrentStatus() {
         if (currentStatus == null) {
             if (batchId == null) {
