@@ -165,7 +165,8 @@ public class Hits extends WebPage {
 
 
     public BatchManager.Status getBatchStatus() {
-           return new SolverPluginFactory().getBatchManager().getStatus(batch);
+
+           return new SolverPluginFactory().getBatchManager().getStatus(CayenneUtils.findBatch(DbProvider.getContext(),batch.getId()));
 
     }
 
