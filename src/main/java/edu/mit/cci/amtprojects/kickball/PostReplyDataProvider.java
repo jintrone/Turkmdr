@@ -9,7 +9,6 @@ import edu.mit.cci.amtprojects.util.CayenneUtils;
 import edu.mit.cci.amtprojects.util.IndexedIterator;
 import edu.mit.cci.amtprojects.util.MturkUtils;
 import org.apache.cayenne.exp.Expression;
-import org.apache.cayenne.query.Ordering;
 import org.apache.cayenne.query.SelectQuery;
 import org.apache.cayenne.query.SortOrder;
 import org.apache.log4j.Logger;
@@ -64,7 +63,7 @@ public class PostReplyDataProvider implements IDataProvider<Set<PostReplyDataPro
     private void populate() {
         HitManager manager = HitManager.get(batch());
         Map<Integer,Set<PostReplyResult>> resultmap = new HashMap<Integer, Set<PostReplyResult>>();
-        for (TurkerLog log:manager.getFilteredLogs("RESULTS")) {
+        for (TurkerLog log:manager.getFilteredLogs(false, false, "RESULTS")) {
 
             Integer postid = Integer.parseInt(MturkUtils.extractAnswer(log,"post"));
             Integer respondsto = Integer.parseInt(MturkUtils.extractAnswer(log,"respondstoid"));

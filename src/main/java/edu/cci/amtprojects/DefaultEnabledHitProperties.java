@@ -2,6 +2,7 @@ package edu.cci.amtprojects;
 
 import com.amazonaws.mturk.addon.HITProperties;
 import com.amazonaws.mturk.requester.QualificationRequirement;
+import org.apache.wicket.ajax.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -103,5 +104,11 @@ public class DefaultEnabledHitProperties extends HITProperties{
 
     public DefaultEnabledHitProperties(Properties props) {
         super(props);
+    }
+
+    public String toJSONString() {
+        JSONObject obj = new JSONObject(this,new String[] {"annotation","assignmentDuration","Lifetime",
+        "autoApprovalDelay","description","keywords","maxAssignments","rewardAmount","title"});
+        return obj.toString();
     }
 }

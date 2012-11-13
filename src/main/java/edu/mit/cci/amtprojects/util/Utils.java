@@ -2,12 +2,14 @@ package edu.mit.cci.amtprojects.util;
 
 import edu.mit.cci.amtprojects.UrlCreator;
 import edu.mit.cci.amtprojects.solver.SolutionRank;
+import org.apache.log4j.Logger;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.wicket.Component;
 import org.apache.wicket.protocol.http.RequestUtils;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebRequest;
+
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -20,6 +22,7 @@ import java.util.Map;
  * Time: 9:49 AM
  */
 public class Utils {
+    private static Logger log = Logger.getLogger(Utils.class);
 
     public static UrlCreator getUrlCreator(final Component comp) {
         return new UrlCreator() {
@@ -64,5 +67,31 @@ public class Utils {
 
     public static<T> T last(List<T> list) {
         return list.get(list.size()-1);
+    }
+
+    public static String updateJSONProperty(String data, String property, Object s) {
+        try {
+            JSONObject obj = new JSONObject(data);
+            obj.put(property,s);
+            return obj.toString();
+        } catch (JSONException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            log.error("Could not update property "+property+" in data "+data);
+        }
+        return data;
+    }
+
+    public static Integer getJsonInt(String data, String property) {
+        try {
+            JSONObject obj = new JSONObject(data);
+            if (obj.has(property)) {
+                return obj.getInt(property);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        return null;
+
+
     }
 }

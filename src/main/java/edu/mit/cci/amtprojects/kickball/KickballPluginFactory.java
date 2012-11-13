@@ -1,5 +1,6 @@
 package edu.mit.cci.amtprojects.kickball;
 
+import edu.mit.cci.amtprojects.BatchManager;
 import edu.mit.cci.amtprojects.HitCreator;
 import edu.mit.cci.amtprojects.InnerFormCallback;
 import edu.mit.cci.amtprojects.PluginFactory;
@@ -21,6 +22,10 @@ public class KickballPluginFactory implements PluginFactory {
 
     public HitCreator getHitCreator() {
         return KickballHitCreator.getInstance();
+    }
+
+    public BatchManager getBatchManager() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
 }

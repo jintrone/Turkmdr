@@ -83,10 +83,11 @@ public class Batches extends WebPage {
             @Override
             protected void populateItem(final Item<Batch> item) {
                 final Batch batch = item.getModelObject();
-
+                pluginFactory.getBatchManager();
                 item.add(new Label("AWSId", batch.getAwsId()));
                 item.add(new Label("creation", DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(batch.getCreated())));
                 item.add(new Label("sandbox", String.valueOf(batch.getIsReal())));
+                item.add(new Label("status",pluginFactory.getBatchManager().getStatus(batch).name()));
                 Link<Batch> l = new Link<Batch>("manage", item.getModel()) {
 
                     @Override

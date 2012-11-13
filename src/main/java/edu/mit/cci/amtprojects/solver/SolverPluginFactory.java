@@ -1,5 +1,6 @@
 package edu.mit.cci.amtprojects.solver;
 
+import edu.mit.cci.amtprojects.BatchManager;
 import edu.mit.cci.amtprojects.HitCreator;
 import edu.mit.cci.amtprojects.InnerFormCallback;
 import edu.mit.cci.amtprojects.PluginFactory;
@@ -15,11 +16,18 @@ import java.io.Serializable;
 public class SolverPluginFactory implements PluginFactory, Serializable {
 
 
+
+
     public Panel getFormPanel(String id,InnerFormCallback callback) {
         return new SolverFormPanel(id,callback);
     }
 
     public HitCreator getHitCreator() {
         return SolverHitCreator.getInstance();
+    }
+
+
+    public BatchManager getBatchManager() {
+        return new SolverBatchManager();
     }
 }

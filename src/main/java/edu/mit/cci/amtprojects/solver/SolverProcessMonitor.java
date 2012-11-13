@@ -1,6 +1,7 @@
 package edu.mit.cci.amtprojects.solver;
 
 import edu.cci.amtprojects.HitManager;
+import edu.mit.cci.amtprojects.BatchManager;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
@@ -27,6 +28,8 @@ public class SolverProcessMonitor {
 
     long experimentId;
     Timer t;
+    boolean running = false;
+
 
     private final static Map<Long, SolverProcessMonitor> monitorMap = new HashMap<Long, SolverProcessMonitor>();
 
@@ -35,7 +38,11 @@ public class SolverProcessMonitor {
 
     private SolverProcessMonitor(Experiment e) {
         experimentId = e.getExperimentId();
-        restart();
+       // if (!running) restart();
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 
 
@@ -44,21 +51,52 @@ public class SolverProcessMonitor {
             t.cancel();
 
         }
-        t = new Timer();
+
+        t = new Timer() {
+            public void cancel() {
+                super.cancel();
+                running = false;
+                cleanup();
+            }
+        };
+
         t.schedule(new TimerTask() {
 
+            public boolean cancel() {
+                boolean b = super.cancel();
+                running = false;
+                return b;
+            }
 
             @Override
             public void run() {
+                running = true;
                 try {
                     checkStatus();
-                } catch (UnsupportedEncodingException e1) {
-                    e1.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                } catch (JSONException e1) {
-                    e1.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                } catch (Exception e) {
+                   e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                     running = false;
+                    cleanup();
                 }
+
+
+
             }
         }, 0, 60000);
+    }
+
+    public void halt() {
+        if (running) {
+            t.cancel();
+        }
+
+    }
+
+    public void cleanup() {
+        BatchManager manager = new SolverPluginFactory().getBatchManager();
+        for (Batch b : experiment().getToBatch()) {
+            manager.haltBatch(b);
+        }
     }
 
     public static SolverProcessMonitor get(Experiment e) {
@@ -78,7 +116,7 @@ public class SolverProcessMonitor {
             int currentRound = model.getCurrentStatus().getCurrentRound();
             HitManager manager = HitManager.get(b);
 
-            List<TurkerLog> logs = manager.getFilteredLogs("RESULTS");
+            List<TurkerLog> logs = manager.getFilteredLogs(false, false, "RESULTS");
             List<TurkerLog> roundLogs = findCurrentLogs(currentRound, model.getCurrentStatus().getPhase(), logs);
 
             if (!roundLogs.isEmpty()) {
@@ -272,7 +310,8 @@ public class SolverProcessMonitor {
                 old /= (float) s.getToParents().size();
                 float improvement = s.getLastRank().getRankValue() - old;
                 float bonus = improvement * model.getMaxCombiningBonus();
-                if (improvement > 0) {
+                bonus = Float.parseFloat(String.format("%.2f", bonus));
+                if (bonus > 0) {
                     String feedback = String.format("Your solution achieved an improvement of %.2f (on a 0 - 1 scale) over its progenitors and so" +
                             "you are granted a bonus of %.2f * $%.2f = %.2f", improvement, improvement, model.getMaxCombiningBonus(), bonus);
                     HitManager.get(b).bonusAssignments(new String[]{s.getAssignmentId()}, feedback, bonus);

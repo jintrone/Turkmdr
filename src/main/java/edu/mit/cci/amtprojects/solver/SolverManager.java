@@ -23,7 +23,7 @@ public class SolverManager extends WebPage {
         if (p.getNamedKeys().contains("batch")) {
             Long l = p.get("batch").toLong();
             Batch b = CayenneUtils.findBatch(DbProvider.getContext(),l);
-            SolverProcessMonitor.get(b.getToExperiment());
+            SolverProcessMonitor.get(b.getToExperiment()).restart();
             setMessage("Should have restarted "+b.getToExperiment().getExperimentId());
         }
 

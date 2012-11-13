@@ -11,4 +11,6 @@ public interface PluginFactory {
 
     public Panel getFormPanel(String id, InnerFormCallback callback);
     public HitCreator getHitCreator();
+
+    BatchManager getBatchManager();
 }

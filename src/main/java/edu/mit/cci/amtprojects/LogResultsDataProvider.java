@@ -1,10 +1,6 @@
 package edu.mit.cci.amtprojects;
 
-import com.amazonaws.mturk.requester.HIT;
 import edu.cci.amtprojects.HitManager;
-import edu.mit.cci.amtprojects.DbProvider;
-import edu.mit.cci.amtprojects.HITModel;
-import edu.mit.cci.amtprojects.TurkerLogModel;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
@@ -29,12 +25,12 @@ public class LogResultsDataProvider {
 
     public Iterator<? extends TurkerLog> iterator(long i, long count) {
         HitManager manager = HitManager.get(batch());
-        return new IndexedIterator<TurkerLog>(manager.getFilteredLogs("RESULTS"),i,count);
+        return new IndexedIterator<TurkerLog>(manager.getFilteredLogs(false, false, "RESULTS"),i,count);
     }
 
     public long size() {
         HitManager manager = HitManager.get(batch());
-        return manager.getFilteredLogs("RESULTS").size();
+        return manager.getFilteredLogs(false, false, "RESULTS").size();
     }
 
     public IModel<TurkerLog> model(TurkerLog log) {

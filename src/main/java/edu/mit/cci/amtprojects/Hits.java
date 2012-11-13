@@ -5,7 +5,10 @@ import edu.cci.amtprojects.DefaultEnabledHitProperties;
 import edu.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.KickballPostTask;
+import edu.mit.cci.amtprojects.solver.SolverBatchManager;
+import edu.mit.cci.amtprojects.solver.SolverPluginFactory;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
+import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -19,6 +22,7 @@ import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.RequestUtils;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebRequest;
@@ -26,6 +30,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.Serializable;
 import java.text.DateFormat;
 
 /**
@@ -39,6 +44,8 @@ public class Hits extends WebPage {
     private static int itemsPerPage = 50;
     private static Logger log = Logger.getLogger(Hits.class);
     private Batch batch;
+    private  AjaxLink<?> halt;
+    private AjaxLink<?> restart;
 
     PagingNavigator pagingNavigator;
 
@@ -66,6 +73,48 @@ public class Hits extends WebPage {
         add(new Label("batchName",batch.getName()));
         add(new Label("batchMode",batch.getIsReal()?"Real":"Sandbox"));
         add(new Label("awsId",batch.getAwsId()));
+        final Label statusLabel = new Label("status",new Model<String>() {
+
+            @Override
+            public String getObject() {
+              return getBatchStatus().name();
+            }
+        });
+
+        restart = new AjaxLink<Object>("restart") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                log.info("Received restart");
+               BatchManager manager = new SolverPluginFactory().getBatchManager();
+                manager.restartBatch(batch, Utils.getUrlCreator(this));
+                target.add(halt,statusLabel);
+            }
+
+            public boolean isEnabled() {
+                return getBatchStatus() != BatchManager.Status.COMPLETE;
+            }
+        };
+
+         halt = new AjaxLink<Object>("halt") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                log.info("Received halt");
+                 BatchManager manager = new SolverPluginFactory().getBatchManager();
+                manager.haltBatch(batch);
+                target.add(restart,statusLabel);
+            }
+
+             public boolean isEnabled() {
+                return getBatchStatus() == BatchManager.Status.RUNNING;
+            }
+        };
+
+        add(restart.setOutputMarkupId(true),halt.setOutputMarkupId(true));
+
+        add(statusLabel.setOutputMarkupId(true));
+
 
         final DataView<HIT> dataView = new DataView<HIT>("pageable", new HitDataProvider(batch)) {
             private static final long serialVersionUID = 1L;
@@ -103,6 +152,7 @@ public class Hits extends WebPage {
             protected void onPostProcessTarget(AjaxRequestTarget target) {
                 log.info("Refresh");
                 HitManager.get(batch).updateHits();
+                target.add(halt,restart,statusLabel);
                 super.onPostProcessTarget(target);    //To change body of overridden methods use File | Settings | File Templates.
 
             }
@@ -111,10 +161,11 @@ public class Hits extends WebPage {
 
         add(container);
 
+    }
 
 
-
-
+    public BatchManager.Status getBatchStatus() {
+           return new SolverPluginFactory().getBatchManager().getStatus(batch);
 
     }
 
