@@ -43,7 +43,7 @@ public class Hits extends WebPage {
     private static final long serialVersionUID = 1L;
     private static int itemsPerPage = 50;
     private static Logger log = Logger.getLogger(Hits.class);
-    private Batch batch;
+    private long batchid;
     private  AjaxLink<?> halt;
     private AjaxLink<?> restart;
 
@@ -59,20 +59,20 @@ public class Hits extends WebPage {
            parameters.set("error","Batch not valid");
             throw new RestartResponseException(HomePage.class,parameters);
         } else {
-            long id = parameters.get("batch").toLong();
-            batch = CayenneUtils.findBatch(DbProvider.getContext(), id);
-            if (batch == null) {
+            batchid = parameters.get("batch").toLong();
+
+            if (batch() == null) {
                 parameters.set("error","Batch not valid");
                 throw new RestartResponseException(HomePage.class,parameters);
             }
 
         }
 
-        add(new Label("experimentId",batch.getToExperiment().getExperimentId()+""));
-        add(new Label("experimentName",batch.getToExperiment().getName()+""));
-        add(new Label("batchName",batch.getName()));
-        add(new Label("batchMode",batch.getIsReal()?"Real":"Sandbox"));
-        add(new Label("awsId",batch.getAwsId()));
+        add(new Label("experimentId",batch().getToExperiment().getExperimentId()+""));
+        add(new Label("experimentName",batch().getToExperiment().getName()+""));
+        add(new Label("batchName",batch().getName()));
+        add(new Label("batchMode",batch().getIsReal()?"Real":"Sandbox"));
+        add(new Label("awsId",batch().getAwsId()));
         final Label statusLabel = new Label("status",new Model<String>() {
 
             @Override
@@ -87,7 +87,7 @@ public class Hits extends WebPage {
             public void onClick(AjaxRequestTarget target) {
                 log.info("Received restart");
                BatchManager manager = new SolverPluginFactory().getBatchManager();
-                manager.restartBatch(batch, Utils.getUrlCreator(this));
+                manager.restartBatch(batch(), Utils.getUrlCreator(this));
                 target.add(halt,statusLabel);
             }
 
@@ -102,7 +102,7 @@ public class Hits extends WebPage {
             public void onClick(AjaxRequestTarget target) {
                 log.info("Received halt");
                  BatchManager manager = new SolverPluginFactory().getBatchManager();
-                manager.haltBatch(batch);
+                manager.haltBatch(batch());
                 target.add(restart,statusLabel);
             }
 
@@ -116,7 +116,7 @@ public class Hits extends WebPage {
         add(statusLabel.setOutputMarkupId(true));
 
 
-        final DataView<HIT> dataView = new DataView<HIT>("pageable", new HitDataProvider(batch)) {
+        final DataView<HIT> dataView = new DataView<HIT>("pageable", new HitDataProvider(batch())) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -151,7 +151,7 @@ public class Hits extends WebPage {
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {
                 log.info("Refresh");
-                HitManager.get(batch).updateHits();
+                HitManager.get(batch()).updateHits();
                 target.add(halt,restart,statusLabel);
                 super.onPostProcessTarget(target);    //To change body of overridden methods use File | Settings | File Templates.
 
@@ -166,8 +166,12 @@ public class Hits extends WebPage {
 
     public BatchManager.Status getBatchStatus() {
 
-           return new SolverPluginFactory().getBatchManager().getStatus(CayenneUtils.findBatch(DbProvider.getContext(),batch.getId()));
+           return new SolverPluginFactory().getBatchManager().getStatus(CayenneUtils.findBatch(DbProvider.getContext(),batch().getId()));
 
+    }
+
+    public Batch batch() {
+        return CayenneUtils.findBatch(DbProvider.getContext(),batchid);
     }
 
 
