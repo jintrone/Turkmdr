@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.json.JSONException;
+import org.apache.wicket.authroles.authorization.strategies.role.annotations.AuthorizeInstantiation;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
@@ -35,6 +36,7 @@ import java.util.Date;
  * Date: 9/26/12
  * Time: 10:23 PM
  */
+@AuthorizeInstantiation("ADMIN")
 public class Batches extends WebPage {
 
     private static final long serialVersionUID = 1L;

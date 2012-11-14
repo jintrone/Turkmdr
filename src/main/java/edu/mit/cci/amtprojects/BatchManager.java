@@ -11,7 +11,7 @@ public interface BatchManager {
 
     public void restartBatch(Batch b, UrlCreator creator);
     public void haltBatch(Batch b);
-    public void resetBatch(Batch b);
+    public void relaunchBatch(Batch b);
 
     public Status getStatus(Batch batch);
 

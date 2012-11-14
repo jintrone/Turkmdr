@@ -46,7 +46,12 @@ public class SolverBatchManager implements BatchManager {
         manager.expireBatch();
     }
 
-    public void resetBatch(Batch b) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void relaunchBatch(Batch b) {
+        HitManager manager = HitManager.get(b);
+        manager.expireBatch();
+        manager.populateResults(false);
+
+
+
     }
 }

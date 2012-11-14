@@ -15,6 +15,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.authroles.authorization.strategies.role.annotations.AuthorizeInstantiation;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -38,6 +39,7 @@ import java.text.DateFormat;
  * Date: 9/26/12
  * Time: 10:23 PM
  */
+@AuthorizeInstantiation("ADMIN")
 public class Hits extends WebPage {
 
     private static final long serialVersionUID = 1L;

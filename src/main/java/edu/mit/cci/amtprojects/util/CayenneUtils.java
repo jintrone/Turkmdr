@@ -4,6 +4,8 @@ import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
+import edu.mit.cci.amtprojects.kickball.cayenne.User;
+import edu.mit.cci.amtprojects.kickball.cayenne.Users;
 import org.apache.cayenne.DataObject;
 import org.apache.cayenne.DataObjectUtils;
 import org.apache.cayenne.DataRow;
@@ -59,6 +61,13 @@ public class CayenneUtils {
         final SQLTemplate queryTemplate = new SQLTemplate(TurkerLog.class, queryString);
         return (List<TurkerLog>)context.performQuery(queryTemplate);
 
+    }
+
+    public static Users findUser(DataContext context, String username, String password) {
+        SelectQuery q = new SelectQuery(Users.class,Expression.fromString("username = '"+username+"' and password = '"+password+"'"));
+        List<Users> result = (List<Users>)context.performQuery(q);
+        if (result.isEmpty()) return null;
+        else return result.get(0);
     }
 
     public static String dbDateFormat(Date d) {
@@ -120,4 +129,6 @@ public class CayenneUtils {
         }
         return batches;
     }
+
+
 }

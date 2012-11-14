@@ -79,6 +79,35 @@ public class HitManager {
 
 
     public void launch(String url, int height, DefaultEnabledHitProperties props) {
+        String annotation = getAnnotation("batchId",batch+"",props.getAnnotation(null));
+        HIT h = requesterService.createHIT(
+                null, // hitTypeId
+                props.getTitle("No title"),
+                props.getDescription("No description"),
+                props.getKeywords(null), // keywords
+                MturkUtils.getExternalQuestion(url, height),
+                props.getRewardAmount(0),
+                props.getAssignmentDuration(60 * 5),
+                props.getAutoApprovalDelay(60 * 30),
+                props.getLifetime(60 * 60 * 15),
+                props.getMaxAssignments(1),
+                annotation, // requesterAnnotation
+                props.getQualificationRequirements(new QualificationRequirement[0]), // qualificationRequirements
+                new String[]{"Minimal", "HITDetail", "HITQuestion", "HITAssignmentSummary"}, // responseGroup
+                null, // uniqueRequestToken
+                null, // assignmentReviewPolicy
+                null); // hitReviewPolicy
+
+
+        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "LAUNCH", null, h.getHITId(), null, url, Collections.singletonMap("properties", (Object) props.toJSONString()));
+
+
+    }
+
+     public void launch(String url, int height, DefaultEnabledHitProperties props, String oldhit) {
+
+         String annotation = getAnnotation("batchId",batch+"",props.getAnnotation(null));
+         annotation = getAnnotation("previousHit",oldhit,annotation);
 
         HIT h = requesterService.createHIT(
                 null, // hitTypeId
@@ -91,7 +120,7 @@ public class HitManager {
                 props.getAutoApprovalDelay(60 * 30),
                 props.getLifetime(60 * 60 * 15),
                 props.getMaxAssignments(1),
-                getAnnotation(props.getAnnotation(null)), // requesterAnnotation
+                annotation, // requesterAnnotation
                 props.getQualificationRequirements(new QualificationRequirement[0]), // qualificationRequirements
                 new String[]{"Minimal", "HITDetail", "HITQuestion", "HITAssignmentSummary"}, // responseGroup
                 null, // uniqueRequestToken
@@ -106,6 +135,7 @@ public class HitManager {
 
 
     public List<HIT> getAllHits() {
+
         return hits;
 
     }
@@ -280,9 +310,19 @@ public class HitManager {
 
     public void bonusAssignments(String[] ids, String feedback, double amount) {
         for (String id : ids) {
+            TurkerLog l = (TurkerLog) CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), id, "BONUSED");
+            if (l !=null) {
+                log.warn("Already bonused worker for this assignment. Refusing to do it again!");
+                continue;
+            }
+
+
             GetAssignmentResult result = requesterService.getAssignment(id);
             if (result.getAssignment() != null) {
                 Assignment a = result.getAssignment();
+
+
+
                 double bonusAmount = Double.parseDouble(String.format("%.2f", amount));
                 if (bonusAmount < .01) {
                     log.warn("Invalid bonus amount; not bonusing");
@@ -306,12 +346,12 @@ public class HitManager {
         }
     }
 
-    protected String getAnnotation(String value) {
+    protected String getAnnotation(String key, String value, String data) {
 
-        if (!value.contains("batchId=")) {
-            value = "batchId=" + batch + ";" + value;
+        if (!data.contains(key+"=")) {
+            data = key+"=" + value + ";" + data;
         }
-        return value;
+        return data;
     }
 
 

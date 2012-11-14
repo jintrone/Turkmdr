@@ -7,7 +7,10 @@ import edu.mit.cci.amtprojects.solver.SolverManager;
 import edu.mit.cci.amtprojects.solver.SolverRankingTask;
 import edu.mit.cci.amtprojects.solver.SolverTask;
 import org.apache.cayenne.access.DataContext;
+import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
+import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
 
 
@@ -16,7 +19,7 @@ import org.apache.wicket.protocol.http.WebApplication;
  * 
  * @see edu.mit.cci.amtprojects.Start#main(String[])
  */
-public class WicketApplication extends WebApplication
+public class WicketApplication extends AuthenticatedWebApplication
 {    	
 
     DataContext context;
@@ -45,5 +48,16 @@ public class WicketApplication extends WebApplication
         mountPage("/task/solver/generate", SolverGenerationTask.class);
         mountPage("/task/solver/rank", SolverRankingTask.class);
         mountPage("/manage/solver/${batch}", SolverManager.class);
+        mountPage("/signin",MySignInPage.class);
+    }
+
+    @Override
+    protected Class<? extends AbstractAuthenticatedWebSession> getWebSessionClass() {
+        return MyAuthenticatedWebSession.class;
+    }
+
+    @Override
+    protected Class<? extends WebPage> getSignInPageClass() {
+        return MySignInPage.class;
     }
 }

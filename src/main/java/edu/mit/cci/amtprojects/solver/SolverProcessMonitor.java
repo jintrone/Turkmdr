@@ -56,16 +56,20 @@ public class SolverProcessMonitor {
             public void cancel() {
                 super.cancel();
                 running = false;
+
                 cleanup();
+
+
             }
         };
 
         t.schedule(new TimerTask() {
 
             public boolean cancel() {
-                boolean b = super.cancel();
-                running = false;
-                return b;
+                boolean result = super.cancel();
+                t.cancel();
+                return result;
+
             }
 
             @Override
@@ -75,8 +79,7 @@ public class SolverProcessMonitor {
                     checkStatus();
                 } catch (Exception e) {
                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                     running = false;
-                    cleanup();
+                   t.cancel();
                 }
 
 
@@ -97,6 +100,7 @@ public class SolverProcessMonitor {
         for (Batch b : experiment().getToBatch()) {
             manager.haltBatch(b);
         }
+        t = null;
     }
 
     public static SolverProcessMonitor get(Experiment e) {
@@ -292,7 +296,7 @@ public class SolverProcessMonitor {
             }
         });
 
-        for (int i = 0; i < model.getSizeOfFront(); i++) {
+        for (int i = 0; i < Math.min(model.getSizeOfFront(),answers.size()); i++) {
             Solution s = answers.get(i);
             if (s.getToParents().isEmpty() && s.getRound() == status.getCurrentRound()) {
                 float rank = s.getLastRank().getRankValue();

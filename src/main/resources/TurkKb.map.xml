@@ -37,6 +37,11 @@
 		<db-attribute name="type" type="VARCHAR" length="128"/>
 		<db-attribute name="workerId" type="VARCHAR" length="256"/>
 	</db-entity>
+	<db-entity name="Users">
+		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="password" type="VARCHAR" length="128"/>
+		<db-attribute name="username" type="VARCHAR" length="128"/>
+	</db-entity>
 	<obj-entity name="Batch" className="edu.mit.cci.amtprojects.kickball.cayenne.Batch" dbEntityName="Batch">
 		<obj-attribute name="awsId" type="java.lang.String" db-attribute-path="AwsId"/>
 		<obj-attribute name="awsSecret" type="java.lang.String" db-attribute-path="AwsSecret"/>
@@ -63,6 +68,10 @@
 		<obj-attribute name="queryParams" type="java.lang.String" db-attribute-path="queryparams"/>
 		<obj-attribute name="type" type="java.lang.String" db-attribute-path="type"/>
 		<obj-attribute name="workerId" type="java.lang.String" db-attribute-path="workerId"/>
+	</obj-entity>
+	<obj-entity name="Users" className="edu.mit.cci.amtprojects.kickball.cayenne.Users" dbEntityName="Users">
+		<obj-attribute name="password" type="java.lang.String" db-attribute-path="password"/>
+		<obj-attribute name="username" type="java.lang.String" db-attribute-path="username"/>
 	</obj-entity>
 	<db-relationship name="toExperiment" source="Batch" target="Experiment" toMany="false">
 		<db-attribute-pair source="experimentId" target="id"/>

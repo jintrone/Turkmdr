@@ -4,6 +4,7 @@ import com.amazonaws.mturk.requester.HIT;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
 import edu.mit.cci.amtprojects.util.MturkUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.authroles.authorization.strategies.role.annotations.AuthorizeInstantiation;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
@@ -22,6 +23,7 @@ import org.apache.wicket.markup.html.WebPage;
 
 import java.text.DateFormat;
 
+@AuthorizeInstantiation("ADMIN")
 public class HomePage extends WebPage {
 	private static final long serialVersionUID = 1L;
 
