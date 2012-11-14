@@ -48,7 +48,8 @@ public class SolverProcessMonitor {
 
     public void restart() {
         if (t != null) {
-            t.cancel();
+            logger.warn("Task is already running; please use halt to stop if you wish to restart");
+            return;
 
         }
 
