@@ -74,6 +74,9 @@ public class SolverHitCreator implements HitCreator {
 
         if (model != null && model.getBatch() == null) {
             model.saveToBatch(b);
+            if (creator != null) {
+                configure(creator);
+            }
 //            if (creator != null) {
 //                String props = Utils.updateJSONProperty(b.getParameters(), "SolverGenerationTaskURL", creator.getUrlFor(SolverGenerationTask.class));
 //                props = Utils.updateJSONProperty(b.getParameters(), "SolverRankingTaskURL", creator.getUrlFor(SolverRankingTask.class));
