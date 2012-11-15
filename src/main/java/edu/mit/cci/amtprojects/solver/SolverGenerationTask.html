@@ -31,12 +31,12 @@
     <p class="question">
         <span wicket:id="question">[the question]</span>
     </p>
-    <div class="workpanel" wicket:id="chooseId">fragments contents come here</div>
+
     <form wicket:id="hitForm">
         <input wicket:id="assignmentId" id="assignmentId" type="hidden"/>
         <input wicket:id="phase" id="phase" type="hidden"/>
         <input wicket:id="round" id="round" type="hidden"/>
-
+        <div class="workpanel" wicket:id="chooseId">fragments contents come here</div>
         <div class="workpanel" wicket:id="generateId">fragments contents come here</div>
 
 
@@ -145,6 +145,7 @@
 </wicket:fragment>
 <wicket:fragment wicket:id="generateMarkup">
     <a class="smallinfo" href="#" wicket:id="choose">&lt;- Go back</a><br>
+    <span class="instructions">Add you answer below:</span>
     <div class="answerBlock"><textarea wicket:id="generateText" cols="80" rows="8">Create your answer here</textarea></div>
      <div class="submitBlock"><button wicket:id="Submit" name="submit" value="generate">submit</button></div>
 </wicket:fragment>

@@ -131,7 +131,7 @@ public class SolverGenerationTask extends GenericTask {
 
         form.add(group);
 
-        add(new ChooseFragment("chooseId", "chooseMarkup", this));
+        form.add(new ChooseFragment("chooseId", "chooseMarkup", this));
 
         form.add(new GenerateFragment("generateId", "generateMarkup", this));
         form.add(new HiddenField<String>("phase", new Model<String>(model.getCurrentStatus().getPhase().name())));
