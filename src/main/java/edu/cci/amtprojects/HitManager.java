@@ -318,7 +318,7 @@ public class HitManager {
     public void bonusAssignments(String[] ids, String feedback, double amount) {
         for (String id : ids) {
             List<TurkerLog> l =  CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), id, "BONUSED");
-            if (l !=null) {
+            if (l !=null && !l.isEmpty()) {
                 log.warn("Already bonused worker for this assignment. Refusing to do it again!");
                 continue;
             }
