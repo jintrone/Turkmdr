@@ -7,6 +7,7 @@ import com.amazonaws.mturk.requester.HIT;
 import com.amazonaws.mturk.requester.HITStatus;
 import com.amazonaws.mturk.requester.QualificationRequirement;
 import com.amazonaws.mturk.service.axis.RequesterService;
+import com.amazonaws.mturk.service.exception.ServiceException;
 import com.amazonaws.mturk.util.ClientConfig;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
@@ -145,8 +146,14 @@ public class HitManager {
     }
 
     public void extendByTime(Collection<String> hits, long duration) {
-        requesterService.extendHITs(hits.toArray(new String[hits.size()]), null, duration, null);
+        try {
+            requesterService.extendHITs(hits.toArray(new String[hits.size()]), null, duration, null);
+        } catch (ServiceException ex) {
+            ex.printStackTrace();
+            log.error("Couldn't extend hits "+hits);
+        }
     }
+
 
     public void extendBatch(Batch b, long duration) {
         populateResults(false);
@@ -310,7 +317,7 @@ public class HitManager {
 
     public void bonusAssignments(String[] ids, String feedback, double amount) {
         for (String id : ids) {
-            TurkerLog l = (TurkerLog) CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), id, "BONUSED");
+            List<TurkerLog> l =  CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), id, "BONUSED");
             if (l !=null) {
                 log.warn("Already bonused worker for this assignment. Refusing to do it again!");
                 continue;
