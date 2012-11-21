@@ -21,6 +21,7 @@ public abstract class _Batch extends CayenneDataObject {
     public static final String IS_REAL_PROPERTY = "isReal";
     public static final String NAME_PROPERTY = "name";
     public static final String PARAMETERS_PROPERTY = "parameters";
+    public static final String HITS_PROPERTY = "hits";
     public static final String TO_EXPERIMENT_PROPERTY = "toExperiment";
     public static final String TO_LOGS_PROPERTY = "toLogs";
     public static final String TO_QUESTION_PROPERTY = "toQuestion";
@@ -69,6 +70,18 @@ public abstract class _Batch extends CayenneDataObject {
     public String getParameters() {
         return (String)readProperty("parameters");
     }
+
+    public void addToHits(Hits obj) {
+        addToManyTarget("hits", obj, true);
+    }
+    public void removeFromHits(Hits obj) {
+        removeToManyTarget("hits", obj, true);
+    }
+    @SuppressWarnings("unchecked")
+    public List<Hits> getHits() {
+        return (List<Hits>)readProperty("hits");
+    }
+
 
     public void setToExperiment(Experiment toExperiment) {
         setToOneTarget("toExperiment", toExperiment, true);

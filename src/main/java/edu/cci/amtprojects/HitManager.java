@@ -4,23 +4,31 @@ import com.amazonaws.mturk.requester.Assignment;
 import com.amazonaws.mturk.requester.AssignmentStatus;
 import com.amazonaws.mturk.requester.GetAssignmentResult;
 import com.amazonaws.mturk.requester.HIT;
-import com.amazonaws.mturk.requester.HITStatus;
 import com.amazonaws.mturk.requester.QualificationRequirement;
 import com.amazonaws.mturk.service.axis.RequesterService;
 import com.amazonaws.mturk.service.exception.ServiceException;
 import com.amazonaws.mturk.util.ClientConfig;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
+import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
 import edu.mit.cci.amtprojects.util.FilePropertiesConfig;
 import edu.mit.cci.amtprojects.util.MturkUtils;
 import edu.mit.cci.amtprojects.util.Utils;
+import org.apache.cayenne.DataObjectUtils;
 import org.apache.log4j.Logger;
-import org.apache.wicket.ajax.json.JSONObject;
 
+import javax.rmi.CORBA.Util;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * User: jintrone
@@ -34,21 +42,33 @@ public class HitManager {
 
 
     private RequesterService requesterService;
-    List<HIT> hits = new ArrayList<HIT>();
+    List<TurkerLog> newHitResults = new ArrayList<TurkerLog>();
     boolean isModified = false;
 
     private Long batch;
 
+    boolean autoApprove = true;
+
+
     private static Map<Batch, HitManager> managerMap = new HashMap<Batch, HitManager>();
 
 
-    public HitManager(Batch batch) {
+    public static HitManager get(Batch batch) {
+           HitManager manager = managerMap.get(batch);
+           if (manager == null) {
+               managerMap.put(batch, manager = new HitManager(batch));
+           }
+           return manager;
+       }
+
+
+    private HitManager(Batch batch) {
         setBatch(batch);
 
 
     }
 
-    public void setBatch(Batch batch) {
+    private void setBatch(Batch batch) {
         this.batch = batch.getId();
         ClientConfig config;
         try {
@@ -79,8 +99,9 @@ public class HitManager {
     }
 
 
-    public void launch(String url, int height, DefaultEnabledHitProperties props) {
-        String annotation = getAnnotation("batchId",batch+"",props.getAnnotation(null));
+    public synchronized void launch(String url, int height, DefaultEnabledHitProperties props) {
+        String annotation = getAnnotation("batchId", batch + "", props.getAnnotation(null));
+        long lifetime = props.getLifetime(60 * 60 * 15);
         HIT h = requesterService.createHIT(
                 null, // hitTypeId
                 props.getTitle("No title"),
@@ -90,7 +111,7 @@ public class HitManager {
                 props.getRewardAmount(0),
                 props.getAssignmentDuration(60 * 5),
                 props.getAutoApprovalDelay(60 * 30),
-                props.getLifetime(60 * 60 * 15),
+                lifetime,
                 props.getMaxAssignments(1),
                 annotation, // requesterAnnotation
                 props.getQualificationRequirements(new QualificationRequirement[0]), // qualificationRequirements
@@ -100,216 +121,127 @@ public class HitManager {
                 null); // hitReviewPolicy
 
 
-        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "LAUNCH", null, h.getHITId(), null, url, Collections.singletonMap("properties", (Object) props.toJSONString()));
+        Hits hit = CayenneUtils.createHit(DbProvider.getContext(), h, null, batch(), url, lifetime);
+        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "LAUNCH", null, h.getHITId(), null, null, Collections.<String, Object>emptyMap());
 
 
     }
 
-     public void launch(String url, int height, DefaultEnabledHitProperties props, String oldhit) {
+    public synchronized void reLaunch(String oldhit) {
+        Hits hits = DataObjectUtils.objectForPK(DbProvider.getContext(), Hits.class, oldhit);
+        if (hits == null) {
+            log.error("No local record of hit; not relaunching (" + oldhit + ")");
+            return;
+        }
+        if (hits.getStatusEnum() == Hits.Status.COMPLETE) {
+            log.error("Hit is already complete");
+            return;
+        } else if (hits.getStatusEnum() == Hits.Status.MISSING) {
+            log.error("Hit is missing");
+        }
 
-         String annotation = getAnnotation("batchId",batch+"",props.getAnnotation(null));
-         annotation = getAnnotation("previousHit",oldhit,annotation);
+        HIT h = null;
+        try {
+            h = requesterService.getHIT(oldhit);
+        } catch (ServiceException ex) {
+            ex.printStackTrace();
+            log.error("Error retrieving hit from service: " + oldhit);
+            hits.setStatus(Hits.Status.MISSING.name());
+            DbProvider.getContext().commitChanges();
+            return;
+        }
 
-        HIT h = requesterService.createHIT(
-                null, // hitTypeId
-                props.getTitle("No title"),
-                props.getDescription("No description"),
-                props.getKeywords(null), // keywords
-                MturkUtils.getExternalQuestion(url, height),
-                props.getRewardAmount(0),
-                props.getAssignmentDuration(60 * 5),
-                props.getAutoApprovalDelay(60 * 30),
-                props.getLifetime(60 * 60 * 15),
-                props.getMaxAssignments(1),
-                annotation, // requesterAnnotation
-                props.getQualificationRequirements(new QualificationRequirement[0]), // qualificationRequirements
-                new String[]{"Minimal", "HITDetail", "HITQuestion", "HITAssignmentSummary"}, // responseGroup
-                null, // uniqueRequestToken
-                null, // assignmentReviewPolicy
-                null); // hitReviewPolicy
+        if (h.getMaxAssignments().intValue() == h.getNumberOfAssignmentsCompleted()) {
+            hits.setCompleted(h.getNumberOfAssignmentsCompleted());
+            hits.setStatus(Hits.Status.COMPLETE.name());
+            DbProvider.getContext().commitChanges();
+            log.warn("Can only relaunch hits that have pending assignments; extend HIT before relaunching");
+            return;
+        }
 
 
-        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "LAUNCH", null, h.getHITId(), null, url, Collections.singletonMap("properties", (Object) props.toJSONString()));
+        try {
+            requesterService.forceExpireHIT(oldhit);
+        } catch (ServiceException ex) {
+            ex.printStackTrace();
+            log.error("Could not delete hit, not relaunching " + oldhit);
+        }
 
 
+        HIT nhit = requesterService.createHIT(
+                null,
+                h.getTitle(),
+                h.getDescription(),
+                h.getKeywords(),
+                h.getQuestion(),
+                h.getReward().getAmount().doubleValue(),
+                h.getAssignmentDurationInSeconds(),
+                h.getAutoApprovalDelayInSeconds(),
+                hits.getLifetime(),
+                h.getMaxAssignments()-hits.getCompleted(),
+                 h.getRequesterAnnotation(),
+                h.getQualificationRequirement(),
+                new String[]{"Minimal", "HITDetail", "HITQuestion", "HITAssignmentSummary"},
+                null,
+                null,
+                null);
+
+        hits.setStatus(Hits.Status.RELAUNCHED.name());
+        List<String> workers = new ArrayList<String>();
+        for  (TurkerLog l:hits.getLogs()) {
+            if (l.getType().equals("RESULTS")) {
+               workers.add(l.getWorkerId());
+            }
+
+        }
+
+        workers.add(hits.getScreen());
+        String screen = Utils.join(workers,";");
+
+        Hits nhits = CayenneUtils.createHit(DbProvider.getContext(), nhit, oldhit, batch(), hits.getUrl(), hits.getLifetime());
+        nhits.setScreen(screen);
+        DbProvider.getContext().commitChanges();
+
+        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "LAUNCH", null, nhit.getHITId(), null, null, Collections.<String, Object>emptyMap());
     }
 
-
-    public List<HIT> getAllHits() {
-
-        return hits;
-
-    }
 
     private Batch batch() {
         return CayenneUtils.findBatch(DbProvider.getContext(), batch);
     }
 
-    public void extendByTime(Collection<String> hits, long duration) {
-        try {
-            requesterService.extendHITs(hits.toArray(new String[hits.size()]), null, duration, null);
-        } catch (ServiceException ex) {
-            ex.printStackTrace();
-            log.error("Couldn't extend hits "+hits);
-        }
+
+
+    public List<TurkerLog> getNewHitResults(boolean clear) {
+        List<TurkerLog> results = new ArrayList<TurkerLog>(newHitResults);
+        if (clear) newHitResults.clear();
+        return results;
     }
 
 
-    public void extendBatch(Batch b, long duration) {
-        populateResults(false);
-        List<TurkerLog> logs = b.getToLogs();
-        Set<String> hits = new HashSet<String>();
-        for (TurkerLog l : logs) {
-            if (l.getType().equals("RESULTS") && Utils.getJsonInt(l.getData(), "remaining") > 0) {
-                hits.add(l.getHit());
-            }
-        }
-        extendByTime(hits,duration);
-    }
-
-    public List<TurkerLog> getFilteredLogs(boolean allowIncomplete, boolean forceNonReviewable, String... type) {
-        populateResults(forceNonReviewable);
-        Batch b = CayenneUtils.findBatch(DbProvider.getContext(), batch);
-        List<TurkerLog> logs = new ArrayList<TurkerLog>(b.getToLogs());
-        List<String> accept = Arrays.asList(type);
-        if (accept == null || accept.isEmpty()) return logs;
-        for (Iterator<TurkerLog> i = logs.iterator(); i.hasNext(); ) {
-            TurkerLog log = i.next();
-            if (!accept.contains(log.getType())) {
-                i.remove();
-
-            } else {
-                Integer remaining = Utils.getJsonInt(log.getData(), "remaining");
-                if (remaining != null && remaining > 0 && !allowIncomplete) {
-                    i.remove();
-                }
-            }
-
-        }
-        return logs;
-
-    }
-
-    public void populateResults(boolean force) {
-        updateHits();
-        for (HIT h : getAllHits()) {
-            //only process completed hits
-            //TODO do a better job with this, so that clients can choose completed hits or not
-            if (!force) {
-                if (h.getHITStatus() != HITStatus.Reviewable) continue;
-
-            }
-            int remaining = (h.getMaxAssignments() - h.getNumberOfAssignmentsCompleted());
-            Assignment[] assignments = requesterService.getAllAssignmentsForHIT(h.getHITId());
-            for (Assignment a : assignments) {
-                List<TurkerLog> logs = CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), a.getAssignmentId(), "RESULTS");
-                if (logs == null || logs.isEmpty()) {
-                    TurkerLog nlog = DbProvider.getContext().newObject(TurkerLog.class);
-                    nlog.setAssignmentId(a.getAssignmentId());
-                    nlog.setHit(a.getHITId());
-                    nlog.setDate(a.getSubmitTime().getTime());
-                    nlog.setToBatch(CayenneUtils.findBatch(DbProvider.getContext(), batch));
-                    nlog.setType("RESULTS");
-                    nlog.setWorkerId(a.getWorkerId());
-                    Map<String, String> result = new HashMap<String, String>();
-                    result.put("answer", a.getAnswer());
-                    result.put("remaining", remaining + "");
-                    JSONObject obj = new JSONObject(result);
-                    nlog.setData(obj.toString());
-
-                } else {
-                    for (TurkerLog log : logs) {
-                        log.setData(Utils.updateJSONProperty(log.getData(), "remaining", remaining + ""));
-                    }
-                }
-                if (a.getAssignmentStatus().equals(AssignmentStatus.Approved)) {
-                    logs = CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), a.getAssignmentId(), "APPROVED");
-                    if (logs == null || logs.isEmpty()) {
-                        TurkerLog nlog = DbProvider.getContext().newObject(TurkerLog.class);
-                        nlog.setAssignmentId(a.getAssignmentId());
-                        nlog.setHit(a.getHITId());
-                        nlog.setDate(a.getSubmitTime().getTime());
-                        nlog.setToBatch(CayenneUtils.findBatch(DbProvider.getContext(), batch));
-                        nlog.setType("APPROVED");
-                        nlog.setWorkerId(a.getWorkerId());
-                        Map<String, String> result = new HashMap<String, String>();
-                        result.put("answer", a.getAnswer());
-                        result.put("response", a.getRequesterFeedback());
-                        result.put("remaining", remaining + "");
-                        JSONObject obj = new JSONObject(result);
-                        nlog.setData(obj.toString());
-
-                    }
-                } else if (a.getAssignmentStatus().equals(AssignmentStatus.Rejected)) {
-                    logs = CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), a.getAssignmentId(), "REJECTED");
-                    if (logs == null || logs.isEmpty()) {
-                        TurkerLog nlog = DbProvider.getContext().newObject(TurkerLog.class);
-                        nlog.setAssignmentId(a.getAssignmentId());
-                        nlog.setHit(a.getHITId());
-                        nlog.setDate(a.getApprovalTime().getTime());
-                        nlog.setToBatch(CayenneUtils.findBatch(DbProvider.getContext(), batch));
-                        nlog.setType("REJECTED");
-                        nlog.setWorkerId(a.getWorkerId());
-                        Map<String, String> result = new HashMap<String, String>();
-                        result.put("answer", a.getAnswer());
-                        result.put("response", a.getRequesterFeedback());
-                        result.put("remaining", remaining + "");
-                        JSONObject obj = new JSONObject(result);
-                        nlog.setData(obj.toString());
-                    }
-
-                }
-
-                DbProvider.getContext().commitChanges();
-
-
-            }
-        }
-    }
-
-    public void approveAssignments(String[] ids, String feedback) {
+    public synchronized void approveAssignments(String[] ids, String feedback) {
         for (String id : ids) {
             GetAssignmentResult result = requesterService.getAssignment(id);
             if (result.getAssignment() != null) {
                 Assignment a = result.getAssignment();
                 if (a.getAssignmentStatus().equals(AssignmentStatus.Submitted)) {
                     requesterService.approveAssignment(a.getAssignmentId(), feedback);
-                    TurkerLog nlog = DbProvider.getContext().newObject(TurkerLog.class);
-                    nlog.setAssignmentId(a.getAssignmentId());
-                    nlog.setHit(a.getHITId());
-                    nlog.setDate(new Date());
-                    nlog.setToBatch(CayenneUtils.findBatch(DbProvider.getContext(), batch));
-                    nlog.setType("APPROVED");
-                    nlog.setWorkerId(a.getWorkerId());
-                    Map<String, String> data = new HashMap<String, String>();
-                    data.put("response", feedback);
-                    JSONObject obj = new JSONObject(data);
-                    nlog.setData(obj.toString());
-                    DbProvider.getContext().commitChanges();
+                    CayenneUtils.logEvent(DbProvider.getContext(),batch(),"APPROVED",a.getWorkerId(),a.getHITId(),a.getAssignmentId(),null,Collections.<String,Object>singletonMap("response",feedback));
+
                 }
             }
         }
     }
 
-    public void rejectAssignments(String[] ids, String feedback) {
+    public synchronized void rejectAssignments(String[] ids, String feedback) {
         for (String id : ids) {
             GetAssignmentResult result = requesterService.getAssignment(id);
             if (result.getAssignment() != null) {
                 Assignment a = result.getAssignment();
                 if (a.getAssignmentStatus().equals(AssignmentStatus.Submitted)) {
                     requesterService.rejectAssignment(a.getAssignmentId(), feedback);
-                    TurkerLog nlog = DbProvider.getContext().newObject(TurkerLog.class);
-                    nlog.setAssignmentId(a.getAssignmentId());
-                    nlog.setHit(a.getHITId());
-                    nlog.setDate(new Date());
-                    nlog.setToBatch(CayenneUtils.findBatch(DbProvider.getContext(), batch));
-                    nlog.setType("REJECTED");
-                    nlog.setWorkerId(a.getWorkerId());
-                    Map<String, String> data = new HashMap<String, String>();
-                    data.put("response", feedback);
-                    JSONObject obj = new JSONObject(data);
-                    nlog.setData(obj.toString());
-                    DbProvider.getContext().commitChanges();
+                     CayenneUtils.logEvent(DbProvider.getContext(),batch(),"REJECTED",a.getWorkerId(),a.getHITId(),a.getAssignmentId(),null,Collections.<String,Object>singletonMap("response",feedback));
+
                 }
             }
         }
@@ -317,8 +249,8 @@ public class HitManager {
 
     public void bonusAssignments(String[] ids, String feedback, double amount) {
         for (String id : ids) {
-            List<TurkerLog> l =  CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), id, "BONUSED");
-            if (l !=null && !l.isEmpty()) {
+            List<TurkerLog> l = CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), id, "BONUSED");
+            if (l != null && !l.isEmpty()) {
                 log.warn("Already bonused worker for this assignment. Refusing to do it again!");
                 continue;
             }
@@ -329,25 +261,13 @@ public class HitManager {
                 Assignment a = result.getAssignment();
 
 
-
                 double bonusAmount = Double.parseDouble(String.format("%.2f", amount));
                 if (bonusAmount < .01) {
                     log.warn("Invalid bonus amount; not bonusing");
                 }
                 requesterService.grantBonus(a.getWorkerId(), bonusAmount, a.getAssignmentId(), feedback);
-                TurkerLog nlog = DbProvider.getContext().newObject(TurkerLog.class);
-                nlog.setAssignmentId(a.getAssignmentId());
-                nlog.setHit(a.getHITId());
-                nlog.setDate(new Date());
-                nlog.setToBatch(CayenneUtils.findBatch(DbProvider.getContext(), batch));
-                nlog.setType("BONUSED");
-                nlog.setWorkerId(a.getWorkerId());
-                Map<String, String> data = new HashMap<String, String>();
-                data.put("response", feedback);
-                data.put("amount", String.format("%.2f", amount));
-                JSONObject obj = new JSONObject(data);
-                nlog.setData(obj.toString());
-                DbProvider.getContext().commitChanges();
+                CayenneUtils.logEvent(DbProvider.getContext(),batch(),"BONUSED",a.getWorkerId(),a.getHITId(),a.getAssignmentId(),null, Utils.mapify("response",feedback,"amount",String.format("%.2f", amount)));
+
 
             }
         }
@@ -355,50 +275,104 @@ public class HitManager {
 
     protected String getAnnotation(String key, String value, String data) {
 
-        if (!data.contains(key+"=")) {
-            data = key+"=" + value + ";" + data;
+        if (!data.contains(key + "=")) {
+            data = key + "=" + value + ";" + data;
         }
         return data;
     }
 
 
-    public void updateHits() {
+    public synchronized void updateHits() {
+        List<Hits> hitses = batch().getHits();
 
-        List<HIT> hits = new ArrayList<HIT>(Arrays.asList(requesterService.searchAllHITs()));
-        for (Iterator<HIT> hitsI = hits.iterator(); hitsI.hasNext(); ) {
-            HIT h = hitsI.next();
+        for (Hits h : hitses) {
+            if (h.getStatusEnum() == Hits.Status.MISSING || h.getStatusEnum() == Hits.Status.COMPLETE || h.getStatusEnum() ==Hits.Status.RELAUNCHED) continue;
+            HIT ahit = requesterService.getHIT(h.getId());
+            h.setAmtStatus(ahit.getHITStatus().getValue());
+            int completed = ahit.getMaxAssignments()-ahit.getNumberOfAssignmentsAvailable();
+            if (completed > h.getCompleted()) {
+                completed =0;
+                Assignment[] result = requesterService.getAllAssignmentsForHIT(ahit.getHITId());
+                List<TurkerLog> results = new ArrayList<TurkerLog>();
+                for (Assignment a : result) {
+                    if (a.getSubmitTime() == null) {
+                        log.info("Got null submit time??");
+                        continue;
+                    }
+                    if (CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), a.getAssignmentId(), "RESULTS").isEmpty()) {
+                        results.add(CayenneUtils.logEvent(DbProvider.getContext(), batch(), "RESULTS", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>singletonMap("answer", a.getAnswer())));
+                    }
+                    completed++;
+                    if (a.getAssignmentStatus() == AssignmentStatus.Approved) {
+                        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "APPROVED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>emptyMap());
+                    } else if (a.getAssignmentStatus() == AssignmentStatus.Rejected) {
+                        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "REJECTED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>emptyMap());
+                    } else if (autoApprove) {
+                        requesterService.approveAssignment(a.getAssignmentId(), "Thanks!");
+                        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "APPROVED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>singletonMap("feedback", "Thanks!"));
+                    }
 
-            if (!Long.valueOf(MturkUtils.parseBatchId(h)).equals(batch)) {
-                hitsI.remove();
+
+                }
+                h.setCompleted(completed);
+                if (h.getCompleted().intValue() == h.getRequested()) {
+                    h.setStatus(Hits.Status.COMPLETE.name());
+                    newHitResults.addAll(results);
+                    while (h.getPreviousHit() != null) {
+                        h = h.getPreviousHit();
+                        for (TurkerLog l : h.getLogs()) {
+                            newHitResults.add(l);
+                        }
+
+                    }
+                }
+            }
+
+            if (ahit.getExpiration().before(new GregorianCalendar())) {
+                h.setStatus(Hits.Status.HALTED.name());
+            } else if (h.getStatusEnum() == Hits.Status.HALTED) {
+                h.setStatus(Hits.Status.OPEN.name());
             }
         }
-        isModified = !(hits.size() == this.hits.size() && hits.containsAll(this.hits));
-        if (isModified) {
-            this.hits = hits;
-
-        }
-
+        DbProvider.getContext().commitChanges();
     }
 
-    public static HitManager get(Batch batch) {
-        HitManager manager = managerMap.get(batch);
-        if (manager == null) {
-            managerMap.put(batch, manager = new HitManager(batch));
+
+     public void extendHits(Collection<String> hits, long duration) {
+        try {
+            requesterService.extendHITs(hits.toArray(new String[hits.size()]), null, duration, null);
+        } catch (ServiceException ex) {
+            ex.printStackTrace();
+            log.error("Couldn't extend hits " + hits);
         }
-        return manager;
+    }
+
+
+    public void extendBatch(Batch b, long duration) {
+        updateHits();
+        List<String> hits = new ArrayList<String>();
+        for (Hits h : b.getHits()) {
+            if (h.getStatusEnum() == Hits.Status.OPEN || h.getStatusEnum() == Hits.Status.HALTED) {
+                hits.add(h.getId());
+            }
+        }
+
+        extendHits(hits, duration);
     }
 
     public void expireHits(List<String> hits) {
-        for (String h:hits) {
+        for (String h : hits) {
             requesterService.forceExpireHIT(h);
         }
     }
 
     public void expireBatch() {
-        List<String> hits = new ArrayList<String>();
-        for (TurkerLog log:getFilteredLogs(true,false,"LAUNCH")) {
-            hits.add(log.getHit());
+        List<String> hitids = new ArrayList<String>();
+        for (Hits h:batch().getHits()) {
+            if (h.getStatus().equals(Hits.Status.OPEN.name())) {
+                hitids.add(h.getId());
+            }
         }
-        expireHits(hits);
+        expireHits(hitids);
     }
 }

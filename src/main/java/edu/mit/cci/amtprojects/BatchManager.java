@@ -9,9 +9,13 @@ import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
  */
 public interface BatchManager {
 
-    public void restartBatch(Batch b, UrlCreator creator);
-    public void haltBatch(Batch b);
-    public void relaunchBatch(Batch b);
+    public void restartBatchProcessor(Batch b, UrlCreator creator);
+    public void haltBatchProcessor(Batch b);
+
+    public void extendBatch(Batch b);
+    public void expireBatch(Batch b);
+
+    public void restartActiveHits(Batch b);
 
     public Status getStatus(Batch batch);
 

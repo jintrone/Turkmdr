@@ -26,6 +26,19 @@
 		<db-attribute name="classname" type="VARCHAR" length="255"/>
 		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
 	</db-entity>
+	<db-entity name="Hits">
+		<db-attribute name="amtStatus" type="VARCHAR" length="128"/>
+		<db-attribute name="batchId" type="BIGINT"/>
+		<db-attribute name="completed" type="INTEGER"/>
+		<db-attribute name="creation" type="TIMESTAMP"/>
+		<db-attribute name="id" type="VARCHAR" isPrimaryKey="true" isMandatory="true" length="256"/>
+		<db-attribute name="lifetime" type="BIGINT"/>
+		<db-attribute name="previous" type="VARCHAR" length="256"/>
+		<db-attribute name="requested" type="INTEGER"/>
+		<db-attribute name="screen" type="LONGVARCHAR"/>
+		<db-attribute name="status" type="VARCHAR" length="128"/>
+		<db-attribute name="url" type="VARCHAR" length="1024"/>
+	</db-entity>
 	<db-entity name="TurkerLog">
 		<db-attribute name="assignmentId" type="VARCHAR" length="256"/>
 		<db-attribute name="batchId" type="BIGINT"/>
@@ -60,11 +73,21 @@
 		<obj-attribute name="experimentId" type="java.lang.Long" db-attribute-path="id"/>
 		<obj-attribute name="name" type="java.lang.String" db-attribute-path="Name"/>
 	</obj-entity>
+	<obj-entity name="Hits" className="edu.mit.cci.amtprojects.kickball.cayenne.Hits" dbEntityName="Hits">
+		<obj-attribute name="amtStatus" type="java.lang.String" db-attribute-path="amtStatus"/>
+		<obj-attribute name="completed" type="java.lang.Integer" db-attribute-path="completed"/>
+		<obj-attribute name="creation" type="java.util.Date" db-attribute-path="creation"/>
+		<obj-attribute name="id" type="java.lang.String" db-attribute-path="id"/>
+		<obj-attribute name="lifetime" type="java.lang.Long" db-attribute-path="lifetime"/>
+		<obj-attribute name="requested" type="java.lang.Integer" db-attribute-path="requested"/>
+		<obj-attribute name="screen" type="java.lang.String" db-attribute-path="screen"/>
+		<obj-attribute name="status" type="java.lang.String" db-attribute-path="status"/>
+		<obj-attribute name="url" type="java.lang.String" db-attribute-path="url"/>
+	</obj-entity>
 	<obj-entity name="TurkerLog" className="edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog" dbEntityName="TurkerLog">
 		<obj-attribute name="assignmentId" type="java.lang.String" db-attribute-path="assignmentId"/>
 		<obj-attribute name="data" type="java.lang.String" db-attribute-path="data"/>
 		<obj-attribute name="date" type="java.util.Date" db-attribute-path="date"/>
-		<obj-attribute name="hit" type="java.lang.String" db-attribute-path="hit"/>
 		<obj-attribute name="queryParams" type="java.lang.String" db-attribute-path="queryparams"/>
 		<obj-attribute name="type" type="java.lang.String" db-attribute-path="type"/>
 		<obj-attribute name="workerId" type="java.lang.String" db-attribute-path="workerId"/>
@@ -73,6 +96,9 @@
 		<obj-attribute name="password" type="java.lang.String" db-attribute-path="password"/>
 		<obj-attribute name="username" type="java.lang.String" db-attribute-path="username"/>
 	</obj-entity>
+	<db-relationship name="hits" source="Batch" target="Hits" toMany="true">
+		<db-attribute-pair source="id" target="batchId"/>
+	</db-relationship>
 	<db-relationship name="toExperiment" source="Batch" target="Experiment" toMany="false">
 		<db-attribute-pair source="experimentId" target="id"/>
 	</db-relationship>
@@ -91,14 +117,35 @@
 	<db-relationship name="toBatch" source="Experiment" target="Batch" toMany="true">
 		<db-attribute-pair source="id" target="experimentId"/>
 	</db-relationship>
+	<db-relationship name="batch" source="Hits" target="Batch" toMany="false">
+		<db-attribute-pair source="batchId" target="id"/>
+	</db-relationship>
+	<db-relationship name="logs" source="Hits" target="TurkerLog" toMany="true">
+		<db-attribute-pair source="id" target="hit"/>
+	</db-relationship>
+	<db-relationship name="nextHit" source="Hits" target="Hits" toMany="false">
+		<db-attribute-pair source="id" target="previous"/>
+	</db-relationship>
+	<db-relationship name="previousHit" source="Hits" target="Hits" toMany="false">
+		<db-attribute-pair source="previous" target="id"/>
+	</db-relationship>
+	<db-relationship name="hits" source="TurkerLog" target="Hits" toMany="false">
+		<db-attribute-pair source="hit" target="id"/>
+	</db-relationship>
 	<db-relationship name="toBatch" source="TurkerLog" target="Batch" toMany="false">
 		<db-attribute-pair source="batchId" target="id"/>
 	</db-relationship>
+	<obj-relationship name="hits" source="Batch" target="Hits" deleteRule="Nullify" db-relationship-path="hits"/>
 	<obj-relationship name="toExperiment" source="Batch" target="Experiment" deleteRule="Nullify" db-relationship-path="toExperiment"/>
 	<obj-relationship name="toLogs" source="Batch" target="TurkerLog" deleteRule="Deny" db-relationship-path="toLogs"/>
 	<obj-relationship name="toQuestion" source="Batch" target="Question" deleteRule="Nullify" db-relationship-path="toQuestion"/>
 	<obj-relationship name="toStatus" source="Batch" target="BatchStatus" deleteRule="Nullify" db-relationship-path="toStatus"/>
 	<obj-relationship name="toBatch" source="BatchStatus" target="Batch" deleteRule="Deny" db-relationship-path="toBatch"/>
 	<obj-relationship name="toBatch" source="Experiment" target="Batch" deleteRule="Deny" db-relationship-path="toBatch"/>
+	<obj-relationship name="batch" source="Hits" target="Batch" deleteRule="Nullify" db-relationship-path="batch"/>
+	<obj-relationship name="logs" source="Hits" target="TurkerLog" deleteRule="Deny" db-relationship-path="logs"/>
+	<obj-relationship name="nextHit" source="Hits" target="Hits" deleteRule="Nullify" db-relationship-path="nextHit"/>
+	<obj-relationship name="previousHit" source="Hits" target="Hits" deleteRule="Nullify" db-relationship-path="previousHit"/>
+	<obj-relationship name="hit" source="TurkerLog" target="Hits" deleteRule="Nullify" db-relationship-path="hits"/>
 	<obj-relationship name="toBatch" source="TurkerLog" target="Batch" deleteRule="Nullify" db-relationship-path="toBatch"/>
 </data-map>

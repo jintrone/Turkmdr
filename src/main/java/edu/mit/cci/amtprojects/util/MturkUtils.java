@@ -8,9 +8,6 @@ import com.amazonaws.mturk.service.axis.RequesterService;
 import edu.cci.amtprojects.DefaultEnabledHitProperties;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -18,7 +15,6 @@ import org.apache.sling.commons.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -104,7 +100,7 @@ public class MturkUtils {
     }
 
     public static String extractAnswer(TurkerLog log,String key) {
-        String answerdata = Utils.extractJsonProperty(log.getData(),"answer");
+        String answerdata = Utils.getJsonString(log.getData(), "answer");
         QuestionFormAnswers answers = RequesterService.parseAnswers(answerdata);
         for (QuestionFormAnswersType.AnswerType a:(List< QuestionFormAnswersType.AnswerType>) answers.getAnswer()) {
           if (a.getQuestionIdentifier().equals(key)) return a.getFreeText();

@@ -63,7 +63,8 @@ public class PostReplyDataProvider implements IDataProvider<Set<PostReplyDataPro
     private void populate() {
         HitManager manager = HitManager.get(batch());
         Map<Integer,Set<PostReplyResult>> resultmap = new HashMap<Integer, Set<PostReplyResult>>();
-        for (TurkerLog log:manager.getFilteredLogs(false, false, "RESULTS")) {
+        for (TurkerLog log:batch().getToLogs()) {
+            if (!log.getType().equals("RESULTS")) continue;
 
             Integer postid = Integer.parseInt(MturkUtils.extractAnswer(log,"post"));
             Integer respondsto = Integer.parseInt(MturkUtils.extractAnswer(log,"respondstoid"));

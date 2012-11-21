@@ -1,10 +1,12 @@
 package edu.mit.cci.amtprojects;
 
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
+import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
 import edu.mit.cci.amtprojects.solver.SolverTaskModel;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
 import edu.mit.cci.amtprojects.util.Utils;
+import org.apache.cayenne.DataObjectUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -90,6 +92,11 @@ public abstract class GenericTask extends WebPage implements TurkLogger {
             "You are part of %s. You can avoid this message by choosing other hits that have %s in the title.</p><p><small>NOTE: This messag" +
             "e is a temporary fix; we hope that Mechanical Turk itself will allow us to block specific workers from particular HITs, so that they do not show up under \"HITs Available To You\". Given this and other factors, Mechanical Turk requesters" +
             " generally do not care how many HITs you return.</small></p><p><b>Sorry for the inconvenience.</b></p>');});";
+    String screen = "$(function() {$('body').empty().append('<h2>Please return this HIT</h2><p>You have done nothing wrong, but the requester for this HIT does not want you to complete it because you have already participated in a group of HITs that are building on each other, and the requester is trying to ensure variety." +
+                "</p><p><small>NOTE: This message" +
+                " is a temporary fix; we hope that Mechanical Turk itself will allow us to block specific workers from particular HITs, so that they do not show up under \"HITs Available To You\". Given this and other factors, Mechanical Turk requesters" +
+                " generally do not care how many HITs you return.</small></p><p><b>Sorry for the inconvenience.</b></p>');});";
+
 
     public GenericTask(PageParameters param) {
         this(param, false, false);
@@ -134,9 +141,15 @@ public abstract class GenericTask extends WebPage implements TurkLogger {
                         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                     }
                 }
-
+            }
+            Hits h = DataObjectUtils.objectForPK(DbProvider.getContext(),Hits.class,hitId);
+            if (h!=null && h.getScreen()!=null) {
+                if (h.getScreen().contains(workerId)) {
+                    scriptText = screen;
+                }
 
             }
+
 
         }
 
@@ -174,9 +187,9 @@ public abstract class GenericTask extends WebPage implements TurkLogger {
         CayenneUtils.logEvent(DbProvider.getContext(),
                 CayenneUtils.findBatch(DbProvider.getContext(), batchId),
                 type,
-                isPreview ? "NONE" : workerId,
-                isPreview ? "NONE" : hitId,
-                isPreview ? "NONE" : assignmentId,
+                isPreview ? null : workerId,
+                isPreview ? null : hitId,
+                isPreview ? null : assignmentId,
                 param.toString(), params);
     }
 

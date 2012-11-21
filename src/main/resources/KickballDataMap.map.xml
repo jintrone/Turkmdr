@@ -11,6 +11,7 @@
 		<db-attribute name="eventSession" type="INTEGER" length="10"/>
 		<db-attribute name="ipAddress" type="VARCHAR" length="255"/>
 		<db-attribute name="postid" type="INTEGER" isPrimaryKey="true" isMandatory="true" length="10"/>
+		<db-attribute name="replyId" type="INTEGER"/>
 		<db-attribute name="threadid" type="INTEGER" length="10"/>
 	</db-entity>
 	<db-entity name="Quote">
@@ -58,6 +59,12 @@
 	<db-relationship name="quotes" source="Post" target="Quote" toMany="true">
 		<db-attribute-pair source="postid" target="referringPost"/>
 	</db-relationship>
+	<db-relationship name="replies" source="Post" target="Post" toMany="true">
+		<db-attribute-pair source="postid" target="replyId"/>
+	</db-relationship>
+	<db-relationship name="replyTo" source="Post" target="Post" toMany="false">
+		<db-attribute-pair source="replyId" target="postid"/>
+	</db-relationship>
 	<db-relationship name="fromPost" source="Quote" target="Post" toMany="false">
 		<db-attribute-pair source="referringPost" target="postid"/>
 	</db-relationship>
@@ -74,6 +81,8 @@
 	<obj-relationship name="postToUser" source="Post" target="User" deleteRule="Nullify" db-relationship-path="postToUser"/>
 	<obj-relationship name="quotedBy" source="Post" target="Post" deleteRule="Deny" db-relationship-path="quotedBy.fromPost"/>
 	<obj-relationship name="quotes" source="Post" target="Post" deleteRule="Deny" db-relationship-path="quotes.toQuote"/>
+	<obj-relationship name="replies" source="Post" target="Post" deleteRule="Nullify" db-relationship-path="replies"/>
+	<obj-relationship name="replyTo" source="Post" target="Post" deleteRule="Nullify" db-relationship-path="replyTo"/>
 	<obj-relationship name="fromPost" source="Quote" target="Post" deleteRule="Nullify" db-relationship-path="fromPost"/>
 	<obj-relationship name="toQuote" source="Quote" target="Post" deleteRule="Nullify" db-relationship-path="toQuote"/>
 	<obj-relationship name="threadToPost" source="Thread" target="Post" deleteRule="Deny" db-relationship-path="threadToPost"/>

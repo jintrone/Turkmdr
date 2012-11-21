@@ -3,19 +3,21 @@ package edu.mit.cci.amtprojects;
 import com.amazonaws.mturk.requester.HIT;
 import edu.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
+import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
 import edu.mit.cci.amtprojects.util.IndexedIterator;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * User: jintrone
  * Date: 9/1/12
  * Time: 5:07 AM
  */
-public class HitDataProvider implements IDataProvider<HIT> {
+public class HitDataProvider implements IDataProvider<Hits> {
 
 
     long batchid = -1;
@@ -29,17 +31,16 @@ public class HitDataProvider implements IDataProvider<HIT> {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    public Iterator<? extends HIT> iterator(long i, long count) {
-        HitManager manager = HitManager.get(batch());
-        return new IndexedIterator<HIT>(manager.getAllHits(),i,count);
+    public Iterator<? extends Hits> iterator(long i, long count) {
+        List<edu.mit.cci.amtprojects.kickball.cayenne.Hits> hits = batch().getHits();
+        return new IndexedIterator<Hits>(hits,i,count);
     }
 
     public long size() {
-        HitManager manager = HitManager.get(batch());
-        return manager.getAllHits().size();
+        return batch().getHits().size();
     }
 
-    public IModel<HIT> model(HIT hit) {
+    public IModel<edu.mit.cci.amtprojects.kickball.cayenne.Hits> model(edu.mit.cci.amtprojects.kickball.cayenne.Hits hit) {
         return new HITModel(hit);
     }
 

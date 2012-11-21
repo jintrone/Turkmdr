@@ -1,8 +1,10 @@
 package edu.mit.cci.amtprojects.util;
 
+import com.amazonaws.mturk.requester.HIT;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
+import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
 import edu.mit.cci.amtprojects.kickball.cayenne.User;
 import edu.mit.cci.amtprojects.kickball.cayenne.Users;
@@ -19,6 +21,7 @@ import org.apache.velocity.test.IntrospectorTestCase2;
 import org.apache.wicket.ajax.json.JSONObject;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -51,6 +54,26 @@ public class CayenneUtils {
         log.info("Found "+result+" items");
         return result;
 
+    }
+
+    public static List<TurkerLog> getAllPreviousTurkerLogs(DataContext context,String hit) {
+        List<TurkerLog> originalLaunchHits = getTurkerLogForHit(context,hit,"LAUNCH");
+        if (originalLaunchHits.isEmpty()) {
+            log.warn("Cannot identify launch hit for "+hit);
+            return Collections.emptyList();
+        } else {
+            String refHit = Utils.getJsonString(originalLaunchHits.get(0).getData(),"previousHit");
+            if (refHit == null) {
+                log.info("No previous hits");
+                return Collections.emptyList();
+            } else {
+                List<TurkerLog> result = new ArrayList<TurkerLog>(getTurkerLogForHit(context,hit,"RESULTS"));
+                result.addAll(getAllPreviousTurkerLogs(context,hit));
+                return result;
+            }
+
+
+        }
 
 
     }
@@ -58,6 +81,14 @@ public class CayenneUtils {
     public static List<TurkerLog> getTurkerLogForAssignment(DataContext context, String assignmentId, String type) {
 
         final String queryString = "select * from TurkerLog  where assignmentId like '"+assignmentId+"' and type like '"+type+"'";
+        final SQLTemplate queryTemplate = new SQLTemplate(TurkerLog.class, queryString);
+        return (List<TurkerLog>)context.performQuery(queryTemplate);
+
+    }
+
+     public static List<TurkerLog> getTurkerLogForHit(DataContext context, String hitId, String type) {
+
+        final String queryString = "select * from TurkerLog  where hitId like '"+hitId+"' and type like '"+type+"'";
         final SQLTemplate queryTemplate = new SQLTemplate(TurkerLog.class, queryString);
         return (List<TurkerLog>)context.performQuery(queryTemplate);
 
@@ -93,18 +124,19 @@ public class CayenneUtils {
     }
 
 
-    public static void logEvent(DataContext context, Batch b, String type, String workerid, String hitid, String assignmentid,
+    public static TurkerLog logEvent(DataContext context, Batch b, String type, String workerid, String hitid, String assignmentid,
                                 String queryparams, Map<String,Object> data) {
         TurkerLog log = context.newObject(TurkerLog.class);
         log.setToBatch(b);
         log.setType(type);
         log.setWorkerId(workerid);
-        log.setHit(hitid);
+        log.setHit(hitid!=null?DataObjectUtils.objectForPK(context,Hits.class,hitid):null);
         log.setAssignmentId(assignmentid);
         log.setQueryParams(queryparams);
         if (data != null && !data.isEmpty()) log.setData(new JSONObject(data).toString());
         log.setDate(new Date());
         context.commitChanges();
+        return log;
 
     }
 
@@ -131,4 +163,27 @@ public class CayenneUtils {
     }
 
 
+    public static Hits createHit(DataContext context, HIT h, String previousHit, Batch b, String url, long lifetime) {
+       Hits nhit = context.newObject(Hits.class);
+        nhit.setBatch(b);
+        nhit.setUrl(url);
+        nhit.setLifetime(lifetime);
+        nhit.setRequested(h.getMaxAssignments());
+        nhit.setCompleted(0);
+        nhit.setCreation(new Date());
+        nhit.setStatus(Hits.Status.OPEN.name());
+        nhit.setId(h.getHITId());
+
+        if (previousHit!=null) {
+            Hits oldhit = DataObjectUtils.objectForPK(context,Hits.class,previousHit);
+            if (oldhit==null) {
+               log.warn("Could not identify previous hit "+previousHit);
+            }
+            nhit.setPreviousHit(oldhit);
+        }
+        context.commitChanges();
+        return nhit;
+
+
+    }
 }

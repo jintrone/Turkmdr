@@ -1,8 +1,11 @@
 package edu.mit.cci.amtprojects.solver;
 
+import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.GenericTask;
 import edu.mit.cci.amtprojects.HomePage;
 import edu.mit.cci.amtprojects.util.Utils;
+import org.apache.cayenne.DataObjectUtils;
+import org.apache.cayenne.PersistenceState;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.MarkupContainer;
@@ -95,7 +98,12 @@ public class SolverGenerationTask extends GenericTask {
         DataView<Solution> dataView = new DataView<Solution>("answers", new ListDataProvider<Solution>(sols)) {
             @Override
             protected void populateItem(Item<Solution> solutionItem) {
-                final Solution sol = solutionItem.getModelObject();
+                Solution stest = solutionItem.getModelObject();
+
+                if (stest.getPersistenceState() == PersistenceState.HOLLOW) {
+                    stest = (Solution) DataObjectUtils.objectForPK(DbProvider.getContext(), stest.getObjectId());
+                }
+                final Solution sol = stest;
 
                 solutionItem.add(new Check<Solution>("check", solutionItem.getModel(), group).add(new AjaxEventBehavior("change") {
 
@@ -113,9 +121,9 @@ public class SolverGenerationTask extends GenericTask {
                         target.add(getForm());
                     }
                 }).add(new AttributeModifier("name", "parents")).add(new AttributeModifier("value", sol.getId() + "")));
-                solutionItem.add(new MultiLineLabel("text", sol.getText()));
+                solutionItem.add(new MultiLineLabel("text", stest.getText()));
 
-                solutionItem.add(new Label("score", sol.getToRanks().size() ==0?"<none>":String.format("%.2f", Utils.last(sol.getToRanks()).getRankValue())));
+                solutionItem.add(new Label("score", stest.getToRanks().size() ==0?"<none>":String.format("%.2f", Utils.last(sol.getToRanks()).getRankValue())));
 
             }
 

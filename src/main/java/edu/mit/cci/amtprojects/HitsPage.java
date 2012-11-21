@@ -1,11 +1,9 @@
 package edu.mit.cci.amtprojects;
 
 import com.amazonaws.mturk.requester.HIT;
-import edu.cci.amtprojects.DefaultEnabledHitProperties;
 import edu.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
-import edu.mit.cci.amtprojects.kickball.KickballPostTask;
-import edu.mit.cci.amtprojects.solver.SolverBatchManager;
+import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.solver.SolverPluginFactory;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
 import edu.mit.cci.amtprojects.util.Utils;
@@ -24,14 +22,9 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.protocol.http.RequestUtils;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.Serializable;
 import java.text.DateFormat;
 
 /**
@@ -40,21 +33,24 @@ import java.text.DateFormat;
  * Time: 10:23 PM
  */
 @AuthorizeInstantiation("ADMIN")
-public class Hits extends WebPage {
+public class HitsPage extends WebPage {
 
     private static final long serialVersionUID = 1L;
     private static int itemsPerPage = 50;
-    private static Logger log = Logger.getLogger(Hits.class);
+    private static Logger log = Logger.getLogger(HitsPage.class);
     private long batchid;
-    private  AjaxLink<?> halt;
-    private AjaxLink<?> restart;
+    private  AjaxLink<?> haltProcessor;
+    private AjaxLink<?> restartProcessor;
+     private AjaxLink<?> expireHits;
+     private AjaxLink<?> extendHits;
+     private AjaxLink<?> relaunchHits;
 
     PagingNavigator pagingNavigator;
 
 
 
 
-    public Hits(PageParameters parameters) {
+    public HitsPage(PageParameters parameters) {
 
 
         if (parameters.get("batch").isEmpty()) {
@@ -83,14 +79,14 @@ public class Hits extends WebPage {
             }
         });
 
-        restart = new AjaxLink<Object>("restart") {
+        restartProcessor = new AjaxLink<Object>("restartProcessor") {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 log.info("Received restart");
                BatchManager manager = new SolverPluginFactory().getBatchManager();
-                manager.restartBatch(batch(), Utils.getUrlCreator(this));
-                target.add(halt,statusLabel);
+                manager.restartBatchProcessor(batch(), Utils.getUrlCreator(this));
+                target.add(haltProcessor,statusLabel);
             }
 
             public boolean isEnabled() {
@@ -98,14 +94,14 @@ public class Hits extends WebPage {
             }
         };
 
-         halt = new AjaxLink<Object>("halt") {
+         haltProcessor = new AjaxLink<Object>("haltProcessor") {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 log.info("Received halt");
-                 BatchManager manager = new SolverPluginFactory().getBatchManager();
-                manager.haltBatch(batch());
-                target.add(restart,statusLabel);
+                BatchManager manager = new SolverPluginFactory().getBatchManager();
+                manager.haltBatchProcessor(batch());
+                target.add(restartProcessor,statusLabel);
             }
 
              public boolean isEnabled() {
@@ -113,22 +109,52 @@ public class Hits extends WebPage {
             }
         };
 
-        add(restart.setOutputMarkupId(true),halt.setOutputMarkupId(true));
+         expireHits = new AjaxLink<Object>("expireHits") {
+             @Override
+             public void onClick(AjaxRequestTarget target) {
+                BatchManager manager = new SolverPluginFactory().getBatchManager();
+                manager.expireBatch(batch());
 
+             }
+         };
+
+         extendHits = new AjaxLink<Object>("extendHits") {
+             @Override
+             public void onClick(AjaxRequestTarget target) {
+                BatchManager manager = new SolverPluginFactory().getBatchManager();
+                manager.extendBatch(batch());
+
+             }
+         };
+
+        relaunchHits = new AjaxLink<Object>("relaunchHits") {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                 BatchManager manager = new SolverPluginFactory().getBatchManager();
+                manager.restartActiveHits(batch());
+            }
+        };
+
+
+
+
+
+        add(restartProcessor.setOutputMarkupId(true), haltProcessor.setOutputMarkupId(true), expireHits,extendHits,relaunchHits);
         add(statusLabel.setOutputMarkupId(true));
 
 
-        final DataView<HIT> dataView = new DataView<HIT>("pageable", new HitDataProvider(batch())) {
+        final DataView<Hits> dataView = new DataView<Hits>("pageable", new HitDataProvider(batch())) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(final Item<HIT> item) {
-                HIT hit = item.getModelObject();
-                item.add(new Label("hitId", String.valueOf(hit.getHITId())));
-                item.add(new Label("creation", DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(hit.getCreationTime().getTime())));
-                item.add(new Label("status", hit.getHITStatus().getValue()));
-                item.add(new Label("assignmentsRequested", String.valueOf(hit.getMaxAssignments())));
-                item.add(new Label("assignmentsCompleted", String.valueOf(hit.getNumberOfAssignmentsCompleted())));
+            protected void populateItem(final Item<Hits> item) {
+                Hits hit = item.getModelObject();
+                item.add(new Label("hitId", String.valueOf(hit.getId())));
+                item.add(new Label("creation", DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(hit.getCreation())));
+                item.add(new Label("status", hit.getStatus()));
+                item.add(new Label("amtstatus",hit.getAmtStatus()));
+                item.add(new Label("assignmentsRequested", String.valueOf(hit.getRequested())));
+                item.add(new Label("assignmentsCompleted", String.valueOf(hit.getCompleted())));
                 item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
                     private static final long serialVersionUID = 1L;
 
@@ -148,13 +174,13 @@ public class Hits extends WebPage {
         add(pagingNavigator);
         WebMarkupContainer container = new WebMarkupContainer("hitlist");
         container.add(dataView);
-        container.add(new AjaxSelfUpdatingTimerBehavior(Duration.seconds(30)) {
+        container.add(new AjaxSelfUpdatingTimerBehavior(Duration.seconds(15)) {
 
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {
                 log.info("Refresh");
                 HitManager.get(batch()).updateHits();
-                target.add(halt,restart,statusLabel);
+                target.add(haltProcessor, restartProcessor,statusLabel);
                 super.onPostProcessTarget(target);    //To change body of overridden methods use File | Settings | File Templates.
 
             }

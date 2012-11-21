@@ -45,6 +45,17 @@ public class ExperimentFormModel implements IClusterable {
 
     public Experiment create() {
 
+        try {
+            Class c = Class.forName(classname);
+            if (c.isAssignableFrom(PluginFactory.class)) {
+                return null;
+            }
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            return null;
+        }
+
         Experiment e = DbProvider.getContext().newObject(Experiment.class);
         e.setName(name);
         e.setClassname(classname);

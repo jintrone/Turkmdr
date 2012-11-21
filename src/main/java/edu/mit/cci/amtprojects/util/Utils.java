@@ -43,7 +43,7 @@ public class Utils {
         return result;
     }
 
-    public static String extractJsonProperty(String value, String key) {
+    public static String getJsonString(String value, String key) {
         try {
             JSONObject obj = new JSONObject(value);
             return obj.getString(key);
@@ -58,6 +58,7 @@ public class Utils {
         StringBuilder result = new StringBuilder();
         String sep = "";
         for (Object a:initialAnswers) {
+            if (a == null || a.toString().isEmpty()) continue;
             result.append(sep).append(a.toString());
             sep = s;
         }

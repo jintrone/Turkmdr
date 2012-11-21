@@ -1,8 +1,12 @@
 package edu.mit.cci.amtprojects.solver;
 
+import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.GenericTask;
 import edu.mit.cci.amtprojects.HomePage;
 import edu.mit.cci.amtprojects.util.Utils;
+import org.apache.cayenne.DataObjectUtils;
+import org.apache.cayenne.PersistenceState;
+import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -27,6 +31,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class SolverRankingTask extends GenericTask {
 
+    private static Logger logger = Logger.getLogger(SolverRankingTask.class);
+
     public SolverRankingTask(PageParameters param) {
         super(param,true,true);
         add(new Label("question", getModel().getQuestion().getText()));
@@ -36,11 +42,15 @@ public class SolverRankingTask extends GenericTask {
             @Override
             protected void populateItem(Item<Solution> solutionItem) {
                 Solution sol = solutionItem.getModelObject();
+                if (sol.getPersistenceState() == PersistenceState.HOLLOW) {
+                    sol = (Solution) DataObjectUtils.objectForPK(DbProvider.getContext(), sol.getObjectId());
+                }
                 TextField<Integer> field = new TextField<Integer>("rank");
                 field.add(new AttributeModifier("name","Solution."+sol.getId()));
 
                 solutionItem.add(field);
                 solutionItem.add(new MultiLineLabel("text", sol.getText()));
+                logger.info("Adding label with "+sol.getText());
 
 
             }

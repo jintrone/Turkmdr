@@ -15,10 +15,10 @@ public abstract class _TurkerLog extends CayenneDataObject {
     public static final String ASSIGNMENT_ID_PROPERTY = "assignmentId";
     public static final String DATA_PROPERTY = "data";
     public static final String DATE_PROPERTY = "date";
-    public static final String HIT_PROPERTY = "hit";
     public static final String QUERY_PARAMS_PROPERTY = "queryParams";
     public static final String TYPE_PROPERTY = "type";
     public static final String WORKER_ID_PROPERTY = "workerId";
+    public static final String HIT_PROPERTY = "hit";
     public static final String TO_BATCH_PROPERTY = "toBatch";
 
     public static final String ID_PK_COLUMN = "id";
@@ -44,13 +44,6 @@ public abstract class _TurkerLog extends CayenneDataObject {
         return (Date)readProperty("date");
     }
 
-    public void setHit(String hit) {
-        writeProperty("hit", hit);
-    }
-    public String getHit() {
-        return (String)readProperty("hit");
-    }
-
     public void setQueryParams(String queryParams) {
         writeProperty("queryParams", queryParams);
     }
@@ -71,6 +64,15 @@ public abstract class _TurkerLog extends CayenneDataObject {
     public String getWorkerId() {
         return (String)readProperty("workerId");
     }
+
+    public void setHit(Hits hit) {
+        setToOneTarget("hit", hit, true);
+    }
+
+    public Hits getHit() {
+        return (Hits)readProperty("hit");
+    }
+
 
     public void setToBatch(Batch toBatch) {
         setToOneTarget("toBatch", toBatch, true);

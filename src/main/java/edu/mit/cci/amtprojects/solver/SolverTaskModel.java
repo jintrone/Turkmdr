@@ -149,17 +149,17 @@ public class SolverTaskModel implements IClusterable {
 
     private void readFromBatch(Batch b) throws JSONException {
         String parameters = b.getParameters();
-        setGroupName(Utils.extractJsonProperty(parameters, "groupName"));
-        setNumberOfGenerators(Integer.parseInt(Utils.extractJsonProperty(parameters, "numberOfGenerators")));
-        setNumberOfRankers(Integer.parseInt(Utils.extractJsonProperty(parameters, "numberOfRankers")));
-        setNumberOfRounds(Integer.parseInt(Utils.extractJsonProperty(parameters, "numberOfRounds")));
-        setSizeOfFront(Integer.parseInt(Utils.extractJsonProperty(parameters, "sizeOfFront")));
-        setMaxCombiningBonus(Float.parseFloat(Utils.extractJsonProperty(parameters, "maxCombiningBonus")));
-        setMaxRankingBonus(Float.parseFloat(Utils.extractJsonProperty(parameters, "maxRankingBonus")));
-        setMaxGeneratingBonus(Float.parseFloat(Utils.extractJsonProperty(parameters, "maxGeneratingBonus")));
-        setBaseReward(Float.parseFloat(Utils.extractJsonProperty(parameters, "baseReward")));
-        questionId = Long.parseLong(Utils.extractJsonProperty(parameters, "questionId"));
-        String answerArray = Utils.extractJsonProperty(parameters, "initialAnswerIds");
+        setGroupName(Utils.getJsonString(parameters, "groupName"));
+        setNumberOfGenerators(Integer.parseInt(Utils.getJsonString(parameters, "numberOfGenerators")));
+        setNumberOfRankers(Integer.parseInt(Utils.getJsonString(parameters, "numberOfRankers")));
+        setNumberOfRounds(Integer.parseInt(Utils.getJsonString(parameters, "numberOfRounds")));
+        setSizeOfFront(Integer.parseInt(Utils.getJsonString(parameters, "sizeOfFront")));
+        setMaxCombiningBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxCombiningBonus")));
+        setMaxRankingBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxRankingBonus")));
+        setMaxGeneratingBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxGeneratingBonus")));
+        setBaseReward(Float.parseFloat(Utils.getJsonString(parameters, "baseReward")));
+        questionId = Long.parseLong(Utils.getJsonString(parameters, "questionId"));
+        String answerArray = Utils.getJsonString(parameters, "initialAnswerIds");
         JSONArray array = new JSONArray(answerArray);
         initialAnswerIds = new ArrayList<Long>();
         for (int i = 0; i < array.length(); i++) {

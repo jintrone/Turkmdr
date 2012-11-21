@@ -3,6 +3,7 @@ package edu.mit.cci.amtprojects;
 import com.amazonaws.mturk.requester.HIT;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
 import edu.mit.cci.amtprojects.util.MturkUtils;
+import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.authroles.authorization.strategies.role.annotations.AuthorizeInstantiation;
 import org.apache.wicket.markup.html.form.Button;
@@ -29,6 +30,7 @@ public class HomePage extends WebPage {
 
     private static int itemsPerPage = 50;
     private PagingNavigator pagingNavigator;
+    private static Logger logger = Logger.getLogger(HomePage.class);
 
 
     private class ExperimentInputForm extends Form<ExperimentFormModel> {
@@ -91,8 +93,10 @@ public class HomePage extends WebPage {
             }
 
             public void onSubmit() {
-                System.err.println(getDefaultModelObject());
-               getModelObject().create();
+
+               if (getModelObject().create()==null) {
+                   logger.warn("Invalid experiment class");
+               };
             }
 
         });

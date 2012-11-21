@@ -1,6 +1,5 @@
 package edu.mit.cci.amtprojects;
 
-import edu.mit.cci.amtprojects.kickball.KickballPostTask;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
@@ -24,7 +23,6 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.io.IClusterable;
-import org.clapper.util.classutil.ClassUtilException;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -98,7 +96,7 @@ public class Batches extends WebPage {
                         PageParameters params = new PageParameters();
                         params.add("experiment", experiment.getExperimentId());
                         params.add("batch", batch.getId());
-                        setResponsePage(Hits.class, params);
+                        setResponsePage(HitsPage.class, params);
                     }
                 };
                 l.add(new Label("name", batch.getName()));

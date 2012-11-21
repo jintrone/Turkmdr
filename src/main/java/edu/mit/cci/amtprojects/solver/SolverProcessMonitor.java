@@ -1,7 +1,6 @@
 package edu.mit.cci.amtprojects.solver;
 
 import edu.cci.amtprojects.HitManager;
-import edu.mit.cci.amtprojects.BatchManager;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
@@ -26,7 +25,7 @@ import java.util.*;
  */
 public class SolverProcessMonitor {
 
-    long experimentId;
+    long batchId;
     Timer t;
     boolean running = false;
 
@@ -36,9 +35,9 @@ public class SolverProcessMonitor {
 
     private static Logger logger = Logger.getLogger(SolverProcessMonitor.class);
 
-    private SolverProcessMonitor(Experiment e) {
-        experimentId = e.getExperimentId();
-       // if (!running) restart();
+    private SolverProcessMonitor(Batch b) {
+        batchId = b.getId();
+        // if (!running) restart();
     }
 
     public boolean isRunning() {
@@ -47,7 +46,7 @@ public class SolverProcessMonitor {
 
 
     public void restart() {
-        if (t != null) {
+        if (running) {
             logger.warn("Task is already running; please use halt to stop if you wish to restart");
             return;
 
@@ -57,7 +56,6 @@ public class SolverProcessMonitor {
             public void cancel() {
                 super.cancel();
                 running = false;
-
                 cleanup();
 
 
@@ -77,16 +75,15 @@ public class SolverProcessMonitor {
             public void run() {
                 running = true;
                 try {
-                    checkStatus();
+                    update();
                 } catch (Exception e) {
-                   e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                   t.cancel();
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    t.cancel();
                 }
 
 
-
             }
-        }, 0, 60000);
+        }, 0, 30000);
     }
 
     public void halt() {
@@ -97,61 +94,59 @@ public class SolverProcessMonitor {
     }
 
     public void cleanup() {
-        BatchManager manager = new SolverPluginFactory().getBatchManager();
-        for (Batch b : experiment().getToBatch()) {
-            manager.haltBatch(b);
-        }
-        t = null;
+         t = null;
+        logger.info("Would be cleaning up");
     }
 
-    public static SolverProcessMonitor get(Experiment e) {
-        if (!(monitorMap.containsKey(e.getExperimentId()))) {
-            monitorMap.put(e.getExperimentId(), new SolverProcessMonitor(e));
+
+    public static SolverProcessMonitor get(Batch b) {
+        if (!(monitorMap.containsKey(b.getId()))) {
+            monitorMap.put(b.getId(), new SolverProcessMonitor(b));
         }
-        return monitorMap.get(e.getExperimentId());
+        return monitorMap.get(b.getId());
     }
 
-    public void checkStatus() throws UnsupportedEncodingException, JSONException {
+    public void update() throws UnsupportedEncodingException, JSONException {
         logger.info("Checking status");
-        for (Batch b : experiment().getToBatch()) {
-            SolverTaskModel model = new SolverTaskModel(b);
+        Batch b = CayenneUtils.findBatch(DbProvider.getContext(),batchId);
+        SolverTaskModel model = new SolverTaskModel(b);
+        if (model.getCurrentStatus().getPhase() == Phase.COMPLETE) {
 
-            if (model.getCurrentStatus().getPhase() == Phase.COMPLETE) continue;
+            t.cancel();
+        }
 
-            int currentRound = model.getCurrentStatus().getCurrentRound();
-            HitManager manager = HitManager.get(b);
+        int currentRound = model.getCurrentStatus().getCurrentRound();
+        HitManager manager = HitManager.get(b);
+        manager.updateHits();
+        List<TurkerLog> logs = manager.getNewHitResults(true);
+        List<TurkerLog> roundLogs = findCurrentLogs(currentRound, model.getCurrentStatus().getPhase(), logs);
 
-            List<TurkerLog> logs = manager.getFilteredLogs(false, false, "RESULTS");
-            List<TurkerLog> roundLogs = findCurrentLogs(currentRound, model.getCurrentStatus().getPhase(), logs);
+        if (!roundLogs.isEmpty()) {
+            if (model.getCurrentStatus().getPhase() == Phase.INIT) {
 
-            if (!roundLogs.isEmpty()) {
-                if (model.getCurrentStatus().getPhase() == Phase.INIT) {
+                updateRanks(b, model, roundLogs);
+                model.getCurrentStatus().setPhase(Phase.GENERATE);
 
-                    updateRanks(b, model, roundLogs);
+            } else if (model.getCurrentStatus().getPhase() == Phase.RANK) {
+
+                updateRanks(b, model, roundLogs);
+                pruneSolutions(model);
+                if (currentRound + 1 == model.getNumberOfRounds()) {
+                    model.getCurrentStatus().setPhase(Phase.COMPLETE);
+                } else {
                     model.getCurrentStatus().setPhase(Phase.GENERATE);
-
-                } else if (model.getCurrentStatus().getPhase() == Phase.RANK) {
-
-                    updateRanks(b, model, roundLogs);
-                    pruneSolutions(model);
-                    if (currentRound + 1 == model.getNumberOfRounds()) {
-                        model.getCurrentStatus().setPhase(Phase.COMPLETE);
-                    } else {
-                        model.getCurrentStatus().setPhase(Phase.GENERATE);
-                        model.getCurrentStatus().setCurrentRound(currentRound + 1);
-                    }
-
-                } else if (model.getCurrentStatus().getPhase() == Phase.GENERATE) {
-                    updateAnswers(model, roundLogs);
-                    model.getCurrentStatus().setPhase(Phase.RANK);
+                    model.getCurrentStatus().setCurrentRound(currentRound + 1);
                 }
 
-                model.updateCurrentStatus();
-                DbProvider.getContext().commitChanges();
-                if (model.getCurrentStatus().getPhase() != Phase.COMPLETE) {
-                    SolverHitCreator.getInstance().launch(null, null, b);
+            } else if (model.getCurrentStatus().getPhase() == Phase.GENERATE) {
+                updateAnswers(model, roundLogs);
+                model.getCurrentStatus().setPhase(Phase.RANK);
+            }
 
-                }
+            model.updateCurrentStatus();
+            DbProvider.getContext().commitChanges();
+            if (model.getCurrentStatus().getPhase() != Phase.COMPLETE) {
+                SolverHitCreator.getInstance().launch(null, null, b);
 
             }
 
@@ -228,7 +223,7 @@ public class SolverProcessMonitor {
             logs.add(log);
         }
 
-        String hitId = logs.get(0).getHit();
+        String hitId = logs.get(0).getHit().getId();
         int round = Integer.parseInt(MturkUtils.extractAnswer(logs.get(0), "round"));
 
         Map<TurkerLog, double[]> response = new HashMap<TurkerLog, double[]>();
@@ -297,7 +292,7 @@ public class SolverProcessMonitor {
             }
         });
 
-        for (int i = 0; i < Math.min(model.getSizeOfFront(),answers.size()); i++) {
+        for (int i = 0; i < Math.min(model.getSizeOfFront(), answers.size()); i++) {
             Solution s = answers.get(i);
             if (s.getToParents().isEmpty() && s.getRound() == status.getCurrentRound()) {
                 float rank = s.getLastRank().getRankValue();
@@ -330,6 +325,7 @@ public class SolverProcessMonitor {
         for (Iterator<TurkerLog> itl = logs.iterator(); itl.hasNext(); ) {
             TurkerLog log = itl.next();
             if (Integer.parseInt(MturkUtils.extractAnswer(log, "round")) != currentRound || !MturkUtils.extractAnswer(log, "phase").equals(currentPhase.name())) {
+                logger.warn("Removing a log ("+log.getObjectId()+") this is odd!");
                 itl.remove();
             }
 
@@ -338,10 +334,7 @@ public class SolverProcessMonitor {
     }
 
 
-    public Experiment experiment() {
-        return CayenneUtils.findExperiment(DbProvider.getContext(), experimentId);
 
-    }
 
 
     public static enum Phase {

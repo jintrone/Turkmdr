@@ -83,7 +83,7 @@ public class SolverHitCreator implements HitCreator {
 //                b.setParameters(props);
 //                DbProvider.getContext().commitChanges();
 //            }
-            SolverProcessMonitor.get(b.getToExperiment()).restart();
+            SolverProcessMonitor.get(b).restart();
 
         } else {
             model = new SolverTaskModel(b);
@@ -97,7 +97,7 @@ public class SolverHitCreator implements HitCreator {
             props.setKeywords("climate,experiment,rank,bonus");
             props.setMaxAssignments("" + model.getNumberOfRankers());
             props.setRewardAmount("" + model.getBaseReward());
-            props.setAssignmentDuration("600000");
+            props.setAssignmentDuration("900");
             MturkUtils.addBatchAnnotation(props, b);
             props.setLifetime("600000");
 
@@ -115,7 +115,7 @@ public class SolverHitCreator implements HitCreator {
             MturkUtils.addBatchAnnotation(props, b);
             props.setLifetime("600000");
             String launchurl = MturkUtils.addUrlParams(generatorpath, "batch", b.getId() + "");
-            props.setAssignmentDuration("600000");
+            props.setAssignmentDuration("18000");
             HitManager.get(b).launch(launchurl, 1000, props);
 
 
@@ -129,7 +129,7 @@ public class SolverHitCreator implements HitCreator {
             props.setLifetime("600000");
             MturkUtils.addBatchAnnotation(props, b);
             String launchurl = MturkUtils.addUrlParams(rankerpath, "batch", b.getId() + "");
-            props.setAssignmentDuration("600000");
+            props.setAssignmentDuration("18000");
             HitManager.get(b).launch(launchurl, 1000, props);
 
         }

@@ -2,9 +2,14 @@ package edu.cci.amtprojects;
 
 import com.amazonaws.mturk.addon.HITProperties;
 import com.amazonaws.mturk.requester.QualificationRequirement;
+import com.sun.xml.internal.ws.api.streaming.XMLStreamWriterFactory;
+import org.apache.wicket.ajax.json.JSONException;
 import org.apache.wicket.ajax.json.JSONObject;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -12,6 +17,8 @@ import java.util.Properties;
  * Date: 9/26/12
  * Time: 9:28 PM
  */
+
+//TODO Fix super class!  Who stores instance data in a static enum?
 public class DefaultEnabledHitProperties extends HITProperties{
 
     public DefaultEnabledHitProperties() {
@@ -107,8 +114,25 @@ public class DefaultEnabledHitProperties extends HITProperties{
     }
 
     public String toJSONString() {
-        JSONObject obj = new JSONObject(this,new String[] {"annotation","assignmentDuration","Lifetime",
-        "autoApprovalDelay","description","keywords","maxAssignments","rewardAmount","title"});
+
+        Map<String,Object> props = new HashMap<String, Object>();
+        for (HITField f:HITField.values()) {
+            if (f.getFieldValue() == null) {
+                continue;
+            }
+            props.put(f.getFieldName(),f.getFieldValue());
+        }
+        JSONObject obj = new JSONObject(props);
         return obj.toString();
+    }
+
+    public static DefaultEnabledHitProperties readFromJSON(String s) throws JSONException {
+        DefaultEnabledHitProperties props = new DefaultEnabledHitProperties();
+        JSONObject obj = new JSONObject(s);
+        for (Iterator i = obj.keys();i.hasNext();) {
+            String key = (String)i.next();
+            HITField.valueOf(key).setFieldValue(obj.getString(key));
+        }
+        return props;
     }
 }
