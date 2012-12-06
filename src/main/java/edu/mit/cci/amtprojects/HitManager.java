@@ -1,4 +1,4 @@
-package edu.cci.amtprojects;
+package edu.mit.cci.amtprojects;
 
 import com.amazonaws.mturk.requester.Assignment;
 import com.amazonaws.mturk.requester.AssignmentStatus;
@@ -8,7 +8,6 @@ import com.amazonaws.mturk.requester.QualificationRequirement;
 import com.amazonaws.mturk.service.axis.RequesterService;
 import com.amazonaws.mturk.service.exception.ServiceException;
 import com.amazonaws.mturk.util.ClientConfig;
-import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
@@ -19,10 +18,8 @@ import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.cayenne.DataObjectUtils;
 import org.apache.log4j.Logger;
 
-import javax.rmi.CORBA.Util;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.GregorianCalendar;
@@ -54,12 +51,12 @@ public class HitManager {
 
 
     public static HitManager get(Batch batch) {
-           HitManager manager = managerMap.get(batch);
-           if (manager == null) {
-               managerMap.put(batch, manager = new HitManager(batch));
-           }
-           return manager;
-       }
+        HitManager manager = managerMap.get(batch);
+        if (manager == null) {
+            managerMap.put(batch, manager = new HitManager(batch));
+        }
+        return manager;
+    }
 
 
     private HitManager(Batch batch) {
@@ -178,8 +175,8 @@ public class HitManager {
                 h.getAssignmentDurationInSeconds(),
                 h.getAutoApprovalDelayInSeconds(),
                 hits.getLifetime(),
-                h.getMaxAssignments()-hits.getCompleted(),
-                 h.getRequesterAnnotation(),
+                h.getMaxAssignments() - hits.getCompleted(),
+                h.getRequesterAnnotation(),
                 h.getQualificationRequirement(),
                 new String[]{"Minimal", "HITDetail", "HITQuestion", "HITAssignmentSummary"},
                 null,
@@ -188,15 +185,15 @@ public class HitManager {
 
         hits.setStatus(Hits.Status.RELAUNCHED.name());
         List<String> workers = new ArrayList<String>();
-        for  (TurkerLog l:hits.getLogs()) {
+        for (TurkerLog l : hits.getLogs()) {
             if (l.getType().equals("RESULTS")) {
-               workers.add(l.getWorkerId());
+                workers.add(l.getWorkerId());
             }
 
         }
 
         workers.add(hits.getScreen());
-        String screen = Utils.join(workers,";");
+        String screen = Utils.join(workers, ";");
 
         Hits nhits = CayenneUtils.createHit(DbProvider.getContext(), nhit, oldhit, batch(), hits.getUrl(), hits.getLifetime());
         nhits.setScreen(screen);
@@ -209,7 +206,6 @@ public class HitManager {
     private Batch batch() {
         return CayenneUtils.findBatch(DbProvider.getContext(), batch);
     }
-
 
 
     public List<TurkerLog> getNewHitResults(boolean clear) {
@@ -226,7 +222,7 @@ public class HitManager {
                 Assignment a = result.getAssignment();
                 if (a.getAssignmentStatus().equals(AssignmentStatus.Submitted)) {
                     requesterService.approveAssignment(a.getAssignmentId(), feedback);
-                    CayenneUtils.logEvent(DbProvider.getContext(),batch(),"APPROVED",a.getWorkerId(),a.getHITId(),a.getAssignmentId(),null,Collections.<String,Object>singletonMap("response",feedback));
+                    CayenneUtils.logEvent(DbProvider.getContext(), batch(), "APPROVED", a.getWorkerId(), a.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>singletonMap("response", feedback));
 
                 }
             }
@@ -240,7 +236,7 @@ public class HitManager {
                 Assignment a = result.getAssignment();
                 if (a.getAssignmentStatus().equals(AssignmentStatus.Submitted)) {
                     requesterService.rejectAssignment(a.getAssignmentId(), feedback);
-                     CayenneUtils.logEvent(DbProvider.getContext(),batch(),"REJECTED",a.getWorkerId(),a.getHITId(),a.getAssignmentId(),null,Collections.<String,Object>singletonMap("response",feedback));
+                    CayenneUtils.logEvent(DbProvider.getContext(), batch(), "REJECTED", a.getWorkerId(), a.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>singletonMap("response", feedback));
 
                 }
             }
@@ -266,7 +262,7 @@ public class HitManager {
                     log.warn("Invalid bonus amount; not bonusing");
                 }
                 requesterService.grantBonus(a.getWorkerId(), bonusAmount, a.getAssignmentId(), feedback);
-                CayenneUtils.logEvent(DbProvider.getContext(),batch(),"BONUSED",a.getWorkerId(),a.getHITId(),a.getAssignmentId(),null, Utils.mapify("response",feedback,"amount",String.format("%.2f", amount)));
+                CayenneUtils.logEvent(DbProvider.getContext(), batch(), "BONUSED", a.getWorkerId(), a.getHITId(), a.getAssignmentId(), null, Utils.mapify("response", feedback, "amount", String.format("%.2f", amount)));
 
 
             }
@@ -286,12 +282,13 @@ public class HitManager {
         List<Hits> hitses = batch().getHits();
 
         for (Hits h : hitses) {
-            if (h.getStatusEnum() == Hits.Status.MISSING || h.getStatusEnum() == Hits.Status.COMPLETE || h.getStatusEnum() ==Hits.Status.RELAUNCHED) continue;
+            if (h.getStatusEnum() == Hits.Status.MISSING || h.getStatusEnum() == Hits.Status.COMPLETE || h.getStatusEnum() == Hits.Status.RELAUNCHED)
+                continue;
             HIT ahit = requesterService.getHIT(h.getId());
             h.setAmtStatus(ahit.getHITStatus().getValue());
-            int completed = ahit.getMaxAssignments()-ahit.getNumberOfAssignmentsAvailable();
+            int completed = ahit.getMaxAssignments() - ahit.getNumberOfAssignmentsAvailable();
             if (completed > h.getCompleted()) {
-                completed =0;
+                completed = 0;
                 Assignment[] result = requesterService.getAllAssignmentsForHIT(ahit.getHITId());
                 List<TurkerLog> results = new ArrayList<TurkerLog>();
                 for (Assignment a : result) {
@@ -304,9 +301,14 @@ public class HitManager {
                     }
                     completed++;
                     if (a.getAssignmentStatus() == AssignmentStatus.Approved) {
-                        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "APPROVED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>emptyMap());
+                        if (CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), a.getAssignmentId(), "APPROVED").isEmpty()) {
+
+                            CayenneUtils.logEvent(DbProvider.getContext(), batch(), "APPROVED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>emptyMap());
+                        }
                     } else if (a.getAssignmentStatus() == AssignmentStatus.Rejected) {
-                        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "REJECTED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>emptyMap());
+                        if (CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), a.getAssignmentId(), "REJECTED").isEmpty()) {
+                            CayenneUtils.logEvent(DbProvider.getContext(), batch(), "REJECTED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>emptyMap());
+                        }
                     } else if (autoApprove) {
                         requesterService.approveAssignment(a.getAssignmentId(), "Thanks!");
                         CayenneUtils.logEvent(DbProvider.getContext(), batch(), "APPROVED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>singletonMap("feedback", "Thanks!"));
@@ -314,31 +316,37 @@ public class HitManager {
 
 
                 }
+
                 h.setCompleted(completed);
+                DbProvider.getContext().commitChanges();
                 if (h.getCompleted().intValue() == h.getRequested()) {
                     h.setStatus(Hits.Status.COMPLETE.name());
-                    newHitResults.addAll(results);
-                    while (h.getPreviousHit() != null) {
-                        h = h.getPreviousHit();
-                        for (TurkerLog l : h.getLogs()) {
-                            newHitResults.add(l);
+                    Hits loop = h;
+                    while (loop != null) {
+
+                        for (TurkerLog l : loop.getLogs()) {
+                            if (l.getType().equals("RESULTS")) {
+                                newHitResults.add(l);
+                            }
                         }
+                        loop = loop.getPreviousHit();
 
                     }
                 }
             }
-
-            if (ahit.getExpiration().before(new GregorianCalendar())) {
-                h.setStatus(Hits.Status.HALTED.name());
-            } else if (h.getStatusEnum() == Hits.Status.HALTED) {
-                h.setStatus(Hits.Status.OPEN.name());
+            if (!h.getStatus().equals(Hits.Status.COMPLETE.name())) {
+                if (ahit.getExpiration().before(new GregorianCalendar())) {
+                    h.setStatus(Hits.Status.HALTED.name());
+                } else if (h.getStatusEnum() == Hits.Status.HALTED) {
+                    h.setStatus(Hits.Status.OPEN.name());
+                }
             }
         }
         DbProvider.getContext().commitChanges();
     }
 
 
-     public void extendHits(Collection<String> hits, long duration) {
+    public void extendHits(Collection<String> hits, long duration) {
         try {
             requesterService.extendHITs(hits.toArray(new String[hits.size()]), null, duration, null);
         } catch (ServiceException ex) {
@@ -368,7 +376,7 @@ public class HitManager {
 
     public void expireBatch() {
         List<String> hitids = new ArrayList<String>();
-        for (Hits h:batch().getHits()) {
+        for (Hits h : batch().getHits()) {
             if (h.getStatus().equals(Hits.Status.OPEN.name())) {
                 hitids.add(h.getId());
             }

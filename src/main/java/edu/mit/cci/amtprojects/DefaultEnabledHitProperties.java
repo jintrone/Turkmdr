@@ -1,8 +1,7 @@
-package edu.cci.amtprojects;
+package edu.mit.cci.amtprojects;
 
 import com.amazonaws.mturk.addon.HITProperties;
 import com.amazonaws.mturk.requester.QualificationRequirement;
-import com.sun.xml.internal.ws.api.streaming.XMLStreamWriterFactory;
 import org.apache.wicket.ajax.json.JSONException;
 import org.apache.wicket.ajax.json.JSONObject;
 
