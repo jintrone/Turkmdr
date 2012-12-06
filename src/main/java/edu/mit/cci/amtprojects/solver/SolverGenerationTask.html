@@ -24,9 +24,7 @@
 <script type="text/javascript" wicket:id="script">[some script]</script>
 <div wicket:id="demographicsPanel">[demographics panel]</div>
 <div>
-    <p class="instructions">
-        Answer the following question:
-    </p>
+
 
     <p class="question">
         <span wicket:id="question">[the question]</span>
@@ -38,7 +36,7 @@
         <input wicket:id="round" id="round" type="hidden"/>
         <div class="workpanel" wicket:id="chooseId">fragments contents come here</div>
         <div class="workpanel" wicket:id="generateId">fragments contents come here</div>
-
+         <div class="workpanel" wicket:id="improveId">fragments contents come here</div>
 
         <div class="inset">
             <div class="smallinfo">Current Answers:</div>
@@ -67,7 +65,7 @@
                 </table>
             </div>
 
-            <div class="workpanel" wicket:id="improveId">fragments contents come here</div>
+
 
 
 
@@ -133,6 +131,8 @@
 <wicket:fragment wicket:id="improveMarkup">
 
     <a class="smallinfo" href="#" wicket:id="choose">&lt;- Go back</a><br>
+    <p class="instructions">Use existing answers to create a better answer to the above question. Bonus is based on how much you
+            improve existing answers.  Maximum bonus is <span wicket:id="maxCombiningBonus">[text]</span></p>
     <ol class="instructions">
         <li><span wicket:id="step1">[instructions]</span></li>
         <li><span wicket:id="step2">[instructions]</span><br>
@@ -146,7 +146,9 @@
 </wicket:fragment>
 <wicket:fragment wicket:id="generateMarkup">
     <a class="smallinfo" href="#" wicket:id="choose">&lt;- Go back</a><br>
-    <span class="instructions">Add you answer below:</span>
+    <p class="instructions">Create a completely new answer to the above question. Bonus is based on how highly ranked your answer is by other turkers.  Maximum bonus is <span wicket:id="maxBonus">[text]</span></p>
+
+    <p class="instructions">Add your answer below:</p>
     <div class="answerBlock"><textarea wicket:id="generateText" cols="80" rows="8">Create your answer here</textarea></div>
      <div class="submitBlock"><button wicket:id="Submit" name="submit" value="generate">submit</button></div>
 </wicket:fragment>

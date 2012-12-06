@@ -206,7 +206,7 @@ public class SolverGenerationTask extends GenericTask {
                 }
             };
 
-            Label instructionsStep1 = new Label("step1","Select some answers to improve or combine. Please improve or combine the ideas in the selected answers. It is not necessary to use the same wording.");
+            Label instructionsStep1 = new Label("step1","Select one or more answers (below) to improve or combine. Please improve or combine the ideas in the selected answers. It is not necessary to use the same wording.");
             instructionsStep1.add(new AttributeModifier("class", new Model<String>() {
                 public String getObject() {
                     return group.getModelObject().size() > 0 ? "done" : "notdone";

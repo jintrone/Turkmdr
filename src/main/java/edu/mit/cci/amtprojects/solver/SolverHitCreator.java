@@ -112,7 +112,7 @@ public class SolverHitCreator implements HitCreator {
             MturkUtils.addBatchAnnotation(props, b);
             props.setLifetime("600000");
             String launchurl = MturkUtils.addUrlParams(generatorpath, "batch", b.getId() + "");
-            props.setAssignmentDuration("18000");
+            props.setAssignmentDuration("1800");
             HitManager.get(b).launch(launchurl, 1000, props);
 
 
@@ -126,7 +126,7 @@ public class SolverHitCreator implements HitCreator {
             props.setLifetime("600000");
             MturkUtils.addBatchAnnotation(props, b);
             String launchurl = MturkUtils.addUrlParams(rankerpath, "batch", b.getId() + "");
-            props.setAssignmentDuration("18000");
+            props.setAssignmentDuration("900");
             HitManager.get(b).launch(launchurl, 1000, props);
 
         }
