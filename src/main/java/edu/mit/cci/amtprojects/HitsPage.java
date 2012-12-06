@@ -1,12 +1,7 @@
 package edu.mit.cci.amtprojects;
 
-import com.amazonaws.mturk.requester.HIT;
-import edu.cci.amtprojects.HitManager;
-import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
-import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
-import edu.mit.cci.amtprojects.solver.SolverPluginFactory;
-import edu.mit.cci.amtprojects.util.CayenneUtils;
-import edu.mit.cci.amtprojects.util.Utils;
+import java.text.DateFormat;
+
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -25,7 +20,12 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 
-import java.text.DateFormat;
+import edu.cci.amtprojects.HitManager;
+import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
+import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
+import edu.mit.cci.amtprojects.solver.SolverPluginFactory;
+import edu.mit.cci.amtprojects.util.CayenneUtils;
+import edu.mit.cci.amtprojects.util.Utils;
 
 /**
  * User: jintrone

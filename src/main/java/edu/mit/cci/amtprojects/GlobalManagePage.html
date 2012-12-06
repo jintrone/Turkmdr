@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<head>
+    <meta charset="utf-8"/>
+    <title>AMT Task Manager</title>
+    <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:regular,bold' rel='stylesheet'
+          type='text/css'/>
+    <link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet"/>
+</head>
+<body>
+
+<div id="main">
+
+    <h3>Batches</h3>
+    <br/>
+
+    <span wicket:id="navigator">[dataview navigator]</span>
+    
+    <div class="scrollable">
+    
+    	<form wicket:id="form">
+    		<span wicket:id="checkgroup">
+	    		<input type="checkbox" wicket:id="checkboxSelectAll">Select All</input>
+	    
+		        <table wicket:id="table" cellspacing="0" class="posttable">
+		            <tr>
+						
+						<th>Select</th>
+		                <th>ID</th>
+		                <th>Name</th>
+		
+		            </tr>
+		            <tr wicket:id="pageable">
+		            
+		            	<td><input type="checkbox" wicket:id="checkbox" /></td>
+		            	<td><span wicket:id="hitName">[hitName]</span></td>
+		                <td><span wicket:id="hitId">[hitId]</span></td>
+
+		            </tr>
+		        </table>
+        	</span>
+        	
+        	<input type="submit" value="Delete" />
+        </form>
+        
+    </div>
+
+
+</div>
+
+</body>
+</html>

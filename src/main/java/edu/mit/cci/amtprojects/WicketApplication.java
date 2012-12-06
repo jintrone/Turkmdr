@@ -1,15 +1,15 @@
 package edu.mit.cci.amtprojects;
 
-import edu.mit.cci.amtprojects.kickball.KickballHitProcessor;
-import edu.mit.cci.amtprojects.kickball.KickballPostTask;
-import edu.mit.cci.amtprojects.solver.SolverGenerationTask;
-
-import edu.mit.cci.amtprojects.solver.SolverRankingTask;
 import org.apache.cayenne.access.DataContext;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.html.WebPage;
+
+import edu.mit.cci.amtprojects.kickball.KickballHitProcessor;
+import edu.mit.cci.amtprojects.kickball.KickballPostTask;
+import edu.mit.cci.amtprojects.solver.SolverGenerationTask;
+import edu.mit.cci.amtprojects.solver.SolverRankingTask;
 
 
 /**
@@ -47,6 +47,8 @@ public class WicketApplication extends AuthenticatedWebApplication
         mountPage("/task/solver/rank", SolverRankingTask.class);
 
         mountPage("/signin",MySignInPage.class);
+        
+        mountPage("/manage/all", GlobalManagePage.class);
     }
 
     @Override
