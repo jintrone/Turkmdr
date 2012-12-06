@@ -1,6 +1,6 @@
 package edu.mit.cci.amtprojects.kickball.cayenne;
 
-import edu.mit.cci.amtprojects.kickball.cayenne.auto._KickballDataMap;
+
 
 public class KickballDataMap extends _KickballDataMap {
 

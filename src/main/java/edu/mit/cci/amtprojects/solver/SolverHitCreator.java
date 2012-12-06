@@ -1,14 +1,11 @@
 package edu.mit.cci.amtprojects.solver;
 
-import edu.cci.amtprojects.DefaultEnabledHitProperties;
-import edu.cci.amtprojects.HitManager;
-import edu.mit.cci.amtprojects.DbProvider;
+import edu.mit.cci.amtprojects.DefaultEnabledHitProperties;
+import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.HitCreator;
 import edu.mit.cci.amtprojects.UrlCreator;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
-import edu.mit.cci.amtprojects.util.CayenneUtils;
 import edu.mit.cci.amtprojects.util.MturkUtils;
-import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.wicket.ajax.json.JSONException;
 
 import java.io.UnsupportedEncodingException;

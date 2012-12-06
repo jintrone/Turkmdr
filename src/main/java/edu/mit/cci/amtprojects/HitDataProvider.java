@@ -1,7 +1,5 @@
 package edu.mit.cci.amtprojects;
 
-import com.amazonaws.mturk.requester.HIT;
-import edu.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.util.CayenneUtils;

@@ -1,6 +1,6 @@
 package edu.mit.cci.amtprojects.kickball;
 
-import edu.cci.amtprojects.HitManager;
+import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Post;

@@ -1,22 +1,14 @@
 package edu.mit.cci.amtprojects.solver;
 
-import edu.cci.amtprojects.DefaultEnabledHitProperties;
-import edu.cci.amtprojects.HitManager;
+import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.BatchManager;
-import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.UrlCreator;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
-import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
-import edu.mit.cci.amtprojects.util.CayenneUtils;
-import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.json.JSONException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * User: jintrone

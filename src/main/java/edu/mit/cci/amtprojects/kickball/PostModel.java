@@ -6,6 +6,7 @@ import edu.mit.cci.amtprojects.kickball.cayenne.User;
 import org.apache.cayenne.DataObjectUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.model.LoadableDetachableModel;
+import edu.mit.cci.amtprojects.kickball.cayenne.Thread;
 
 
 import java.util.Date;

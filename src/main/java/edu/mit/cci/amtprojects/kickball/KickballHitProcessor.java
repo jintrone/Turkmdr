@@ -1,12 +1,9 @@
 package edu.mit.cci.amtprojects.kickball;
 
-import com.amazonaws.mturk.requester.HIT;
-import edu.cci.amtprojects.HitManager;
+import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.DbProvider;
-import edu.mit.cci.amtprojects.HitDataProvider;
 import edu.mit.cci.amtprojects.HomePage;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
-import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.wicket.AttributeModifier;
@@ -19,7 +16,6 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

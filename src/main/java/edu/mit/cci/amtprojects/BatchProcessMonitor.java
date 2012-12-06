@@ -22,6 +22,8 @@ import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -29,30 +31,87 @@ import java.util.*;
  * Date: 10/15/12
  * Time: 2:55 PM
  */
-public class BatchProcessMonitor extends KickballProcessMonitor {
+public abstract class BatchProcessMonitor  {
 
+     private final static Map<Long, BatchProcessMonitor> monitorMap = new HashMap<Long, BatchProcessMonitor>();
+    private static Logger logger = Logger.getLogger(KickballProcessMonitor.class);
+    protected long batchId;
+    protected Timer t;
+    boolean running = false;
 
-    private BatchProcessMonitor(Batch b) {super();
-        // if (!running) restart();
+    public BatchProcessMonitor(Batch b) {
+        batchId = b.getId();
     }
 
+    public static BatchProcessMonitor get(Batch b,Class<? extends BatchProcessMonitor> clz) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
+        if (!(monitorMap.containsKey(b.getId()))) {
+            Constructor ctor = clz.getConstructor(Batch.class);
+            BatchProcessMonitor monitor = (BatchProcessMonitor) ctor.newInstance(b);
+            monitorMap.put(b.getId(), monitor);
+        }
+        return monitorMap.get(b.getId());
+    }
 
-    @Override public void update() throws UnsupportedEncodingException, JSONException {
-        logger.info("Checking status");
-        Batch b = CayenneUtils.findBatch(DbProvider.getContext(),batchId);
-        SolverTaskModel model = new SolverTaskModel(b);
-        if (model.getCurrentStatus().getPhase() == SolverProcessMonitor.Phase.COMPLETE) {
+    public boolean isRunning() {
+        return running;
+    }
 
+    public void restart() {
+        if (running) {
+            logger.warn("Task is already running; please use halt to stop if you wish to restart");
+            return;
+
+        }
+
+        t = new Timer() {
+            public void cancel() {
+                super.cancel();
+                running = false;
+                cleanup();
+
+
+            }
+        };
+
+        t.schedule(new TimerTask() {
+
+            public boolean cancel() {
+                boolean result = super.cancel();
+                t.cancel();
+                return result;
+
+            }
+
+            @Override
+            public void run() {
+                running = true;
+                try {
+                    update();
+                } catch (Exception e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    t.cancel();
+                }
+
+
+            }
+        }, 0, 30000);
+    }
+
+    public void halt() {
+        if (running) {
             t.cancel();
         }
 
-        int currentRound = model.getCurrentStatus().getCurrentRound();
-        HitManager manager = HitManager.get(b);
-        manager.updateHits();
-
-
-
     }
+
+    public void cleanup() {
+         t = null;
+        logger.info("Would be cleaning up");
+    }
+
+    public abstract void update() throws UnsupportedEncodingException, JSONException;
+
+
 
 
 
