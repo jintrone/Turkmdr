@@ -22,7 +22,7 @@
                 return false;
             }
 
-            ranks.sort();
+            ranks.sort(function(a,b) {return a-b});
             for (var i = 0;i<count;i++) {
                 if (i+1!=ranks[i]) {
                    alert("Please rank each item with a unique value from 1 to "+count);

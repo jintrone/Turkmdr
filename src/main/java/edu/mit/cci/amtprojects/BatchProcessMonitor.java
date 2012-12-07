@@ -1,5 +1,6 @@
 package edu.mit.cci.amtprojects;
 
+import com.amazonaws.mturk.service.exception.InternalServiceException;
 import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.KickballProcessMonitor;
@@ -34,10 +35,13 @@ import java.util.*;
 public abstract class BatchProcessMonitor  {
 
      private final static Map<Long, BatchProcessMonitor> monitorMap = new HashMap<Long, BatchProcessMonitor>();
-    private static Logger logger = Logger.getLogger(KickballProcessMonitor.class);
+    private static Logger logger = Logger.getLogger(BatchProcessMonitor.class);
     protected long batchId;
     protected Timer t;
     boolean running = false;
+    private long pauseTime = 30000;
+    private long DEFAULT_PAUSE_TIME = 30000;
+    private long ERROR_PAUSE_TIME = 300000;
 
     public BatchProcessMonitor(Batch b) {
         batchId = b.getId();
@@ -87,6 +91,12 @@ public abstract class BatchProcessMonitor  {
                 running = true;
                 try {
                     update();
+
+                } catch (InternalServiceException e1) {
+                    logger.warn("AWS Service Exception: ");
+                    e1.printStackTrace();
+                    logger.warn("Continuing");
+
                 } catch (Exception e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                     t.cancel();
@@ -94,7 +104,7 @@ public abstract class BatchProcessMonitor  {
 
 
             }
-        }, 0, 30000);
+        }, 0, pauseTime);
     }
 
     public void halt() {
