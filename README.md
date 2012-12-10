@@ -1,5 +1,5 @@
-AmtProjects
-===========
+Turkommander
+============
 
 Web framework for pluggable MTurk experiments
 
