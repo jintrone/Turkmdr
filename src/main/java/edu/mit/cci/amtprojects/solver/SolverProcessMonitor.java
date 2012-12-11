@@ -1,9 +1,9 @@
 package edu.mit.cci.amtprojects.solver;
 
-import edu.cci.amtprojects.HitManager;
+import edu.mit.cci.amtprojects.BatchProcessMonitor;
+import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
-import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
 import edu.mit.cci.amtprojects.util.MturkUtils;
@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -23,88 +24,30 @@ import java.util.*;
  * Date: 10/15/12
  * Time: 2:55 PM
  */
-public class SolverProcessMonitor {
-
-    long batchId;
-    Timer t;
-    boolean running = false;
-
-
-    private final static Map<Long, SolverProcessMonitor> monitorMap = new HashMap<Long, SolverProcessMonitor>();
+public class SolverProcessMonitor extends BatchProcessMonitor {
 
 
     private static Logger logger = Logger.getLogger(SolverProcessMonitor.class);
 
-    private SolverProcessMonitor(Batch b) {
-        batchId = b.getId();
-        // if (!running) restart();
+    public SolverProcessMonitor(Batch b) {
+        super(b);
     }
-
-    public boolean isRunning() {
-        return running;
-    }
-
-
-    public void restart() {
-        if (running) {
-            logger.warn("Task is already running; please use halt to stop if you wish to restart");
-            return;
-
-        }
-
-        t = new Timer() {
-            public void cancel() {
-                super.cancel();
-                running = false;
-                cleanup();
-
-
-            }
-        };
-
-        t.schedule(new TimerTask() {
-
-            public boolean cancel() {
-                boolean result = super.cancel();
-                t.cancel();
-                return result;
-
-            }
-
-            @Override
-            public void run() {
-                running = true;
-                try {
-                    update();
-                } catch (Exception e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                    t.cancel();
-                }
-
-
-            }
-        }, 0, 30000);
-    }
-
-    public void halt() {
-        if (running) {
-            t.cancel();
-        }
-
-    }
-
-    public void cleanup() {
-         t = null;
-        logger.info("Would be cleaning up");
-    }
-
 
     public static SolverProcessMonitor get(Batch b) {
-        if (!(monitorMap.containsKey(b.getId()))) {
-            monitorMap.put(b.getId(), new SolverProcessMonitor(b));
+        try {
+            return (SolverProcessMonitor)get(b,SolverProcessMonitor.class);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (InstantiationException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-        return monitorMap.get(b.getId());
+        return null;
     }
+
 
     public void update() throws UnsupportedEncodingException, JSONException {
         logger.info("Checking status");

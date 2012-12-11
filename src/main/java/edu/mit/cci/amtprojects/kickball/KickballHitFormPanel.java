@@ -16,8 +16,8 @@ public class KickballHitFormPanel extends Panel {
 
     public KickballHitFormPanel(String id, final InnerFormCallback callback) {
         super(id);
-        Form<KickballHitModel> form = new Form<KickballHitModel>("kickballHitForm",
-                new CompoundPropertyModel<KickballHitModel>(new KickballHitModel())) {
+        Form<KickballTaskModel> form = new Form<KickballTaskModel>("kickballHitForm",
+                new CompoundPropertyModel<KickballTaskModel>(new KickballTaskModel())) {
 
             public void onSubmit() {
                callback.setData(getModelObject());
@@ -25,11 +25,17 @@ public class KickballHitFormPanel extends Panel {
 
         };
 
+        form.add(new TextField<Long>("trainingPostFirst"));
+        form.add(new TextField<Long>("trainingPostLast"));
+        form.add(new TextField<Long>("trainingItems"));
+        form.add(new TextField<Long>("numberOfWorkersToQualify"));
+        form.add(new TextField<Float>("qualifierProportion"));
+        form.add(new TextField<Float>("qualifierReward"));
 
         form.add(new TextField<Long>("threadId"));
         form.add(new TextField<Long>("assignmentsPerHit"));
-        form.add(new TextField<Float>("bonus"));
-        form.add(new TextField<Float>("reward"));
+        form.add(new TextField<Float>("taskBonus"));
+        form.add(new TextField<Float>("taskReward"));
         add(form);
 
     }

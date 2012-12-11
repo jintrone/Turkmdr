@@ -1,7 +1,7 @@
 package edu.mit.cci.amtprojects.kickball;
 
-import edu.cci.amtprojects.DefaultEnabledHitProperties;
-import edu.cci.amtprojects.HitManager;
+import edu.mit.cci.amtprojects.DefaultEnabledHitProperties;
+import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.HitCreator;
 import edu.mit.cci.amtprojects.UrlCreator;
@@ -41,14 +41,14 @@ public class KickballHitCreator implements HitCreator {
 
     public void launch(UrlCreator creator, Object m, Batch b) throws MalformedURLException, UnsupportedEncodingException {
 
-        KickballHitModel model = (KickballHitModel)m;
+        KickballTaskModel model = (KickballTaskModel)m;
         String url = creator.getUrlFor(KickballPostTask.class);
 
         //build url
 
 
         //add parameters to batch
-        MturkUtils.parameterizeBatch(b,"threadid",model.getThreadId(),"assignments",model.getAssignmentsPerHit(),"bonus",model.getBonus(),"reward",model.getReward());
+        MturkUtils.parameterizeBatch(b,"threadid",model.getThreadId(),"assignments",model.getAssignmentsPerHit(),"bonus",model.getTaskBonus(),"reward",model.getTaskReward());
         log.info("Set parameters "+b.getParameters());
         DbProvider.getContext().commitChanges();
 
@@ -57,7 +57,7 @@ public class KickballHitCreator implements HitCreator {
         props.setTitle("Indicate the reply structure of a message forum");
         props.setDescription("Establish the reply sequence in a series of message forum posts. Each HIT requires you to identify which post another post is a response to");
         props.setMaxAssignments("" + model.getAssignmentsPerHit());
-        props.setRewardAmount(""+model.getReward());
+        props.setRewardAmount(""+model.getTaskReward());
         MturkUtils.addBatchAnnotation(props, b);
 
         //launch hits

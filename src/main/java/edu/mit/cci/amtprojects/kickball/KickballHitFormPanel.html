@@ -7,11 +7,23 @@
 <wicket:panel>
 
     <form wicket:id="kickballHitForm">
+        <span class="formSection">Qualification</span>
+        <label for="trainingPostFirst">First post</label><input wicket:id="trainingPostFirst" id="trainingPostFirst" type="text" size=40/><br>
+        <label for="trainingPostLast">Last post</label><input wicket:id="trainingPostLast" id="trainingPostList"
+                                                                  type="text" size=40/><br>
+        <label for="trainingItems">Bonus:</label><input wicket:id="trainingItems" id="trainingItems" type="text" size=40/><br>
+        <label for="numberOfWorkersToQualify">Reward:</label><input wicket:id="numberOfWorkersToQualify" id="numberOfWorkersToQualify" type="text" size=40/><br>
+        <label for="qualifierProportion">Reward:</label><input wicket:id="qualifierProportion" id="qualifierProportion" type="text" size=40/><br>
+        <label for="qualifierReward">Reward:</label><input wicket:id="qualifierReward" id="qualifierReward" type="text" size=40/><br>
+
+
+
+        <span class="formSection">Task</span>
         <label for="threadId">ThreadId</label><input wicket:id="threadId" id="threadId" type="text" size=40/><br>
         <label for="assignmentsPerHit">Assignments:</label><input wicket:id="assignmentsPerHit" id="assignmentsPerHit"
                                                                   type="text" size=40/><br>
-        <label for="bonus">Bonus:</label><input wicket:id="bonus" id="bonus" type="text" size=40/><br>
-        <label for="reward">Reward:</label><input wicket:id="reward" id="reward" type="text" size=40/><br>
+        <label for="bonus">Bonus:</label><input wicket:id="taskBonus" id="bonus" type="text" size=40/><br>
+        <label for="reward">Reward:</label><input wicket:id="taskReward" id="reward" type="text" size=40/><br>
 
     </form>
 

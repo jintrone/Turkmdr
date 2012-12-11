@@ -5,7 +5,7 @@ import com.amazonaws.mturk.dataschema.QuestionFormAnswers;
 import com.amazonaws.mturk.dataschema.QuestionFormAnswersType;
 import com.amazonaws.mturk.requester.HIT;
 import com.amazonaws.mturk.service.axis.RequesterService;
-import edu.cci.amtprojects.DefaultEnabledHitProperties;
+import edu.mit.cci.amtprojects.DefaultEnabledHitProperties;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
 import org.apache.log4j.Logger;

@@ -79,8 +79,11 @@ public class KickballPostTask extends WebPage {
 
         Batch batch = CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong());
         if (batch == null) {
+
             throw new RestartResponseException(HomePage.class);
         }
+
+
         try {
             this.bonus = (float) (new JSONObject(batch.getParameters()).getDouble("bonus"));
         } catch (JSONException e) {

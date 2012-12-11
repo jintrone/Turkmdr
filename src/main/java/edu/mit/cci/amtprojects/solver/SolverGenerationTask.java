@@ -98,12 +98,12 @@ public class SolverGenerationTask extends GenericTask {
         DataView<Solution> dataView = new DataView<Solution>("answers", new ListDataProvider<Solution>(sols)) {
             @Override
             protected void populateItem(Item<Solution> solutionItem) {
-                Solution stest = solutionItem.getModelObject();
-
-                if (stest.getPersistenceState() == PersistenceState.HOLLOW) {
-                    stest = (Solution) DataObjectUtils.objectForPK(DbProvider.getContext(), stest.getObjectId());
+                final Solution sol = solutionItem.getModelObject();
+                Solution sdata = sol;
+                if (sdata.getPersistenceState() == PersistenceState.HOLLOW) {
+                    sdata = (Solution) DataObjectUtils.objectForPK(DbProvider.getContext(), sol.getObjectId());
                 }
-                final Solution sol = stest;
+
 
                 solutionItem.add(new Check<Solution>("check", solutionItem.getModel(), group).add(new AjaxEventBehavior("change") {
 
@@ -121,9 +121,9 @@ public class SolverGenerationTask extends GenericTask {
                         target.add(getForm());
                     }
                 }).add(new AttributeModifier("name", "parents")).add(new AttributeModifier("value", sol.getId() + "")));
-                solutionItem.add(new MultiLineLabel("text", stest.getText()));
+                solutionItem.add(new MultiLineLabel("text", sdata.getText()));
 
-                solutionItem.add(new Label("score", stest.getToRanks().size() ==0?"<none>":String.format("%.2f", Utils.last(sol.getToRanks()).getRankValue())));
+                solutionItem.add(new Label("score", sdata.getToRanks().size() ==0?"<none>":String.format("%.2f", Utils.last(sdata.getToRanks()).getRankValue())));
 
             }
 
@@ -144,6 +144,10 @@ public class SolverGenerationTask extends GenericTask {
         form.add(new GenerateFragment("generateId", "generateMarkup", this));
         form.add(new HiddenField<String>("phase", new Model<String>(model.getCurrentStatus().getPhase().name())));
         form.add(new HiddenField<Integer>("round", new Model<Integer>(model.getCurrentStatus().getCurrentRound())));
+
+        add(new Label("maxCreateBonus",String.format("$%.2f", model.getMaxGeneratingBonus())));
+        add(new Label("maxCombiningBonus",String.format("$%.2f", model.getMaxCombiningBonus())));
+
 
 
 
@@ -202,7 +206,7 @@ public class SolverGenerationTask extends GenericTask {
                 }
             };
 
-            Label instructionsStep1 = new Label("step1","Select some answers to improve or combine. Please improve or combine the ideas in the selected answers. It is not necessary to use the same wording.");
+            Label instructionsStep1 = new Label("step1","Select one or more answers (below) to improve or combine. Please improve or combine the ideas in the selected answers. It is not necessary to use the same wording.");
             instructionsStep1.add(new AttributeModifier("class", new Model<String>() {
                 public String getObject() {
                     return group.getModelObject().size() > 0 ? "done" : "notdone";

@@ -1,14 +1,11 @@
 package edu.mit.cci.amtprojects.solver;
 
-import edu.cci.amtprojects.DefaultEnabledHitProperties;
-import edu.cci.amtprojects.HitManager;
-import edu.mit.cci.amtprojects.DbProvider;
+import edu.mit.cci.amtprojects.DefaultEnabledHitProperties;
+import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.HitCreator;
 import edu.mit.cci.amtprojects.UrlCreator;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
-import edu.mit.cci.amtprojects.util.CayenneUtils;
 import edu.mit.cci.amtprojects.util.MturkUtils;
-import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.wicket.ajax.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
@@ -115,7 +112,7 @@ public class SolverHitCreator implements HitCreator {
             MturkUtils.addBatchAnnotation(props, b);
             props.setLifetime("600000");
             String launchurl = MturkUtils.addUrlParams(generatorpath, "batch", b.getId() + "");
-            props.setAssignmentDuration("18000");
+            props.setAssignmentDuration("1800");
             HitManager.get(b).launch(launchurl, 1000, props);
 
 
@@ -129,7 +126,7 @@ public class SolverHitCreator implements HitCreator {
             props.setLifetime("600000");
             MturkUtils.addBatchAnnotation(props, b);
             String launchurl = MturkUtils.addUrlParams(rankerpath, "batch", b.getId() + "");
-            props.setAssignmentDuration("18000");
+            props.setAssignmentDuration("900");
             HitManager.get(b).launch(launchurl, 1000, props);
 
         }
