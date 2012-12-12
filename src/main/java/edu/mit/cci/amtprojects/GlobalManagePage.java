@@ -1,6 +1,7 @@
 package edu.mit.cci.amtprojects;
 
 import java.io.IOException;
+import java.util.HashSet;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
@@ -16,7 +17,6 @@ import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.amazonaws.mturk.requester.HIT;
@@ -35,15 +35,22 @@ public class GlobalManagePage extends WebPage {
 
     
     public GlobalManagePage(final PageParameters parameters) {
+    
+        final HashSet<HIT> selectedValues = new HashSet<HIT>(); 
     	
     	final CheckGroup checkgroup = new CheckGroup("checkgroup");
     	
-    	final Form<?> form = new Form<Void>("form"){
+    	final Form form = new Form("form"){
 			@Override
 			public void onSubmit() {
-
-				//logger.error("data: " + checkgroup);
- 
+				/*
+				super.onSubmit(); 
+                for (HIT h: selectedValues) { 
+                    System.out.println(h); 
+                    //TODO: delete rows here 
+                    
+                }
+                */
 			}
 		};
 		
@@ -51,14 +58,15 @@ public class GlobalManagePage extends WebPage {
         
         UserHitDataProvider userHitDataProvider = new UserHitDataProvider(getRequester(false));
     	final DataView<HIT> dataView = new DataView<HIT>("pageable", userHitDataProvider) {
-            private static final long serialVersionUID = 1L;
-
+    		private static final long serialVersionUID = 1L;
+    		
             @Override
             protected void populateItem(final Item<HIT> item) {
                 HIT hit = item.getModelObject();
                 
-                item.add(new CheckBox("checkbox", Model.of(Boolean.FALSE)));
-                //item.add(new Check("checkbox", item.getModel())); //why is item.getModel() null?
+                //item.add(new CheckBox("checkbox", Model.of(Boolean.FALSE)));
+                //item.add(new CheckBox("checkbox", CheckedModel(hit.getHITId()))); //why is item.getModel() null?
+                item.add(new CheckBox("checkbox", new SelectItemUsingCheckboxModel(hit,selectedValues))); 
                 
                 item.add(new Label("hitName", String.valueOf(hit.getTitle())));
                 item.add(new Label("hitId", String.valueOf(hit.getHITId())));
@@ -113,4 +121,6 @@ public class GlobalManagePage extends WebPage {
         
         return new RequesterService(config);
     }
+    
+    
 }

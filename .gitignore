@@ -4,7 +4,8 @@
 #*.jar
 *.war
 *.ear
-*/.DS_Store
+*.DS_Store
+.settings/*
 
 # Build dir #
 target
