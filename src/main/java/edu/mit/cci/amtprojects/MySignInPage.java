@@ -17,7 +17,7 @@ public class MySignInPage extends WebPage {
     }
 
     public MySignInPage(final PageParameters params) {
-        add(new SignInPanel("signInPanel"));
+        add(new SignInPanel("signInPanel",false));
     }
 
 

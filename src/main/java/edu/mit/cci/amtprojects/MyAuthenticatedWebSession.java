@@ -14,6 +14,12 @@ import org.apache.wicket.request.Request;
  */
 public class MyAuthenticatedWebSession extends AuthenticatedWebSession
 {
+
+
+
+    Users user;
+
+
     /**
      * Construct.
      *
@@ -33,7 +39,12 @@ public class MyAuthenticatedWebSession extends AuthenticatedWebSession
     public boolean authenticate(final String username, final String password)
     {
         Users u  = CayenneUtils.findUser(DbProvider.getContext(),username,password);
+        user = u;
         return u!=null;
+    }
+
+    public Users getUser() {
+        return user;
     }
 
     /**

@@ -6,6 +6,7 @@ import edu.mit.cci.amtprojects.InnerFormCallback;
 import edu.mit.cci.amtprojects.PluginFactory;
 import org.apache.wicket.markup.html.panel.Panel;
 
+import java.io.Serializable;
 import java.text.Normalizer;
 
 /**
@@ -13,7 +14,7 @@ import java.text.Normalizer;
  * Date: 10/16/12
  * Time: 11:12 PM
  */
-public class KickballPluginFactory implements PluginFactory {
+public class KickballPluginFactory implements PluginFactory, Serializable {
 
 
     public Panel getFormPanel(String id,InnerFormCallback callback) {

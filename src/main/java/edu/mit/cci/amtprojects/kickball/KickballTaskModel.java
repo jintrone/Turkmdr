@@ -3,6 +3,7 @@ package edu.mit.cci.amtprojects.kickball;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.GenericPropertiesModel;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
+import edu.mit.cci.amtprojects.util.CayenneUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.json.JSONException;
 import org.apache.wicket.util.io.IClusterable;
@@ -21,6 +22,9 @@ public class KickballTaskModel extends GenericPropertiesModel implements ICluste
     public static final String NUMBER_OF_WORKERS = "numberOfWorkers";
     public static final String QUALIFIER_PROPORTION = "qualifierProportion";
     public static final String QUALIFIER_REWARD = "qualifierReward";
+     private static final String QUALIFICATION_NAME = "qualificationName";
+    private static final String QUALIFICATION_BONUS = "qualificationBonus";
+
 
     public static final String THREAD_ID = "threadId";
     public static final String ASSIGNMENTS_PER_HIT = "assignmentsPerHit";
@@ -31,6 +35,7 @@ public class KickballTaskModel extends GenericPropertiesModel implements ICluste
 
     private Long batchId;
     private static Logger log = Logger.getLogger(KickballTaskModel.class);
+
 
 
     public KickballTaskModel(Batch b) throws JSONException {
@@ -73,11 +78,11 @@ public class KickballTaskModel extends GenericPropertiesModel implements ICluste
         return getInt(TRAINING_ITEMS_COUNT);
     }
 
-    public void setNumberOfWorkers(int workers) {
+    public void setNumberOfWorkersToQualify(int workers) {
         setProperty(NUMBER_OF_WORKERS,workers);
     }
 
-    public Integer getNumberOfWorkers() {
+    public Integer getNumberOfWorkersToQualify() {
         return getInt(NUMBER_OF_WORKERS);
     }
 
@@ -131,6 +136,23 @@ public class KickballTaskModel extends GenericPropertiesModel implements ICluste
     }
 
 
+    public Batch getBatch() {
+        return batchId!=null?CayenneUtils.findBatch(DbProvider.getContext(),batchId):null;
+    }
 
+    public String getQualificationName() {
+        return getString(QUALIFICATION_NAME);
+    }
 
+    public void setQualificationName(String name) {
+        setProperty(QUALIFICATION_NAME,name);
+    }
+
+    public Float getQualificationBonus() {
+        return getFloat(QUALIFICATION_BONUS);
+    }
+
+    public void setQualificationBonus(float val) {
+        setProperty(QUALIFICATION_BONUS,val);
+    }
 }

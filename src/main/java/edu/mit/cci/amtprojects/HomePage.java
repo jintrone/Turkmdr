@@ -43,6 +43,8 @@ public class HomePage extends WebPage {
 
     public HomePage(final PageParameters parameters) {
 
+        add(new Label("username",((MyAuthenticatedWebSession)getSession()).getUser().getUsername()));
+
           final DataView<Experiment> dataView = new DataView<Experiment>("pageable", new ExperimentDataProvider()) {
             private static final long serialVersionUID = 1L;
 

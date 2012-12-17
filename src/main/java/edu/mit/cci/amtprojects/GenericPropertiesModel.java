@@ -50,7 +50,8 @@ public class GenericPropertiesModel {
     }
 
      public Long getLong(String s) {
-        Object o =  props.get(s)==null?null:props.get(s);
+        if (props.get(s)==null) return null;
+        Object o =  props.get(s);
          if (o instanceof Number) {
              return (((Number) o).longValue());
          } else {
@@ -59,7 +60,8 @@ public class GenericPropertiesModel {
     }
 
      public Float getFloat(String s) {
-        Object o =  props.get(s)==null?null:props.get(s);
+       if (props.get(s)==null) return null;
+        Object o =  props.get(s);
          if (o instanceof Number) {
              return (((Number) o).floatValue());
          } else {
@@ -68,7 +70,8 @@ public class GenericPropertiesModel {
     }
 
      public Integer getInt(String s) {
-        Object o =  props.get(s)==null?null:props.get(s);
+        if (props.get(s)==null) return null;
+        Object o =  props.get(s);
          if (o instanceof Number) {
              return (((Number) o).intValue());
          } else {

@@ -1,10 +1,6 @@
 package edu.mit.cci.amtprojects;
 
-import com.amazonaws.mturk.requester.Assignment;
-import com.amazonaws.mturk.requester.AssignmentStatus;
-import com.amazonaws.mturk.requester.GetAssignmentResult;
-import com.amazonaws.mturk.requester.HIT;
-import com.amazonaws.mturk.requester.QualificationRequirement;
+import com.amazonaws.mturk.requester.*;
 import com.amazonaws.mturk.service.axis.RequesterService;
 import com.amazonaws.mturk.service.exception.ServiceException;
 import com.amazonaws.mturk.util.ClientConfig;
@@ -61,9 +57,9 @@ public class HitManager {
 
     private HitManager(Batch batch) {
         setBatch(batch);
-
-
     }
+
+
 
     private void setBatch(Batch batch) {
         this.batch = batch.getId();
@@ -383,4 +379,26 @@ public class HitManager {
         }
         expireHits(hitids);
     }
+
+
+    //maybe go somewhere else?
+    public QualificationType  findQualificationNamed(String name) {
+        SearchQualificationTypesResult result = requesterService.searchQualificationTypes(name,false,true, SortDirection.Ascending,null,null,null);
+        if (result.getTotalNumResults() == 0) {
+            return null;
+        }
+        for (QualificationType type:result.getQualificationType()) {
+            if (type.getName().equalsIgnoreCase(name)) {
+                return type;
+            }
+        }
+        return null;
+
+    }
+
+    public QualificationType createAssignableQualificationType(String name,String keywords,String description) {
+        return requesterService.createQualificationType(name,keywords,description, QualificationTypeStatus.Active,null,null,null,null,false,null);
+        //return requesterService.createQualificationType("Forum Analysis Qualification","forum,MIT,conversation","Allows you to work on HITs for the requester that require you to be able follow the conversation in a web forum");
+    }
+
 }

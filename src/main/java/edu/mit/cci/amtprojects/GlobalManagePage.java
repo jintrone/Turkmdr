@@ -109,8 +109,6 @@ public class GlobalManagePage extends WebPage {
             config = new ClientConfig();
         }
 
-        config.setAccessKeyId("AKIAIU4LXH47T5FEBPBQ"); 
-        config.setSecretAccessKey("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"); 
 
         //TODO: two pages, for real or sandbox hits
         if (isReal) {

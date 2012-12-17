@@ -27,10 +27,12 @@ public class KickballHitFormPanel extends Panel {
 
         form.add(new TextField<Long>("trainingPostFirst"));
         form.add(new TextField<Long>("trainingPostLast"));
-        form.add(new TextField<Long>("trainingItems"));
+        form.add(new TextField<Long>("trainingItemsCount"));
         form.add(new TextField<Long>("numberOfWorkersToQualify"));
         form.add(new TextField<Float>("qualifierProportion"));
         form.add(new TextField<Float>("qualifierReward"));
+         form.add(new TextField<Float>("qualificationName"));
+         form.add(new TextField<Float>("qualificationBonus"));
 
         form.add(new TextField<Long>("threadId"));
         form.add(new TextField<Long>("assignmentsPerHit"));

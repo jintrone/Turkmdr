@@ -1,11 +1,14 @@
 package edu.mit.cci.amtprojects.kickball;
 
 import edu.mit.cci.amtprojects.DbProvider;
+import edu.mit.cci.amtprojects.GenericTask;
 import edu.mit.cci.amtprojects.HomePage;
-import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Post;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
 import edu.mit.cci.amtprojects.util.Utils;
+import org.apache.cayenne.exp.Expression;
+import org.apache.cayenne.query.SelectQuery;
+import org.apache.cayenne.query.SortOrder;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -15,14 +18,15 @@ import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.ajax.json.JSONException;
 import org.apache.wicket.ajax.json.JSONObject;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
+import org.apache.wicket.markup.html.internal.Enclosure;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.repeater.Item;
@@ -34,13 +38,15 @@ import org.apache.wicket.util.string.StringValue;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * User: jintrone
  * Date: 8/31/12
  * Time: 3:16 PM
  */
-public class KickballPostTask extends WebPage {
+public class KickballPostTask extends GenericTask {
 
 
     public int itemsPerPage = 100;
@@ -53,10 +59,12 @@ public class KickballPostTask extends WebPage {
     int focus = -1;
     int selection = -1;
     int refocus = -1;
-    String assignmentId = "NONE";
-    String workerId = "NONE";
-    private float bonus = 0f;
-    boolean isPreview = false;
+    boolean qualifier = false;
+    int tries = 0;
+    int fails = 0;
+    int requires = 0;
+    List<Integer> posts;
+
 
 
     public int getSelection() {
@@ -65,37 +73,29 @@ public class KickballPostTask extends WebPage {
     }
 
     public KickballPostTask(final PageParameters param) {
-
+        super(param, false, true);
 
         StringValue focusid = param.get("focus");
-        final StringValue batchid = param.get("batch");
-        final StringValue assignmentId = param.get("assignmentId");
-        StringValue workerId = param.get("workerId");
-
-        HttpServletRequest request = (HttpServletRequest) getRequestCycle().getRequest().getContainerRequest();
-
-        final String ipAddress = request.getRemoteAddr();
-
-
-        Batch batch = CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong());
-        if (batch == null) {
-
-            throw new RestartResponseException(HomePage.class);
-        }
-
+        StringValue isQualifier = param.get("qualifier");
+        KickballTaskModel model = null;
 
         try {
-            this.bonus = (float) (new JSONObject(batch.getParameters()).getDouble("bonus"));
-        } catch (JSONException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            log.warn("No bonus found in batch; using default of " + bonus);
+            model = new KickballTaskModel(batch());
+        } catch (JSONException ex) {
+            ex.printStackTrace();
+            param.add("error", ex.getMessage());
+            throw new RestartResponseException(HomePage.class, param);
         }
-        this.workerId = workerId.toString("NONE");
-        this.assignmentId = assignmentId.toString("NONE");
+        requires = model.getTrainingItemsCount();
 
-        if (this.assignmentId.equals("ASSIGNMENT_ID_NOT_AVAILABLE")) {
+
+        if (!isQualifier.isEmpty()) qualifier = isQualifier.toBoolean(false);
+
+        float bonus = model.getTaskBonus();
+
+        if (isPreview()) {
             focusid = StringValue.valueOf(97456);
-            isPreview = true;
+
         }
 
         if (!focusid.isNull() && !focusid.isEmpty()) {
@@ -112,25 +112,28 @@ public class KickballPostTask extends WebPage {
         }
 
 
-
         configureItemsPerPage();
 
 
+
+
         //final int finalFocus = focus;
-        add(new Label("bonusLabel", String.format("$%.2f", bonus)));
+
+        add(new Label("bonusLabel", String.format("$%.2f", bonus)) {
+            public boolean isVisible() {
+                return !qualifier;
+            }
+        });
+
+
 
 
         Link focuslink = new Link("targetfocus") {
             public void onClick() {
                 log.info("Setting focus");
                 refocus = focus;
-                CayenneUtils.logEvent(DbProvider.getContext(),
-                        CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong()),
-                        "JUMP_TO_TARGET",
-                        param.get("workerId").toString("NONE"),
-                        param.get("hitId").toString("NONE"),
-                        param.get("assignmentId").toString("NONE"),
-                        param.toString(), Utils.mapify("clientip", ipAddress));
+                logEvent("JUMP_TO_TARGET");
+
             }
 
             public boolean isEnabled() {
@@ -151,13 +154,8 @@ public class KickballPostTask extends WebPage {
             public void onClick() {
                 log.info("Setting focus");
                 refocus = selection;
-                CayenneUtils.logEvent(DbProvider.getContext(),
-                        CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong()),
-                        "JUMP_TO_SELECTION",
-                        param.get("workerId").toString("NONE"),
-                        param.get("hitId").toString("NONE"),
-                        param.get("assignmentId").toString("NONE"),
-                        param.toString(), Utils.mapify("clientip", ipAddress, "selection", selection));
+                logEvent("JUMP_TO_SELECTION", "selection", selection);
+
             }
 
             public boolean isEnabled() {
@@ -179,24 +177,45 @@ public class KickballPostTask extends WebPage {
         submitcontainer.add(new Button("submitchoice") {
 
             public boolean isEnabled() {
-                return !isPreview && selection > 0;
+                return !isPreview() && selection > 0;
 
             }
 
-
-        });
+        }.setDefaultFormProcessing(isReadyForSubmit()));
 
         submitcontainer.add(new Button("submitnochoice") {
             public boolean isEnabled() {
-                return !isPreview && selection == -1;
+                return !isPreview() && selection == -1;
             }
 
         });
 
-        final Form<?> form = new Form<Void>("form");
-        form.add(submitcontainer);
-        form.add(new HiddenField<String>("assignmentId", new Model<String>(this.assignmentId + "")));
-        form.add(new HiddenField<String>("post", new Model<String>("" + focus)));
+        submitcontainer.add(new AjaxButton("next") {
+
+            public boolean isVisible() {
+                return qualifier &&  isMoreTrainingAvailable() ;
+            }
+
+            public void onSubmit() {
+                tries++;
+                focus = posts.get(tries);
+                configureItemsPerPage();
+            }
+        }.setDefaultFormProcessing(false));
+
+
+
+
+        getForm().add(submitcontainer);
+
+
+         final Component scorefield = new HiddenField<String>("score", new Model<String>() {
+            @Override
+            public String getObject() {
+                return String.format("%.2f",1f - (float)fails/tries);
+            }
+        }).setOutputMarkupId(true);
+        getForm().add(scorefield);
 
         final Component selectionfield = new HiddenField<String>("respondstoid", new Model<String>() {
             @Override
@@ -204,11 +223,11 @@ public class KickballPostTask extends WebPage {
                 return selection + "";
             }
         }).setOutputMarkupId(true);
-        form.add(selectionfield);
+        getForm().add(selectionfield);
 
 
-        form.add(new AttributeModifier("action", batch.getIsReal() ? "https://www.mturk.com/mturk/externalSubmit" : "http://workersandbox.mturk.com/mturk/externalSubmit"));
-        form.add(new AttributeModifier("method", "POST"));
+        getForm().add(new AttributeModifier("action", batch().getIsReal() ? "https://www.mturk.com/mturk/externalSubmit" : "http://workersandbox.mturk.com/mturk/externalSubmit"));
+        getForm().add(new AttributeModifier("method", "POST"));
         //  add(new Label("assignmentId", this.assignmentId).setEscapeModelStrings(false));
 //        add(new Label("workerId",this.workerId).setEscapeModelStrings(false));
 
@@ -231,7 +250,6 @@ public class KickballPostTask extends WebPage {
                     r.add(AttributeModifier.replace("checked", "true"));
                 }
                 item.add(r);
-
 
 
                 item.add(new Label("date", DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(post.getCreated())));
@@ -257,8 +275,8 @@ public class KickballPostTask extends WebPage {
 
         dataView.setItemsPerPage(itemsPerPage);
         //add(dataView);
-        add(form);
-        form.add(group);
+
+        getForm().add(group);
 
         final AjaxLink clearbutton = new AjaxLink("clearselection") {
 
@@ -273,13 +291,7 @@ public class KickballPostTask extends WebPage {
                 ajaxRequestTarget.add(group);
                 ajaxRequestTarget.add(submitcontainer);
                 ajaxRequestTarget.add(selectionfield);
-                CayenneUtils.logEvent(DbProvider.getContext(),
-                        CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong()),
-                        "CLEAR_SELECTION",
-                        param.get("workerId").toString("NONE"),
-                        param.get("hitId").toString("NONE"),
-                        param.get("assignmentId").toString("NONE"),
-                        param.toString(), Utils.mapify("clientip", ipAddress));
+                logEvent("CLEAR_SELECTION");
 
             }
 
@@ -301,13 +313,8 @@ public class KickballPostTask extends WebPage {
                 ajaxRequestTarget.add(group);
                 ajaxRequestTarget.add(submitcontainer);
                 ajaxRequestTarget.add(selectionfield);
-                CayenneUtils.logEvent(DbProvider.getContext(),
-                        CayenneUtils.findBatch(DbProvider.getContext(), batchid.toLong()),
-                        "SELECTION_UPDATED",
-                        param.get("workerId").toString("NONE"),
-                        param.get("hitId").toString("NONE"),
-                        param.get("assignmentId").toString("NONE"),
-                        param.toString(), Utils.mapify("selection", selection + "", "clientip", ipAddress));
+                logEvent("SELECTION_UPDATED","selection",selection+"");
+
 
             }
         });
@@ -321,8 +328,6 @@ public class KickballPostTask extends WebPage {
 
 
     }
-
-
 
 
     private void configureItemsPerPage() {
@@ -377,6 +382,29 @@ public class KickballPostTask extends WebPage {
             return count % itemsPerPage;
         }
         return 0;
+    }
+
+    public boolean isReadyForSubmit() {
+        return qualifier && tries > requires;
+    }
+
+    public boolean isMoreTrainingAvailable() {
+      return (posts.size()  - tries) > 0;
+    }
+
+    private static List<Integer> getTrainingPosts(Long first, Long last) {
+        PostModel pm = new PostModel(last.intValue());
+        Integer threadid = pm.getObject().getThreadid();
+
+        SelectQuery q = new SelectQuery(Post.class);
+        q.andQualifier(Expression.fromString("threadid = "+threadid+" and postid >="+first+" and postid <="+last));
+        q.addOrdering("created", SortOrder.DESCENDING);
+        List<Post> tmp = DbProvider.getContext().performQuery(q);
+        List<Integer> result = new ArrayList<Integer>();
+        for (Post p:tmp) {
+            result.add(p.getPostid());
+        }
+        return result;
     }
 
 

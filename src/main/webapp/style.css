@@ -166,25 +166,24 @@ div#messages {
     overflow-x: hidden;
     border: thin solid gray;
 }
+
 div#main {
-    width:750px;
+    width: 750px;
     margin: 0 auto;
 
 }
 
 table.layout {
     width: 100%;
-    font-size:14px;
+    font-size: 14px;
     border: none;
     border-collapse: collapse;
-
 
 }
 
 table.layout td.vcentered {
 
     vertical-align: middle;
-
 
 }
 
@@ -197,24 +196,23 @@ table.layout td {
 
 }
 
-button, input[type="button"],input[type="submit"] {
+button, input[type="button"], input[type="submit"] {
     background: #211c8b;
     border: 2px #00008b;
-    color:white;
+    color: white;
     font-size: 14px;
     padding: 8px;
 }
 
-button:hover, input[type="button"]:hover,input[type="submit"]:hover {
-   background: #3d35bf;
+button:hover, input[type="button"]:hover, input[type="submit"]:hover {
+    background: #3d35bf;
 }
 
-button:disabled, input[type="button"]:disabled,input[type="submit"]:disabled {
-  background-color: #AAA;
-  color: #DDD;
+button:disabled, input[type="button"]:disabled, input[type="submit"]:disabled {
+    background-color: #AAA;
+    color: #DDD;
     border: #999;
 }
-
 
 p {
     font-size: 14px;
@@ -229,8 +227,8 @@ div.scrollable {
 }
 
 div#commands {
-    width:750px;
-    height:200px;
+    width: 750px;
+    height: 200px;
     background-color: #FCFCFC;
     border: thin solid #d3d3d3;
 }
@@ -262,4 +260,9 @@ table.results tr.none {
     background-color: #d9daff
 }
 
+div.username {
+    color: white;
+    padding-top: 14px;
+    margin-left: 0px;
+}
 
