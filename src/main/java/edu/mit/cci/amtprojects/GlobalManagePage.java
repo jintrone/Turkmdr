@@ -1,8 +1,16 @@
 package edu.mit.cci.amtprojects;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
+import org.apache.cayenne.ObjectContext;
+import org.apache.cayenne.access.DataContext;
+import org.apache.cayenne.exp.Expression;
+import org.apache.cayenne.exp.ExpressionFactory;
+import org.apache.cayenne.query.SelectQuery;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.authroles.authorization.strategies.role.annotations.AuthorizeInstantiation;
@@ -12,17 +20,20 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.CheckGroup;
 import org.apache.wicket.markup.html.form.CheckGroupSelector;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.amazonaws.mturk.requester.HIT;
 import com.amazonaws.mturk.service.axis.RequesterService;
 import com.amazonaws.mturk.util.ClientConfig;
 
+import edu.mit.cci.amtprojects.solver.AwsCredentials;
 import edu.mit.cci.amtprojects.util.FilePropertiesConfig;
 
 @AuthorizeInstantiation("ADMIN")
@@ -32,16 +43,47 @@ public class GlobalManagePage extends WebPage {
     private static int itemsPerPage = 50;
     private PagingNavigator pagingNavigator;
     private static Logger logger = Logger.getLogger(GlobalManagePage.class);
-
+    private String selectedAwsId;
+    private String selectedIsReal;
+    
+    public List<AwsCredentials> getAwsCredentials(){
+    	String currentUser = ((MyAuthenticatedWebSession)getSession()).getUser().getUsername();
+    	ObjectContext context = DataContext.createDataContext();
+    	Expression qualifier = ExpressionFactory.likeExp(AwsCredentials.USER_PROPERTY, currentUser);
+    	SelectQuery select = new SelectQuery(AwsCredentials.class, qualifier);
+    	List awsCredentialsForUser = context.performQuery(select);
+    	return awsCredentialsForUser;
+    }
     
     public GlobalManagePage(final PageParameters parameters) {
     	
-    	boolean isReal = !(parameters.get("sandbox").toBoolean());
+    	//AWS Credential selector and real/sandbox hits selector
+    	List<AwsCredentials> awsCredentials = (List<AwsCredentials>)getAwsCredentials();
+    	List<String> awsIds = new ArrayList<String>();
+    	for (AwsCredentials cred : awsCredentials){
+			awsIds.add(cred.getAwsId());
+		}
+    	selectedAwsId = awsIds.get(0);
     	
-    	//TODO: add these parameters here
-    	String keyId = parameters.get("AwsId").toString();//"AKIAIU4LXH47T5FEBPBQ";
-		String secretId = parameters.get("AwsSecret").toString();//"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";
+    	List<String> yesOrNo = Arrays.asList(new String[] { "yes", "no"});
+    	selectedIsReal = "no";
+    	
+    	Form selectAwsCredentialsForm = new Form("selectAwsCredentialsForm");
+    	add(selectAwsCredentialsForm);
+    	selectAwsCredentialsForm.add(new DropDownChoice("selectAwsCredentialsDropdown", new PropertyModel(this, selectedAwsId), awsIds));
+    	selectAwsCredentialsForm.add(new DropDownChoice("selectRealOrSandboxHitsDropdown", new PropertyModel(this, selectedIsReal), yesOrNo));
+    	    	
+    	String keyId = selectedAwsId;
+		String secretId = "";
+		for (AwsCredentials cred : awsCredentials){
+			if (cred.getAwsId().equals(selectedAwsId)) {
+				secretId = cred.getAwsSecret();
+			}
+		}
+    	//String keyId = "AKIAIU4LXH47T5FEBPBQ";
+		//String secretId = "P1AAMgFxgMkfxC0j0jCI1Pqkqbb4bwQAn4fz1uQR";
     
+		//-------
         final HashSet<HIT> selectedValues = new HashSet<HIT>(); 
     	
     	final CheckGroup checkgroup = new CheckGroup("checkgroup");
@@ -62,7 +104,7 @@ public class GlobalManagePage extends WebPage {
 		
         checkgroup.add(new CheckGroupSelector("checkboxSelectAll"));
         
-        UserHitDataProvider userHitDataProvider = new UserHitDataProvider(isReal, keyId, secretId);
+        UserHitDataProvider userHitDataProvider = new UserHitDataProvider(selectedIsReal, keyId, secretId);
         
     	final DataView<HIT> dataView = new DataView<HIT>("pageable", userHitDataProvider) {
     		private static final long serialVersionUID = 1L;
@@ -108,7 +150,6 @@ public class GlobalManagePage extends WebPage {
     public RequesterService getRequester(boolean isReal){
     	ClientConfig config;
     	
-    	//TODO: pull these from file or form
         try {
             config = new FilePropertiesConfig(getClass().getResourceAsStream("/global.mturk.properties"));
         } catch (IOException e) {
@@ -116,8 +157,6 @@ public class GlobalManagePage extends WebPage {
             config = new ClientConfig();
         }
 
-
-        //TODO: two pages, for real or sandbox hits
         if (isReal) {
             config.setServiceURL(ClientConfig.PRODUCTION_SERVICE_URL);
         } else {

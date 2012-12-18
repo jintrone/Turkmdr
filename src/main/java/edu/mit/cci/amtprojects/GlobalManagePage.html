@@ -13,6 +13,21 @@
 
     <h3>Batches</h3>
     <br/>
+    
+    <form wicket:id="selectAwsCredentialsForm">
+		<p>
+			<label>Select the AWS credentials to use </label> 
+			<br /> 
+			<select wicket:id="selectAwsCredentialsDropdown"></select>
+			<br /> 
+			<label>Select between viewing real or sandbox Hits</label> 
+			<br /> 
+			<select wicket:id="selectRealOrSandboxHitsDropdown"></select>
+		</p>
+		<input type="submit" value="Submit" />
+	</form>
+	
+	
 
     <span wicket:id="navigator">[dataview navigator]</span>
     

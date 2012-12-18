@@ -42,7 +42,7 @@ public class HomePage extends WebPage {
 
     public HomePage(final PageParameters parameters) {
 
-        add(new Label("username",((MyAuthenticatedWebSession)getSession()).getUser().getUsername()));
+          add(new Label("username",((MyAuthenticatedWebSession)getSession()).getUser().getUsername()));
 
           final DataView<Experiment> dataView = new DataView<Experiment>("pageable", new ExperimentDataProvider()) {
             private static final long serialVersionUID = 1L;
@@ -107,15 +107,6 @@ public class HomePage extends WebPage {
         //String username = (new Label("currentUser", new PropertyModel<User>(this, "session.user"))).toString();
         add(new Label("currentUser", new PropertyModel<User>(this, "session.username")));
         
-        add(new Link("manageHitsSandbox") {
-
-            @Override
-            public void onClick() {
-                PageParameters params = new PageParameters();
-                params.add("sandbox","true");
-                setResponsePage(GlobalManagePage.class, params);
-            }
-        });
         add(new Link("manageHits") {
 
             @Override

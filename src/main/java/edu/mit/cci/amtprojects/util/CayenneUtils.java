@@ -1,25 +1,5 @@
 package edu.mit.cci.amtprojects.util;
 
-import com.amazonaws.mturk.requester.HIT;
-import edu.mit.cci.amtprojects.DbProvider;
-import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
-import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
-import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
-import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
-import edu.mit.cci.amtprojects.kickball.cayenne.User;
-import edu.mit.cci.amtprojects.kickball.cayenne.Users;
-import org.apache.cayenne.DataObject;
-import org.apache.cayenne.DataObjectUtils;
-import org.apache.cayenne.DataRow;
-import org.apache.cayenne.access.DataContext;
-import org.apache.cayenne.access.QueryLogger;
-import org.apache.cayenne.exp.Expression;
-import org.apache.cayenne.query.SQLTemplate;
-import org.apache.cayenne.query.SelectQuery;
-import org.apache.log4j.Logger;
-import org.apache.velocity.test.IntrospectorTestCase2;
-import org.apache.wicket.ajax.json.JSONObject;
-
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +8,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.cayenne.DataObject;
+import org.apache.cayenne.DataObjectUtils;
+import org.apache.cayenne.DataRow;
+import org.apache.cayenne.access.DataContext;
+import org.apache.cayenne.exp.Expression;
+import org.apache.cayenne.query.SQLTemplate;
+import org.apache.cayenne.query.SelectQuery;
+import org.apache.log4j.Logger;
+import org.apache.wicket.ajax.json.JSONObject;
+
+import com.amazonaws.mturk.requester.HIT;
+
+import edu.mit.cci.amtprojects.DbProvider;
+import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
+import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
+import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
+import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
+import edu.mit.cci.amtprojects.kickball.cayenne.Users;
 
 /**
  * User: jintrone

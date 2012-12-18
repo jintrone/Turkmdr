@@ -135,6 +135,9 @@
 	<db-relationship name="toBatch" source="TurkerLog" target="Batch" toMany="false">
 		<db-attribute-pair source="batchId" target="id"/>
 	</db-relationship>
+	<db-relationship name="AwsCredentials" source="Users" target="AwsCredentials" toMany="true">
+		<db-attribute-pair source="username" target="username"/>
+	</db-relationship>
 	<obj-relationship name="hits" source="Batch" target="Hits" deleteRule="Nullify" db-relationship-path="hits"/>
 	<obj-relationship name="toExperiment" source="Batch" target="Experiment" deleteRule="Nullify" db-relationship-path="toExperiment"/>
 	<obj-relationship name="toLogs" source="Batch" target="TurkerLog" deleteRule="Deny" db-relationship-path="toLogs"/>

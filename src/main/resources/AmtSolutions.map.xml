@@ -5,6 +5,12 @@
   project-version="3.0.0.1">
 	<property name="defaultPackage" value="edu.mit.cci.amtprojects.solver"/>
 	<property name="quoteSqlIdentifiers" value="true"/>
+	<db-entity name="AwsCredentials">
+		<db-attribute name="awsId" type="VARCHAR" isMandatory="true" length="2048"/>
+		<db-attribute name="awsSecret" type="VARCHAR" isMandatory="true" length="2048"/>
+		<db-attribute name="id" type="INTEGER" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="username" type="VARCHAR" isMandatory="true" length="2048"/>
+	</db-entity>
 	<db-entity name="Question">
 		<db-attribute name="batchid" type="BIGINT"/>
 		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
@@ -31,6 +37,10 @@
 		<db-attribute name="round" type="INTEGER"/>
 		<db-attribute name="solutionid" type="BIGINT"/>
 	</db-entity>
+	<obj-entity name="AwsCredentials" className="edu.mit.cci.amtprojects.solver.AwsCredentials" dbEntityName="AwsCredentials">
+		<obj-attribute name="awsId" type="java.lang.String" db-attribute-path="awsId"/>
+		<obj-attribute name="awsSecret" type="java.lang.String" db-attribute-path="awsSecret"/>
+	</obj-entity>
 	<obj-entity name="Question" className="edu.mit.cci.amtprojects.solver.Question" dbEntityName="Question">
 		<obj-attribute name="text" type="java.lang.String" db-attribute-path="text"/>
 	</obj-entity>
@@ -48,6 +58,9 @@
 		<obj-attribute name="rank" type="java.lang.String" db-attribute-path="rank"/>
 		<obj-attribute name="round" type="java.lang.Integer" db-attribute-path="round"/>
 	</obj-entity>
+	<db-relationship name="User" source="AwsCredentials" target="Users" toMany="false">
+		<db-attribute-pair source="username" target="username"/>
+	</db-relationship>
 	<db-relationship name="toBatch" source="Question" target="Batch" toMany="false">
 		<db-attribute-pair source="batchid" target="id"/>
 	</db-relationship>
@@ -75,6 +88,7 @@
 	<db-relationship name="toSolution" source="SolutionRank" target="Solution" toMany="false">
 		<db-attribute-pair source="solutionid" target="id"/>
 	</db-relationship>
+	<obj-relationship name="user" source="AwsCredentials" target="Users" deleteRule="Nullify" db-relationship-path="User"/>
 	<obj-relationship name="toBatch" source="Question" target="Batch" deleteRule="Nullify" db-relationship-path="toBatch"/>
 	<obj-relationship name="toSolutions" source="Question" target="Solution" deleteRule="Nullify" db-relationship-path="toSolutions"/>
 	<obj-relationship name="toChildren" source="Solution" target="Solution" deleteRule="Nullify" db-relationship-path="toChildrenMap.toChildren"/>

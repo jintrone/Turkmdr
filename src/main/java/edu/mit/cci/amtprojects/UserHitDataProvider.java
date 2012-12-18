@@ -26,12 +26,12 @@ import edu.mit.cci.amtprojects.util.IndexedIterator;
  */
 public class UserHitDataProvider implements IDataProvider<HIT> {
 
-	boolean isReal;
+	String isReal;
 	String keyId;
 	String secretId;
 	
-    public UserHitDataProvider(boolean b, String k, String s) {
-    	isReal = b;
+    public UserHitDataProvider(String selectedIsReal, String k, String s) {
+    	isReal = selectedIsReal;
     	keyId = k;
     	secretId = s;
     }
@@ -55,11 +55,10 @@ public class UserHitDataProvider implements IDataProvider<HIT> {
 		return new HITModel2(hit);
 	}
 	
-	private RequesterService getRequesterService(boolean isReal){
+	private RequesterService getRequesterService(String isReal){
 		
 		ClientConfig config;
     	
-    	//TODO: pull these from file or form
         try {
             config = new FilePropertiesConfig(getClass().getResourceAsStream("/global.mturk.properties"));
         } catch (IOException e) {
@@ -69,7 +68,7 @@ public class UserHitDataProvider implements IDataProvider<HIT> {
         config.setAccessKeyId(keyId); 
         config.setSecretAccessKey(secretId); 
 
-        if (isReal) {
+        if (isReal.equals("no")) {
             config.setServiceURL(ClientConfig.PRODUCTION_SERVICE_URL);
         } else {
             config.setServiceURL(ClientConfig.SANDBOX_SERVICE_URL);
@@ -79,9 +78,6 @@ public class UserHitDataProvider implements IDataProvider<HIT> {
 	}
 	
 	
-	
-	//TODO: easy way of switching between sandbox/inbox (button)
-	
-	//later - experiment and batch IDs
+	//TODO later - experiment and batch IDs
 
 }
