@@ -35,6 +35,12 @@ public class GlobalManagePage extends WebPage {
 
     
     public GlobalManagePage(final PageParameters parameters) {
+    	
+    	boolean isReal = !(parameters.get("sandbox").toBoolean());
+    	
+    	//TODO: add these parameters here
+    	String keyId = parameters.get("AwsId").toString();//"AKIAIU4LXH47T5FEBPBQ";
+		String secretId = parameters.get("AwsSecret").toString();//"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";
     
         final HashSet<HIT> selectedValues = new HashSet<HIT>(); 
     	
@@ -56,7 +62,8 @@ public class GlobalManagePage extends WebPage {
 		
         checkgroup.add(new CheckGroupSelector("checkboxSelectAll"));
         
-        UserHitDataProvider userHitDataProvider = new UserHitDataProvider(getRequester(false));
+        UserHitDataProvider userHitDataProvider = new UserHitDataProvider(isReal, keyId, secretId);
+        
     	final DataView<HIT> dataView = new DataView<HIT>("pageable", userHitDataProvider) {
     		private static final long serialVersionUID = 1L;
     		
@@ -119,6 +126,5 @@ public class GlobalManagePage extends WebPage {
         
         return new RequesterService(config);
     }
-    
-    
+        
 }

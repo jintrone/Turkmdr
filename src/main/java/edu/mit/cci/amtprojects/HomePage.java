@@ -1,11 +1,12 @@
 package edu.mit.cci.amtprojects;
 
-import com.amazonaws.mturk.requester.HIT;
-import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
-import edu.mit.cci.amtprojects.util.MturkUtils;
+import java.text.DateFormat;
+
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.authroles.authorization.strategies.role.annotations.AuthorizeInstantiation;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
@@ -17,12 +18,10 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.Url;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.WebPage;
+import org.eclipse.jetty.server.Authentication.User;
 
-import java.text.DateFormat;
+import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
 
 @AuthorizeInstantiation("ADMIN")
 public class HomePage extends WebPage {
@@ -102,6 +101,34 @@ public class HomePage extends WebPage {
             }
 
         });
+        
+        //links to the global hit seleciton/deletion interface
+        
+        //String username = (new Label("currentUser", new PropertyModel<User>(this, "session.user"))).toString();
+        add(new Label("currentUser", new PropertyModel<User>(this, "session.username")));
+        
+        add(new Link("manageHitsSandbox") {
+
+            @Override
+            public void onClick() {
+                PageParameters params = new PageParameters();
+                params.add("sandbox","true");
+                setResponsePage(GlobalManagePage.class, params);
+            }
+        });
+        add(new Link("manageHits") {
+
+            @Override
+            public void onClick() {
+                PageParameters params = new PageParameters();
+                params.add("sandbox","false");
+                setResponsePage(GlobalManagePage.class, params);
+            }
+        });
+        
+        //TODO: form to add new credentials for this user
+        
+        
 
 
 

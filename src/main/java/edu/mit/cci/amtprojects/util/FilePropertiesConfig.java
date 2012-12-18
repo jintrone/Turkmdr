@@ -1,22 +1,24 @@
 package edu.mit.cci.amtprojects.util;
 
-import com.amazonaws.mturk.util.ClientConfig;
-import org.apache.log4j.Logger;
-
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+
+import org.apache.log4j.Logger;
+
+import com.amazonaws.mturk.util.ClientConfig;
 
 /**
  * User: jintrone
  * Date: 9/28/12
  * Time: 1:50 PM
  */
-public class FilePropertiesConfig extends ClientConfig {
+public class FilePropertiesConfig extends ClientConfig{
+			
     public final static String ACCESS_KEY_ID = "access_key";
     public final static String SECRET_ACCESS_KEY = "secret_key";
     public final static String SERVICE_URL = "service_url";
