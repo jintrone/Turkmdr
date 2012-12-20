@@ -1,4 +1,4 @@
-package edu.mit.cci.amtprojects.solver.auto;
+package edu.mit.cci.amtprojects.kickball.cayenne.auto;
 
 import org.apache.cayenne.CayenneDataObject;
 

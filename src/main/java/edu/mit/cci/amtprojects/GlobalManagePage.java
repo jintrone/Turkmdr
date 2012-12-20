@@ -33,7 +33,7 @@ import com.amazonaws.mturk.requester.HIT;
 import com.amazonaws.mturk.service.axis.RequesterService;
 import com.amazonaws.mturk.util.ClientConfig;
 
-import edu.mit.cci.amtprojects.solver.AwsCredentials;
+import edu.mit.cci.amtprojects.kickball.cayenne.AwsCredentials;
 import edu.mit.cci.amtprojects.util.FilePropertiesConfig;
 
 @AuthorizeInstantiation("ADMIN")
@@ -45,6 +45,26 @@ public class GlobalManagePage extends WebPage {
     private static Logger logger = Logger.getLogger(GlobalManagePage.class);
     private String selectedAwsId;
     private String selectedIsReal;
+    
+    public String getSelectedAwsId()
+    {
+            return selectedAwsId;
+    }
+
+    public void setSelectedAwsId(String s)
+    {
+            this.selectedAwsId = s;
+    }
+    
+    public String getSelectedIsReal()
+    {
+            return selectedAwsId;
+    }
+
+    public void setSelectedIsReal(String s)
+    {
+            this.selectedIsReal = s;
+    }
     
     public List<AwsCredentials> getAwsCredentials(){
     	String currentUser = ((MyAuthenticatedWebSession)getSession()).getUser().getUsername();
@@ -65,13 +85,19 @@ public class GlobalManagePage extends WebPage {
 		}
     	selectedAwsId = awsIds.get(0);
     	
-    	List<String> yesOrNo = Arrays.asList(new String[] { "yes", "no"});
-    	selectedIsReal = "no";
+    	List<String> yesOrNo = Arrays.asList(new String[] { "sandbox", "real"});
+    	selectedIsReal = "sandbox";
     	
-    	Form selectAwsCredentialsForm = new Form("selectAwsCredentialsForm");
+    	Form selectAwsCredentialsForm = new Form("selectAwsCredentialsForm"){
+			@Override
+			public void onSubmit() {
+				super.onSubmit(); 
+				//TODO: why isn't this updating the form?
+			}
+		};
     	add(selectAwsCredentialsForm);
-    	selectAwsCredentialsForm.add(new DropDownChoice("selectAwsCredentialsDropdown", new PropertyModel(this, selectedAwsId), awsIds));
-    	selectAwsCredentialsForm.add(new DropDownChoice("selectRealOrSandboxHitsDropdown", new PropertyModel(this, selectedIsReal), yesOrNo));
+    	selectAwsCredentialsForm.add(new DropDownChoice("selectAwsCredentialsDropdown", new PropertyModel(this, "selectedAwsId"), awsIds));
+    	selectAwsCredentialsForm.add(new DropDownChoice("selectRealOrSandboxHitsDropdown", new PropertyModel(this, "selectedIsReal"), yesOrNo));
     	    	
     	String keyId = selectedAwsId;
 		String secretId = "";
@@ -80,8 +106,6 @@ public class GlobalManagePage extends WebPage {
 				secretId = cred.getAwsSecret();
 			}
 		}
-    	//String keyId = "AKIAIU4LXH47T5FEBPBQ";
-		//String secretId = "P1AAMgFxgMkfxC0j0jCI1Pqkqbb4bwQAn4fz1uQR";
     
 		//-------
         final HashSet<HIT> selectedValues = new HashSet<HIT>(); 
@@ -144,26 +168,6 @@ public class GlobalManagePage extends WebPage {
         form.add(checkgroup);
         add(form);
         
-    }
-    
-    
-    public RequesterService getRequester(boolean isReal){
-    	ClientConfig config;
-    	
-        try {
-            config = new FilePropertiesConfig(getClass().getResourceAsStream("/global.mturk.properties"));
-        } catch (IOException e) {
-            logger.error("Could not read global properties file: global.mturk.properties");
-            config = new ClientConfig();
-        }
-
-        if (isReal) {
-            config.setServiceURL(ClientConfig.PRODUCTION_SERVICE_URL);
-        } else {
-            config.setServiceURL(ClientConfig.SANDBOX_SERVICE_URL);
-        }
-        
-        return new RequesterService(config);
     }
         
 }

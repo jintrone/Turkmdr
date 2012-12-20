@@ -68,7 +68,7 @@ public class UserHitDataProvider implements IDataProvider<HIT> {
         config.setAccessKeyId(keyId); 
         config.setSecretAccessKey(secretId); 
 
-        if (isReal.equals("no")) {
+        if (isReal.equals("real")) {
             config.setServiceURL(ClientConfig.PRODUCTION_SERVICE_URL);
         } else {
             config.setServiceURL(ClientConfig.SANDBOX_SERVICE_URL);

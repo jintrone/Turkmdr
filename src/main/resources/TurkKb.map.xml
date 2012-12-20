@@ -4,6 +4,12 @@
   xsi:schemaLocation="http://cayenne.apache.org/schema/3.0/modelMap http://cayenne.apache.org/schema/3.0/modelMap.xsd"
   project-version="3.0.0.1">
 	<property name="defaultPackage" value="edu.mit.cci.amtprojects.kickball.cayenne"/>
+	<db-entity name="AwsCredentials">
+		<db-attribute name="awsId" type="VARCHAR" isMandatory="true" length="2048"/>
+		<db-attribute name="awsSecret" type="VARCHAR" isMandatory="true" length="2048"/>
+		<db-attribute name="id" type="INTEGER" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="username" type="VARCHAR" isMandatory="true" length="2048"/>
+	</db-entity>
 	<db-entity name="Batch">
 		<db-attribute name="AwsId" type="VARCHAR" length="255"/>
 		<db-attribute name="AwsSecret" type="VARCHAR" length="255"/>
@@ -55,6 +61,10 @@
 		<db-attribute name="password" type="VARCHAR" length="128"/>
 		<db-attribute name="username" type="VARCHAR" length="128"/>
 	</db-entity>
+	<obj-entity name="AwsCredentials" className="edu.mit.cci.amtprojects.kickball.cayenne.AwsCredentials" dbEntityName="AwsCredentials">
+		<obj-attribute name="awsId" type="java.lang.String" db-attribute-path="awsId"/>
+		<obj-attribute name="awsSecret" type="java.lang.String" db-attribute-path="awsSecret"/>
+	</obj-entity>
 	<obj-entity name="Batch" className="edu.mit.cci.amtprojects.kickball.cayenne.Batch" dbEntityName="Batch">
 		<obj-attribute name="awsId" type="java.lang.String" db-attribute-path="AwsId"/>
 		<obj-attribute name="awsSecret" type="java.lang.String" db-attribute-path="AwsSecret"/>
@@ -96,6 +106,9 @@
 		<obj-attribute name="password" type="java.lang.String" db-attribute-path="password"/>
 		<obj-attribute name="username" type="java.lang.String" db-attribute-path="username"/>
 	</obj-entity>
+	<db-relationship name="user" source="AwsCredentials" target="Users" toMany="false">
+		<db-attribute-pair source="username" target="username"/>
+	</db-relationship>
 	<db-relationship name="hits" source="Batch" target="Hits" toMany="true">
 		<db-attribute-pair source="id" target="batchId"/>
 	</db-relationship>
@@ -135,9 +148,10 @@
 	<db-relationship name="toBatch" source="TurkerLog" target="Batch" toMany="false">
 		<db-attribute-pair source="batchId" target="id"/>
 	</db-relationship>
-	<db-relationship name="AwsCredentials" source="Users" target="AwsCredentials" toMany="true">
+	<db-relationship name="awsCredentials" source="Users" target="AwsCredentials" toMany="true">
 		<db-attribute-pair source="username" target="username"/>
 	</db-relationship>
+	<obj-relationship name="user" source="AwsCredentials" target="Users" deleteRule="Nullify" db-relationship-path="user"/>
 	<obj-relationship name="hits" source="Batch" target="Hits" deleteRule="Nullify" db-relationship-path="hits"/>
 	<obj-relationship name="toExperiment" source="Batch" target="Experiment" deleteRule="Nullify" db-relationship-path="toExperiment"/>
 	<obj-relationship name="toLogs" source="Batch" target="TurkerLog" deleteRule="Deny" db-relationship-path="toLogs"/>

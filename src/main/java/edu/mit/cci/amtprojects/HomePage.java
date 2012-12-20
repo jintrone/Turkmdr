@@ -104,15 +104,11 @@ public class HomePage extends WebPage {
         
         //links to the global hit seleciton/deletion interface
         
-        //String username = (new Label("currentUser", new PropertyModel<User>(this, "session.user"))).toString();
-        add(new Label("currentUser", new PropertyModel<User>(this, "session.username")));
-        
         add(new Link("manageHits") {
 
             @Override
             public void onClick() {
                 PageParameters params = new PageParameters();
-                params.add("sandbox","false");
                 setResponsePage(GlobalManagePage.class, params);
             }
         });
