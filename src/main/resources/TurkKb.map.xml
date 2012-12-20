@@ -103,6 +103,7 @@
 		<obj-attribute name="workerId" type="java.lang.String" db-attribute-path="workerId"/>
 	</obj-entity>
 	<obj-entity name="Users" className="edu.mit.cci.amtprojects.kickball.cayenne.Users" dbEntityName="Users">
+		<obj-attribute name="id" type="java.lang.Long" db-attribute-path="id"/>
 		<obj-attribute name="password" type="java.lang.String" db-attribute-path="password"/>
 		<obj-attribute name="username" type="java.lang.String" db-attribute-path="username"/>
 	</obj-entity>
@@ -165,4 +166,5 @@
 	<obj-relationship name="previousHit" source="Hits" target="Hits" deleteRule="Nullify" db-relationship-path="previousHit"/>
 	<obj-relationship name="hit" source="TurkerLog" target="Hits" deleteRule="Nullify" db-relationship-path="hits"/>
 	<obj-relationship name="toBatch" source="TurkerLog" target="Batch" deleteRule="Nullify" db-relationship-path="toBatch"/>
+	<obj-relationship name="toAwsCredentials" source="Users" target="AwsCredentials" deleteRule="Cascade" db-relationship-path="awsCredentials"/>
 </data-map>

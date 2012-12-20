@@ -26,14 +26,10 @@ import edu.mit.cci.amtprojects.util.IndexedIterator;
  */
 public class UserHitDataProvider implements IDataProvider<HIT> {
 
-	String isReal;
-	String keyId;
-	String secretId;
+	GlobalManagePage.FormModel model;
 	
-    public UserHitDataProvider(String selectedIsReal, String k, String s) {
-    	isReal = selectedIsReal;
-    	keyId = k;
-    	secretId = s;
+    public UserHitDataProvider(GlobalManagePage.FormModel model) {
+    	this.model = model;
     }
 
     public void detach() {
@@ -41,13 +37,13 @@ public class UserHitDataProvider implements IDataProvider<HIT> {
     }
 
     public Iterator<? extends HIT> iterator(long i, long count) {
-    	RequesterService requesterService = getRequesterService(isReal);
+    	RequesterService requesterService = getRequesterService(model.getSelectRealOrSandboxHitsDropdown());
         List<HIT> hits = new ArrayList<HIT>(Arrays.asList(requesterService.searchAllHITs()));
         return new IndexedIterator<HIT>(hits,i,count);
     }
 
     public long size() {
-    	RequesterService requesterService = getRequesterService(isReal);
+    	RequesterService requesterService = getRequesterService(model.getSelectRealOrSandboxHitsDropdown());
         return requesterService.searchAllHITs().length;
     }
 
@@ -65,8 +61,8 @@ public class UserHitDataProvider implements IDataProvider<HIT> {
             config = new ClientConfig();
         }
 
-        config.setAccessKeyId(keyId); 
-        config.setSecretAccessKey(secretId); 
+        config.setAccessKeyId(model.getSelectAwsCredentialsDropdown());
+        config.setSecretAccessKey(model.lookupAwsSecret());
 
         if (isReal.equals("real")) {
             config.setServiceURL(ClientConfig.PRODUCTION_SERVICE_URL);

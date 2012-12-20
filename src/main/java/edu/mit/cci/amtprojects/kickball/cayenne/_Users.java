@@ -1,5 +1,7 @@
 package edu.mit.cci.amtprojects.kickball.cayenne;
 
+import java.util.List;
+
 import org.apache.cayenne.CayenneDataObject;
 
 /**
@@ -10,10 +12,19 @@ import org.apache.cayenne.CayenneDataObject;
  */
 public abstract class _Users extends CayenneDataObject {
 
+    public static final String ID_PROPERTY = "id";
     public static final String PASSWORD_PROPERTY = "password";
     public static final String USERNAME_PROPERTY = "username";
+    public static final String TO_AWS_CREDENTIALS_PROPERTY = "toAwsCredentials";
 
     public static final String ID_PK_COLUMN = "id";
+
+    public void setId(Long id) {
+        writeProperty("id", id);
+    }
+    public Long getId() {
+        return (Long)readProperty("id");
+    }
 
     public void setPassword(String password) {
         writeProperty("password", password);
@@ -28,5 +39,17 @@ public abstract class _Users extends CayenneDataObject {
     public String getUsername() {
         return (String)readProperty("username");
     }
+
+    public void addToToAwsCredentials(AwsCredentials obj) {
+        addToManyTarget("toAwsCredentials", obj, true);
+    }
+    public void removeFromToAwsCredentials(AwsCredentials obj) {
+        removeToManyTarget("toAwsCredentials", obj, true);
+    }
+    @SuppressWarnings("unchecked")
+    public List<AwsCredentials> getToAwsCredentials() {
+        return (List<AwsCredentials>)readProperty("toAwsCredentials");
+    }
+
 
 }

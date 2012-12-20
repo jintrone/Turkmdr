@@ -3,6 +3,7 @@ package edu.mit.cci.amtprojects;
 import edu.mit.cci.amtprojects.kickball.cayenne.User;
 import edu.mit.cci.amtprojects.kickball.cayenne.Users;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
+import org.apache.cayenne.DataObjectUtils;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebSession;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.request.Request;
@@ -17,7 +18,7 @@ public class MyAuthenticatedWebSession extends AuthenticatedWebSession
 
 
 
-    Users user;
+    Long userid;
 
 
     /**
@@ -39,12 +40,16 @@ public class MyAuthenticatedWebSession extends AuthenticatedWebSession
     public boolean authenticate(final String username, final String password)
     {
         Users u  = CayenneUtils.findUser(DbProvider.getContext(),username,password);
-        user = u;
-        return u!=null;
+        if (u!=null) {
+            userid = u.getId();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public Users getUser() {
-        return user;
+        return DataObjectUtils.objectForPK(DbProvider.getContext(),Users.class,userid);
     }
 
     /**
