@@ -67,22 +67,22 @@ public class GlobalManagePage extends WebPage {
         selectAwsCredentialsForm.add(new DropDownChoice("selectRealOrSandboxHitsDropdown", yesOrNo));
 
 
-        //-------
+        //List of experiments
         final HashSet<HIT> selectedValues = new HashSet<HIT>();
 
-        final CheckGroup checkgroup = new CheckGroup("checkgroup");
+        final CheckGroup<SelectItemUsingCheckboxModel> checkgroup = new CheckGroup("checkgroup", new ArrayList<SelectItemUsingCheckboxModel>());
 
         final Form form = new Form("form") {
             @Override
             public void onSubmit() {
-                /*
+                
                 super.onSubmit();
                 for (HIT h: selectedValues) { 
                     System.out.println(h); 
                     //TODO: delete rows here 
                     
                 }
-                */
+
             }
         };
 
@@ -97,10 +97,8 @@ public class GlobalManagePage extends WebPage {
             protected void populateItem(final Item<HIT> item) {
                 HIT hit = item.getModelObject();
 
-                //item.add(new CheckBox("checkbox", Model.of(Boolean.FALSE)));
-                //item.add(new CheckBox("checkbox", CheckedModel(hit.getHITId()))); //why is item.getModel() null?
-                item.add(new CheckBox("checkbox", new SelectItemUsingCheckboxModel(hit, selectedValues)));
 
+                item.add(new CheckBox("checkbox", new SelectItemUsingCheckboxModel(hit, selectedValues)));
                 item.add(new Label("hitName", String.valueOf(hit.getTitle())));
                 item.add(new Label("hitId", String.valueOf(hit.getHITId())));
 
