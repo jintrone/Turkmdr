@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<head>
+    <meta charset="utf-8"/>
+    <title>Approve hits needing review</title>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="solver.css" type="text/css" media="screen" title="Stylesheet"/>
+    <script src="js/jquery.1.8.1.min.js"></script>
+</head>
+<body>
+<form wicket:id="approvalForm">
+    <table class="visible-layout approval">
+        <tr>
+
+            <th>Solution</th>
+            <th>Blank</th>
+            <th>Nonsense</th>
+            <th>Copies</th>
+            <th>Action</th>
+
+
+        </tr>
+        <tr wicket:id="answers">
+            <td class="solution">
+                <span wicket:id="solutionText">[text]</span>
+
+            </td>
+            <td class="empty">
+                <span wicket:id="empty">[text]</span>
+
+            </td>
+            <td class="nonsense">
+                <span wicket:id="nonsense">[text]</span>
+
+            </td>
+            <td class="copies">
+                <ul wicket:id="copies">
+                   <li wicket:id="copytext">[item]</li>
+                </ul>
+            </td>
+            <td class="selection">
+                <select wicket:id="choice">[text]</select>
+            </td>
+        </tr>
+    </table>
+    <input type="Submit" wicket:id="Submit"/>
+
+
+</form>
+
+
+</body>
+</html>

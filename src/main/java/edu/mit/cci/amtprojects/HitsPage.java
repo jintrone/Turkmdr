@@ -6,6 +6,7 @@ import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.solver.SolverPluginFactory;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
+import edu.mit.cci.amtprojects.util.MturkUtils;
 import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
@@ -17,6 +18,7 @@ import org.apache.wicket.authroles.authorization.strategies.role.annotations.Aut
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -152,8 +154,9 @@ public class HitsPage extends WebPage {
 
             @Override
             protected void populateItem(final Item<Hits> item) {
+
                 Hits hit = item.getModelObject();
-                item.add(new Label("hitId", String.valueOf(hit.getId())));
+                item.add(new ExternalLink("hitUrl", MturkUtils.getMturkLink(hit)));
                 item.add(new Label("creation", DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(hit.getCreation())));
                 item.add(new Label("status", hit.getStatus()));
                 item.add(new Label("amtstatus",hit.getAmtStatus()));

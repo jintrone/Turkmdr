@@ -34,4 +34,15 @@ public class Solution extends _Solution {
         return CayenneUtils.extractObjectId(this);
     }
 
+    public void setValid(Valid v) {
+        this.setValid(v.name());
+    }
+
+    public Valid getValidEnum() {
+        return this.getValid()==null?null:Valid.valueOf(getValid());
+    }
+
+    public static enum Valid {
+        UNKNOWN, NEEDS_APPROVAL, VALID, INVALID
+    }
 }

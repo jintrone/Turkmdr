@@ -1,12 +1,15 @@
 package edu.mit.cci.amtprojects.solver;
 
 import edu.mit.cci.amtprojects.BatchProcessMonitor;
-import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.DbProvider;
+import edu.mit.cci.amtprojects.HitCreator;
+import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
+import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
-import edu.mit.cci.amtprojects.util.CayenneUtils;
+import edu.mit.cci.amtprojects.util.Mailer;
 import edu.mit.cci.amtprojects.util.MturkUtils;
+import edu.mit.cci.amtprojects.util.Utils;
 import jsc.datastructures.MatchedData;
 import jsc.descriptive.MeanVar;
 import jsc.relatedsamples.FriedmanTest;
@@ -14,7 +17,10 @@ import org.apache.cayenne.DataObjectUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.json.JSONException;
+import org.apache.wicket.ajax.json.JSONObject;
+import org.apache.wicket.ajax.json.JSONStringer;
 
+import javax.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -35,7 +41,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
     public static SolverProcessMonitor get(Batch b) {
         try {
-            return (SolverProcessMonitor)get(b,SolverProcessMonitor.class);
+            return (SolverProcessMonitor) get(b, SolverProcessMonitor.class);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (InvocationTargetException e) {
@@ -51,7 +57,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
     public void update() throws UnsupportedEncodingException, JSONException {
         logger.info("Checking status");
-        Batch b = CayenneUtils.findBatch(DbProvider.getContext(),batchId);
+        Batch b = batch();
         SolverTaskModel model = new SolverTaskModel(b);
         if (model.getCurrentStatus().getPhase() == Phase.COMPLETE) {
 
@@ -63,7 +69,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
         manager.updateHits();
         List<TurkerLog> logs = manager.getNewHitResults(true);
         List<TurkerLog> roundLogs = findCurrentLogs(currentRound, model.getCurrentStatus().getPhase(), logs);
-
+        boolean shouldLaunch = true;
         if (!roundLogs.isEmpty()) {
             if (model.getCurrentStatus().getPhase() == Phase.INIT) {
 
@@ -83,12 +89,21 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
             } else if (model.getCurrentStatus().getPhase() == Phase.GENERATE) {
                 updateAnswers(model, roundLogs);
-                model.getCurrentStatus().setPhase(Phase.RANK);
+                model.getCurrentStatus().setPhase(Phase.VALIDATION);
+
+            } else if (model.getCurrentStatus().getPhase() == Phase.VALIDATION) {
+                if (checkValidation(model, roundLogs)) {
+                    setProcessed(roundLogs);
+                    model.getCurrentStatus().setPhase(Phase.RANK);
+                } else {
+                    shouldLaunch = false;
+                }
+
             }
 
             model.updateCurrentStatus();
             DbProvider.getContext().commitChanges();
-            if (model.getCurrentStatus().getPhase() != Phase.COMPLETE) {
+            if (model.getCurrentStatus().getPhase() != Phase.COMPLETE && shouldLaunch) {
                 SolverHitCreator.getInstance().launch(null, null, b);
 
             }
@@ -97,6 +112,75 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
 
     }
+
+    private boolean checkValidation(SolverTaskModel model, List<TurkerLog> roundLogs) throws JSONException {
+        Map<Long, Solution> needsAttention = new HashMap<Long, Solution>();
+        boolean validated = true;
+        for (Solution s : model.getCurrentStatus().getCurrentAnswers()) {
+            if (s.getValidEnum() == Solution.Valid.UNKNOWN) {
+                needsAttention.put(s.getId(), s);
+            } else if (s.getValidEnum() == Solution.Valid.NEEDS_APPROVAL) {
+                validated = false;
+            }
+        }
+        if (!needsAttention.isEmpty()) {
+            for (TurkerLog log : roundLogs) {
+
+                Solution t = needsAttention.get(Long.parseLong(MturkUtils.extractAnswer(log, "answerId")));
+
+                if (t != null) {
+                    boolean isEmpty = MturkUtils.extractAnswer(log, "blank") != null;
+                    boolean isNonesense = MturkUtils.extractAnswer(log, "nonsense")!=null;
+                    Set<String> copies = new HashSet<String>();
+                    String copiedIds = MturkUtils.extractAnswer(log, "copies");
+                    if (copiedIds != null && !copiedIds.isEmpty()) {
+                        for (String c : copiedIds.split("\\|")) {
+                            if (c == null || c.isEmpty()) continue;
+                            Solution ps = DataObjectUtils.objectForPK(DbProvider.getContext(), Solution.class, Long.parseLong(c));
+                            if (ps == null) {
+                                logger.error("Cannot identify solution "+c);
+
+                            } else {
+                                copies.add(c);
+
+                            }
+                        }
+
+
+                    }
+
+                    if (isEmpty || isNonesense || !copies.isEmpty()) {
+                        Map<String,Object> jsonMap = Utils.mapify("empty",isEmpty,"nonsense",isNonesense,"copyof",copies);
+                        t.setMeta(new JSONObject(jsonMap).toString());
+                        t.setValid(Solution.Valid.NEEDS_APPROVAL);
+                        notifyBatchOwner();
+                        validated = false;
+                    }
+
+
+                }
+            }
+        }
+
+        return validated;
+    }
+
+    //TODO
+    private void notifyBatchOwner() {
+
+        Mailer mailer = Mailer.get();
+        if (mailer == null) {
+            logger.warn("Mailer could not be configured, not messaging");
+        } else {
+            try {
+                mailer.sendMail("jintrone@gmail.com",batch().getContactEmail(),"[TURKMDR] A hit is awaiting your approval","New hits have been added to the approval page");
+            } catch (MessagingException e) {
+                logger.warn("Error sending message");
+            }
+        }
+
+    }
+
 
     private void pruneSolutions(SolverTaskModel model) throws JSONException {
         List<Solution> sol = new ArrayList<Solution>(model.getCurrentStatus().getCurrentAnswers());
@@ -130,6 +214,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             s.setRound(Integer.parseInt(MturkUtils.extractAnswer(l, "round")));
             s.setWorkerId(l.getWorkerId());
             s.setToQuestion(model.getQuestion());
+            s.setValid(Solution.Valid.UNKNOWN);
 
 
             String parentText = MturkUtils.extractAnswer(l, "parents");
@@ -149,9 +234,23 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             }
             DbProvider.getContext().commitChanges();
             model.getCurrentStatus().addToCurrentAnswers(s);
-        }
 
+        }
+         setProcessed(roundLogs);
         DbProvider.getContext().commitChanges();
+    }
+
+    public void setProcessed(List<TurkerLog> logs) {
+        Set<Hits> hits = new HashSet<Hits>();
+        for (TurkerLog l:logs) {
+            if (hits.add(l.getHit())) {
+                if (l.getHit() == null) {
+                    logger.warn("hit for log "+l.getObjectId()+" is null");
+                } else {
+                    l.getHit().setProcessed(true);
+                }
+            }
+        }
     }
 
     private void updateRanks(Batch b, SolverTaskModel model, List<TurkerLog> logs) throws JSONException {
@@ -213,6 +312,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             }
             answers.get(s).addToToRanks(solutionRank);
         }
+        setProcessed(logs);
 
         DbProvider.getContext().commitChanges();
 
@@ -268,7 +368,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
         for (Iterator<TurkerLog> itl = logs.iterator(); itl.hasNext(); ) {
             TurkerLog log = itl.next();
             if (Integer.parseInt(MturkUtils.extractAnswer(log, "round")) != currentRound || !MturkUtils.extractAnswer(log, "phase").equals(currentPhase.name())) {
-                logger.warn("Removing a log ("+log.getObjectId()+") this is odd!");
+                logger.warn("Removing a log (" + log.getObjectId() + ") this is odd!");
                 itl.remove();
             }
 
@@ -277,10 +377,8 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
     }
 
 
-
-
-
     public static enum Phase {
-        INIT, GENERATE, RANK, COMPLETE
+        INIT, GENERATE, RANK, VALIDATION, COMPLETE
     }
+
 }

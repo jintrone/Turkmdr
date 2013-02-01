@@ -36,13 +36,19 @@ public class SolverTaskModel implements IClusterable {
     public float maxGeneratingBonus = 0;
     public float maxCombiningBonus = 0;
     public float baseReward = 0;
+    public float validationReward = 0;
+
+      public int numberOfValidators = 1;
+
+
     public List<Long> initialAnswerIds = new ArrayList<Long>();
     public Long questionId;
 
 
     //other props
-    static String[] names = new String[]{"groupName","numberOfGenerators", "numberOfRankers", "numberOfRounds", "sizeOfFront",
-            "maxRankingBonus", "maxGeneratingBonus", "maxCombiningBonus", "baseReward", "initialAnswerIds", "questionId"};
+    //names to write out
+    static String[] names = new String[]{"validationReward","numberOfValidators","groupName","numberOfGenerators", "numberOfRankers", "numberOfRounds", "sizeOfFront",
+            "maxRankingBonus", "maxGeneratingBonus", "maxCombiningBonus", "baseReward", "initialAnswerIds", "questionId","validationReward"};
 
     String[] initialAnswerText = new String[10];
     String questionText;
@@ -160,12 +166,20 @@ public class SolverTaskModel implements IClusterable {
         setBaseReward(Float.parseFloat(Utils.getJsonString(parameters, "baseReward")));
         questionId = Long.parseLong(Utils.getJsonString(parameters, "questionId"));
         String answerArray = Utils.getJsonString(parameters, "initialAnswerIds");
+
+        setNumberOfValidators(Integer.parseInt(Utils.getJsonString(parameters, "numberOfValidators","0")));
+        setValidationReward(Float.parseFloat(Utils.getJsonString(parameters,"validationReward","0")));
+
         JSONArray array = new JSONArray(answerArray);
         initialAnswerIds = new ArrayList<Long>();
         for (int i = 0; i < array.length(); i++) {
             initialAnswerIds.add(array.getLong(i));
         }
 
+    }
+
+    private void setNumberOfValidators(int numberOfValidators) {
+        this.numberOfValidators = numberOfValidators;
     }
 
     public void setGroupName(String groupName) {
@@ -372,4 +386,15 @@ public class SolverTaskModel implements IClusterable {
     }
 
 
+    public int getNumberOfValidators() {
+        return numberOfValidators;
+    }
+
+    public float getValidationReward() {
+        return validationReward;
+    }
+
+    public void setValidationReward(float f) {
+        this.validationReward = f;
+    }
 }

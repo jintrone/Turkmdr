@@ -1,14 +1,15 @@
 package edu.mit.cci.amtprojects.solver;
 
 import edu.mit.cci.amtprojects.DefaultEnabledHitProperties;
-import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.HitCreator;
+import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.UrlCreator;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.util.MturkUtils;
 import org.apache.wicket.ajax.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 
 /**
  * User: jintrone
@@ -22,6 +23,7 @@ public class SolverHitCreator implements HitCreator {
 
     private static String rankerpath;
     private static String generatorpath;
+    private static String validationpath;
 
     private SolverHitCreator() {
 
@@ -36,6 +38,12 @@ public class SolverHitCreator implements HitCreator {
 
 
     public void relaunch(UrlCreator creator, Batch b) {
+        configure(creator);
+
+
+    }
+
+    public static void configure(UrlCreator creator) {
         if (creator != null) {
             if (rankerpath == null) {
                 rankerpath = creator.getUrlFor(SolverRankingTask.class);
@@ -45,21 +53,12 @@ public class SolverHitCreator implements HitCreator {
             if (generatorpath == null) {
                 generatorpath = creator.getUrlFor(SolverGenerationTask.class);
             }
-        }
 
-
-    }
-
-    public static void configure(UrlCreator creator) {
-       if (creator != null) {
-            if (rankerpath == null) {
-                rankerpath = creator.getUrlFor(SolverRankingTask.class);
-
+            if (validationpath == null) {
+                validationpath = creator.getUrlFor(SolverValidationTask.class);
             }
 
-            if (generatorpath == null) {
-                generatorpath = creator.getUrlFor(SolverGenerationTask.class);
-            }
+
         }
     }
 
@@ -129,6 +128,22 @@ public class SolverHitCreator implements HitCreator {
             props.setAssignmentDuration("900");
             HitManager.get(b).launch(launchurl, 1000, props);
 
+        } else if (status.getPhase() == SolverProcessMonitor.Phase.VALIDATION) {
+            for (Solution s : status.getCurrentAnswers()) {
+                if (s.getRound() == model.getCurrentStatus().getCurrentRound()) {
+                    DefaultEnabledHitProperties props = new DefaultEnabledHitProperties();
+                    props.setTitle("Check if an answer to a question is blank, spam, or a copy of another answer");
+                    props.setDescription("Check if an answer to a question is blank, spam, or a copy of another answer. ");
+                    props.setKeywords("validation,fast");
+                    props.setMaxAssignments("" + model.getNumberOfValidators());
+                    props.setRewardAmount("" + model.getValidationReward());
+                    props.setLifetime("600000");
+                    MturkUtils.addBatchAnnotation(props, b);
+                    String launchurl = MturkUtils.addUrlParams(validationpath, "batch", b.getId() + "", "answer", s.getId() + "");
+                    props.setAssignmentDuration("300");
+                    HitManager.get(b).launch(launchurl, 1000,false, Collections.singletonList(s.getWorkerId()), props);
+                }
+            }
         }
 
 

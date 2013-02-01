@@ -44,13 +44,19 @@ public class Utils {
     }
 
     public static String getJsonString(String value, String key) {
+       return getJsonString(value,key,null);
+
+    }
+
+    public static String getJsonString(String value, String key, String def) {
         try {
             JSONObject obj = new JSONObject(value);
             return obj.getString(key);
         } catch (JSONException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            //e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            log.warn(e.getMessage());
         }
-        return null;
+        return def;
 
     }
 

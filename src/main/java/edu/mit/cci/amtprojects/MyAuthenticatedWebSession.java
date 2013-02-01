@@ -30,6 +30,7 @@ public class MyAuthenticatedWebSession extends AuthenticatedWebSession
     public MyAuthenticatedWebSession(Request request)
     {
         super(request);
+        System.err.println("New session");
     }
 
     /**
@@ -42,10 +43,16 @@ public class MyAuthenticatedWebSession extends AuthenticatedWebSession
         Users u  = CayenneUtils.findUser(DbProvider.getContext(),username,password);
         if (u!=null) {
             userid = u.getId();
+            System.err.println("Authenticating");
+            BatchProcessMonitor.setUser(userid);
             return true;
+
         } else {
             return false;
         }
+
+
+
     }
 
     public Users getUser() {

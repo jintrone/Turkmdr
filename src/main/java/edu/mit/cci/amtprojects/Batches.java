@@ -22,12 +22,10 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.io.IClusterable;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.text.DateFormat;
-import java.util.Date;
 
 /**
  * User: jintrone
@@ -129,6 +127,9 @@ public class Batches extends WebPage {
                 add(new TextField<String>("name"));
                 add(new TextField<String>("awsId"));
                 add(new TextField<String>("awsSecret"));
+                add(new TextField<String>("contactEmail"));
+                  add(new TextField<String>("restartRate"));
+                add(new CheckBox("autoApprove"));
                 add(new CheckBox("isReal"));
                 add(new Button("createButton") {
 
@@ -158,76 +159,6 @@ public class Batches extends WebPage {
             }
 
         });
-
-
-    }
-
-
-    private static class BatchFormModel implements IClusterable {
-
-        private String awsId;
-
-        private String awsSecret;
-        private boolean isReal = false;
-        private String name;
-        private Long experimentId;
-
-        public BatchFormModel(Long experimentId) {
-            this.experimentId = experimentId;
-        }
-
-        public String getAwsId() {
-            return awsId;
-        }
-
-        public void setAwsId(String awsId) {
-            this.awsId = awsId;
-        }
-
-        public String getAwsSecret() {
-            return awsSecret;
-        }
-
-        public void setAwsSecret(String awsSecret) {
-            this.awsSecret = awsSecret;
-        }
-
-        public boolean isReal() {
-            return isReal;
-        }
-
-        public void setReal(boolean real) {
-            isReal = real;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public void reset() {
-            this.name = null;
-            this.awsId = null;
-            this.awsSecret = null;
-            this.isReal = false;
-
-        }
-
-        public Batch create() {
-            Batch b = DbProvider.getContext().newObject(Batch.class);
-            b.setName(name);
-            b.setAwsId(awsId);
-            b.setAwsSecret(awsSecret);
-            b.setCreated(new Date());
-            b.setName(name);
-            b.setIsReal(isReal);
-            b.setToExperiment(CayenneUtils.findExperiment(DbProvider.getContext(), experimentId));
-            DbProvider.getContext().commitChanges();
-            return b;
-        }
 
 
     }

@@ -14,9 +14,11 @@
 		<db-attribute name="assignmentId" type="VARCHAR" length="256"/>
 		<db-attribute name="creation" type="TIMESTAMP"/>
 		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="meta" type="VARCHAR" length="1024"/>
 		<db-attribute name="questionId" type="BIGINT"/>
 		<db-attribute name="round" type="INTEGER"/>
 		<db-attribute name="text" type="LONGVARCHAR"/>
+		<db-attribute name="valid" type="VARCHAR" length="32"/>
 		<db-attribute name="workerId" type="VARCHAR" length="256"/>
 	</db-entity>
 	<db-entity name="SolutionMap">
@@ -38,8 +40,10 @@
 		<obj-attribute name="assignmentId" type="java.lang.String" db-attribute-path="assignmentId"/>
 		<obj-attribute name="creation" type="java.util.Date" db-attribute-path="creation"/>
 		<obj-attribute name="id" type="java.lang.Long" db-attribute-path="id"/>
+		<obj-attribute name="meta" type="java.lang.String" db-attribute-path="meta"/>
 		<obj-attribute name="round" type="java.lang.Integer" db-attribute-path="round"/>
 		<obj-attribute name="text" type="java.lang.String" db-attribute-path="text"/>
+		<obj-attribute name="valid" type="java.lang.String" db-attribute-path="valid"/>
 		<obj-attribute name="workerId" type="java.lang.String" db-attribute-path="workerId"/>
 	</obj-entity>
 	<obj-entity name="SolutionRank" className="edu.mit.cci.amtprojects.solver.SolutionRank" dbEntityName="SolutionRank">

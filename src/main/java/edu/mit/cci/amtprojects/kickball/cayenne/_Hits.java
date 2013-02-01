@@ -14,10 +14,13 @@ import org.apache.cayenne.CayenneDataObject;
 public abstract class _Hits extends CayenneDataObject {
 
     public static final String AMT_STATUS_PROPERTY = "amtStatus";
+    public static final String AUTO_APPROVE_PROPERTY = "autoApprove";
     public static final String COMPLETED_PROPERTY = "completed";
     public static final String CREATION_PROPERTY = "creation";
+    public static final String HIT_TYPE_ID_PROPERTY = "hitTypeId";
     public static final String ID_PROPERTY = "id";
     public static final String LIFETIME_PROPERTY = "lifetime";
+    public static final String PROCESSED_PROPERTY = "processed";
     public static final String REQUESTED_PROPERTY = "requested";
     public static final String SCREEN_PROPERTY = "screen";
     public static final String STATUS_PROPERTY = "status";
@@ -36,6 +39,13 @@ public abstract class _Hits extends CayenneDataObject {
         return (String)readProperty("amtStatus");
     }
 
+    public void setAutoApprove(Boolean autoApprove) {
+        writeProperty("autoApprove", autoApprove);
+    }
+    public Boolean getAutoApprove() {
+        return (Boolean)readProperty("autoApprove");
+    }
+
     public void setCompleted(Integer completed) {
         writeProperty("completed", completed);
     }
@@ -50,6 +60,13 @@ public abstract class _Hits extends CayenneDataObject {
         return (Date)readProperty("creation");
     }
 
+    public void setHitTypeId(String hitTypeId) {
+        writeProperty("hitTypeId", hitTypeId);
+    }
+    public String getHitTypeId() {
+        return (String)readProperty("hitTypeId");
+    }
+
     public void setId(String id) {
         writeProperty("id", id);
     }
@@ -62,6 +79,13 @@ public abstract class _Hits extends CayenneDataObject {
     }
     public Long getLifetime() {
         return (Long)readProperty("lifetime");
+    }
+
+    public void setProcessed(Boolean processed) {
+        writeProperty("processed", processed);
+    }
+    public Boolean getProcessed() {
+        return (Boolean)readProperty("processed");
     }
 
     public void setRequested(Integer requested) {

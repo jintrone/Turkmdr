@@ -13,15 +13,19 @@ body {
     width: 700px;
 }
 
-.instructions {font-size:15px; font-style:italic; color:#909090}
-p.question {font-size:32px}
+.instructions {font-size:20px; font-style:italic; color:#909090; margin-bottom:5px}
+.hint {font-size:12px; font-style:italic; color:#303030; margin-bottom:0px}
+
+.question {font-size:22px}
 div.inset {width: 700px;margin: 0 auto}
 
-table#answers {width:100%}
+table#answers {width:100%; margin-top: 20px}
 table#answers th {background-color: #C0C0C0; padding: 5px;}
 table#answers th#rankcol {width:25px}
 table#answers input.solutionRank {width:25px}
-table#answers td {padding: 15px 10px; vertical-align: top}
+table#answers tr.header td {padding: 0px}
+table#answers td {padding: 15px 0px; vertical-align: top}
+table#answers td.number {width:20px; text-align: center}
 table#answers td.answer p {font-size:16px; margin:0}
 table#answers td.score {width:20px; text-align: center}
 table#answers td.checkbox {width:20px;text-align: center}
@@ -29,26 +33,36 @@ table#answers td.checkbox {width:20px;text-align: center}
 div.workpanel {margin-top:40px}
 
 .smallinfo {font-size:16px; margin-top:40px}
-table.buttonlayout {width:90%;border-collapse: collapse;border-width: 0px; margin: 0 auto}
-table.buttonlayout td {text-align: center;vertical-align: middle;}
-table.buttonlayout td.button {width:200px}
+table.buttonlayout {width:100%;border-collapse: collapse;border-width: 0px; margin: 0 auto}
+table.buttonlayout td.button {width:200px;text-align: center;vertical-align: middle;padding-top:5px;padding-bottom:5px;}
+
+
 table.buttonlayout td.instructions {padding-top:20px}
+
+tr.header td {vertical-align:top; font-size: 18px;color:#808080;font-style:italic;text-align: left;}
+
+
+td#buttons {vertical-align: top;}
+
 
 
 
 .bigtext {font-size:42px}
 button.choicebutton {width:220px; height:100px;}
-button,  input[type="submit"] {background: #305090; border:none; color:#d3d3d3; padding: 10px; font-size:22px}
+button,  input[type="submit"] {background: #305090; border:none; color:#d3d3d3; padding: 10px; font-size:22px; -moz-box-shadow: 3px 3px 4px #000; -webkit-box-shadow: 3px 3px 4px #000;box-shadow: 3px 3px 4px #000;}
 button:hover, input[type="submit"]:hover {background: #103060;}
 
 button:disabled,  input[type="submit"][enabled="false"]:disabled {background: #606161}
+
+button .bonuslabel {font-weight:bold; color:black; font-size:18px}
+button .bonusvalue {color:#fafad2; font-size: 18px}
 
 .submitBlock {text-align: center; margin-top:20px}
 div.popup {display:none; width:200px; font-size:12px; font-style:italic; color:#030303; background-color: #fce174; border: thin solid #030303; position: absolute; padding: 10px}
 .popupTrigger {padding: 1px 3px; background: #999999; color:#333; font-weight:bold; border: thin solid #555}
 
-ol.instructions li {font-size:14px; color:#333; font-style: normal; margin-top:5px}
-span.done {text-decoration: line-through; color:#778899;}
+ol.instructions li {color:#333; font-style: normal; margin-top:5px}
+span.done {text-decoration: line-through;}
 span.disabled {color:#778899;}
 
 div.answerBlock {text-align: center}
@@ -61,6 +75,41 @@ div.overlay div.modal {margin: 100px auto; width:600px; padding: 50px; border: t
 .biginfo {color:#444;}
 table.formLayout {margin: 20px auto; font-size:18px}
 div.feedback {color: #962626; font-size:18px}
+
+.answerBlock textarea {width:100%;height:250px}
+textarea:disabled {background:lightgray}
+.qualitynote {font-size:16px;color:black}
+.red {color: #962626;}
+
+table.visible-layout {border-collapse: collapse;border: thin black solid; width:100%}
+table.visible-layout td {border: thin gray solid; padding: 5px; vertical-align: top}
+.validation-header {font-size:26px}
+
+
+table.layout td {
+    vertical-align: top;
+    padding: 10px 5px;
+}
+
+td.checkbox {
+    width:20px;
+    vertical-align: middle;
+    text-align: center;
+}
+
+table.approval td.solution, table.approval td.copies {
+    vertical-align: top;
+    text-align:left;
+    width: 235px;
+}
+
+
+table.approval td.nonsense, table.approval td.empty, table.approval td.selection
+ {
+    text-align: center;
+    vertical-align: middle;
+}
+
 
 
 

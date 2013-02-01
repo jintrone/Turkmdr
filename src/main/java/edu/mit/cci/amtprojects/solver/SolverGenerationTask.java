@@ -3,7 +3,7 @@ package edu.mit.cci.amtprojects.solver;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.GenericTask;
 import edu.mit.cci.amtprojects.HomePage;
-import edu.mit.cci.amtprojects.util.Utils;
+import edu.mit.cci.amtprojects.util.CayenneUtils;
 import org.apache.cayenne.DataObjectUtils;
 import org.apache.cayenne.PersistenceState;
 import org.apache.log4j.Logger;
@@ -32,12 +32,12 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.awt.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -59,6 +59,8 @@ public class SolverGenerationTask extends GenericTask {
 
     private List<Solution> solutions;
 
+
+
     private static Logger log = Logger.getLogger(SolverGenerationTask.class);
 
     public String getPhase() {
@@ -75,15 +77,17 @@ public class SolverGenerationTask extends GenericTask {
         }
 
         solutions = new ArrayList<Solution>(model.getCurrentStatus().getCurrentAnswers());
-            for (Iterator<Solution> sit = solutions.iterator(); sit.hasNext(); ) {
-                Solution s = sit.next();
-                if (s.getRound() == model.getCurrentStatus().getCurrentRound()) {
-                    sit.remove();
-                }
+        for (Iterator<Solution> sit = solutions.iterator(); sit.hasNext(); ) {
+
+            Solution s = sit.next();
+            log.info("Got solution: "+s.getText());
+            if (s.getRound() == model.getCurrentStatus().getCurrentRound()) {
+                log.info("Removing");
+                sit.remove();
             }
+        }
 
         add(new Label("question", model.getQuestion().getText()));
-
 
 
         Form<?> form = getForm();
@@ -96,8 +100,9 @@ public class SolverGenerationTask extends GenericTask {
 
         form.add(new ImproveFragment("improveId", "improveMarkup", this));
         form.add(new ChooseFragment("chooseId", "chooseMarkup", this));
-        form.add(new CombineFragment("combineId","combineMarkup",this));
+        form.add(new CombineFragment("combineId", "combineMarkup", this));
         form.add(new GenerateFragment("generateId", "generateMarkup", this));
+
         form.add(new HiddenField<String>("phase", new Model<String>(model.getCurrentStatus().getPhase().name())));
         form.add(new HiddenField<Integer>("round", new Model<Integer>(model.getCurrentStatus().getCurrentRound())));
 
@@ -115,6 +120,7 @@ public class SolverGenerationTask extends GenericTask {
             DataView<Solution> dataView = new DataView<Solution>("answers", new ListDataProvider<Solution>(solutions)) {
                 @Override
                 protected void populateItem(Item<Solution> solutionItem) {
+                    solutionItem.add(new Label("index",""+(solutionItem.getIndex()+1)));
                     final Solution sol = solutionItem.getModelObject();
                     Solution sdata = sol;
                     if (sdata.getPersistenceState() == PersistenceState.HOLLOW) {
@@ -160,7 +166,7 @@ public class SolverGenerationTask extends GenericTask {
             improve.add(new Label("maxBonus", String.format("$%.2f", model.getMaxCombiningBonus())));
             combine.add(new Label("maxBonus", String.format("$%.2f", model.getMaxCombiningBonus())));
 
-            add(create, improve,combine);
+            add(create, improve, combine);
 
         }
 
@@ -186,6 +192,7 @@ public class SolverGenerationTask extends GenericTask {
                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                     SolverGenerationTask.this.mode = Mode.CHOOSE;
                     group.setModelObject(null);
+                    improvementText.setModelObject("");
                     ajaxRequestTarget.add(getForm());
                 }
             };
@@ -194,23 +201,24 @@ public class SolverGenerationTask extends GenericTask {
             Serializable textModel = new Serializable() {
 
                 String text;
+
                 public void setText(String text) {
                     this.text = text;
                 }
 
                 public String getText() {
-                        return text;
+                    return text;
                 }
             };
 
-            add(improvementText = new TextArea<String>("improvementText",new PropertyModel<String>(textModel, "text")) {
+            add(improvementText = new TextArea<String>("improvementText", new PropertyModel<String>(textModel, "text")) {
                 public boolean isEnabled() {
-                    return group.getModelObject()!=null;
+                    return group.getModelObject() != null;
                 }
             });
             improvementText.add(new AttributeModifier("class", new Model<String>() {
                 public String getObject() {
-                    return group.getModelObject()!=null ? "done" : "notdone";
+                    return group.getModelObject() != null ? "done" : "notdone";
                 }
             }));
             add(new Label("maxCombiningBonus", String.format("$%.2f", model.getMaxCombiningBonus())));
@@ -220,17 +228,18 @@ public class SolverGenerationTask extends GenericTask {
             Serializable radiomodel = new Serializable() {
 
                 Solution sol;
+
                 public void setSolution(Solution sol) {
                     this.sol = sol;
                 }
 
                 public Solution getSolution() {
-                        return sol;
+                    return sol;
                 }
             };
-            group = new RadioGroup<Solution>("progenitor",new PropertyModel<Solution>(radiomodel,"solution"));
+            group = new RadioGroup<Solution>("progenitor", new PropertyModel<Solution>(radiomodel, "solution"));
 
-             DataView<Solution> dataView = new DataView<Solution>("answers", new ListDataProvider<Solution>(solutions)) {
+            DataView<Solution> dataView = new DataView<Solution>("answers", new ListDataProvider<Solution>(solutions)) {
                 @Override
                 protected void populateItem(Item<Solution> solutionItem) {
                     final Solution sol = solutionItem.getModelObject();
@@ -246,9 +255,11 @@ public class SolverGenerationTask extends GenericTask {
                         protected void onEvent(AjaxRequestTarget target) {
                             log.info("Got event");
 
-                            if (group.getModelObject()==null || !group.getModelObject().equals(sol)) {
+                            if (group.getModelObject() == null || !group.getModelObject().equals(sol)) {
+                                log.info("Trying to set text");
+                                Solution s = CayenneUtils.inflate(DbProvider.getContext(),sol);
                                 group.setModelObject(sol);
-                               improvementText.setModelObject(sol.getText());
+                                improvementText.setModelObject(s.getText());
 
                             }
 
@@ -266,24 +277,7 @@ public class SolverGenerationTask extends GenericTask {
 
             add(group);
 
-            Label instructionsStep1 = new Label("step1", "Select an answer to improve. Please improve or combine the ideas in the selected answers. It is not necessary to use the same wording.");
-            instructionsStep1.add(new AttributeModifier("class", new Model<String>() {
-                public String getObject() {
-                    return group.getModelObject()!=null ? "done" : "notdone";
-                }
-            }));
 
-
-            add(instructionsStep1);
-            Label instructionsStep2 = new Label("step2", "Add your answer below");
-            instructionsStep2.add(new AttributeModifier("class", new Model<String>() {
-                public String getObject() {
-                    return group.getModelObject()!=null ? "enabled" : "disabled";
-                }
-            }));
-
-
-            add(instructionsStep2);
             add(choose);
 
             add(submit = new Button("Submit") {
@@ -293,7 +287,7 @@ public class SolverGenerationTask extends GenericTask {
                 }
 
                 public boolean isEnabled() {
-                    return group.getModelObject()!=null;
+                    return group.getModelObject() != null;
                 }
 
 
@@ -339,11 +333,18 @@ public class SolverGenerationTask extends GenericTask {
 
                             if (!group.getModelObject().contains(sol)) {
                                 group.getModelObject().add(sol);
-                                improvementText.setModelObject(improvementText.getModelObject()+" "+sol.getText());
+
 
                             } else {
                                 group.getModelObject().remove(sol);
                             }
+                            String txt = "";
+
+                            for (Solution s : group.getModelObject()) {
+                                s = CayenneUtils.inflate(DbProvider.getContext(),s);
+                                txt += (!txt.isEmpty() ? " " : "") + s.getText();
+                            }
+                            improvementText.setModelObject(txt);
 
                             target.add(getForm());
                         }
@@ -364,37 +365,38 @@ public class SolverGenerationTask extends GenericTask {
                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                     SolverGenerationTask.this.mode = Mode.CHOOSE;
                     group.getModelObject().clear();
+                    improvementText.setModelObject("");
                     ajaxRequestTarget.add(getForm());
                 }
             };
 
-            Label instructionsStep1 = new Label("step1", "Select two or more answers integrate. Please improve or combine the ideas in the selected answers. It is not necessary to use the same wording.");
-            instructionsStep1.add(new AttributeModifier("class", new Model<String>() {
-                public String getObject() {
-                    return group.getModelObject().size() > 0 ? "done" : "notdone";
-                }
-            }));
 
 
-            add(instructionsStep1);
-            Label instructionsStep2 = new Label("step2", "Add your answer below");
-            instructionsStep2.add(new AttributeModifier("class", new Model<String>() {
-                public String getObject() {
-                    return group.getModelObject().size() > 0 ? "enabled" : "disabled";
-                }
-            }));
 
 
-            add(instructionsStep2);
+
             add(choose);
-            add(improvementText = new TextArea<String>("improvementText") {
+
+            Serializable textModel = new Serializable() {
+
+                String text;
+
+                public void setText(String text) {
+                    this.text = text;
+                }
+
+                public String getText() {
+                    return text;
+                }
+            };
+            add(improvementText = new TextArea<String>("improvementText", new PropertyModel<String>(textModel, "text")) {
                 public boolean isEnabled() {
-                    return group.getModelObject().size() > 0;
+                    return group.getModelObject().size() > 1;
                 }
             });
             improvementText.add(new AttributeModifier("class", new Model<String>() {
                 public String getObject() {
-                    return group.getModelObject().size() > 0 ? "done" : "notdone";
+                    return group.getModelObject().size() > 1 ? "done" : "notdone";
                 }
             }));
             add(new Label("maxCombiningBonus", String.format("$%.2f", model.getMaxCombiningBonus())));
@@ -418,7 +420,7 @@ public class SolverGenerationTask extends GenericTask {
         }
 
         public boolean isVisible() {
-            return mode == Mode.IMPROVE;
+            return mode == Mode.COMBINE;
         }
     }
 
@@ -428,19 +430,22 @@ public class SolverGenerationTask extends GenericTask {
 
         public GenerateFragment(String id, String markupId, MarkupContainer markupProvider) {
             super(id, markupId, markupProvider);
-             add(new Label("maxBonus", String.format("$%.2f", model.getMaxGeneratingBonus())));
+            add(new Label("maxBonus", String.format("$%.2f", model.getMaxGeneratingBonus())));
+            final TextArea<String> ta = new TextArea<String>("generateText");
+
             AjaxLink<?> choose = new AjaxLink<Object>("choose") {
 
                 @Override
                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                     SolverGenerationTask.this.mode = Mode.CHOOSE;
+                    if (ta.getModel() !=null) ta.setModelObject("");
                     ajaxRequestTarget.add(getForm());
                 }
             };
 
             add(choose);
 
-            TextArea<String> ta = new TextArea<String>("generateText");
+
 
             add(ta.add(new AttributeModifier("name", "solutiontext")));
 

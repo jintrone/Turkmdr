@@ -20,4 +20,4 @@ target
 #misc#
 velocity.log
 keystore
-
+mailer.properties

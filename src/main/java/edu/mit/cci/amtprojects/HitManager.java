@@ -1,6 +1,14 @@
 package edu.mit.cci.amtprojects;
 
-import com.amazonaws.mturk.requester.*;
+import com.amazonaws.mturk.requester.Assignment;
+import com.amazonaws.mturk.requester.AssignmentStatus;
+import com.amazonaws.mturk.requester.GetAssignmentResult;
+import com.amazonaws.mturk.requester.HIT;
+import com.amazonaws.mturk.requester.QualificationRequirement;
+import com.amazonaws.mturk.requester.QualificationType;
+import com.amazonaws.mturk.requester.QualificationTypeStatus;
+import com.amazonaws.mturk.requester.SearchQualificationTypesResult;
+import com.amazonaws.mturk.requester.SortDirection;
 import com.amazonaws.mturk.service.axis.RequesterService;
 import com.amazonaws.mturk.service.exception.ServiceException;
 import com.amazonaws.mturk.util.ClientConfig;
@@ -20,8 +28,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * User: jintrone
@@ -35,7 +45,7 @@ public class HitManager {
 
 
     private RequesterService requesterService;
-    List<TurkerLog> newHitResults = new ArrayList<TurkerLog>();
+   Set<TurkerLog> newHitResults = new HashSet<TurkerLog>();
     boolean isModified = false;
 
     private Long batch;
@@ -58,7 +68,6 @@ public class HitManager {
     private HitManager(Batch batch) {
         setBatch(batch);
     }
-
 
 
     private void setBatch(Batch batch) {
@@ -92,7 +101,16 @@ public class HitManager {
     }
 
 
-    public synchronized void launch(String url, int height, DefaultEnabledHitProperties props) {
+    public  void launch(String url, int height, DefaultEnabledHitProperties props) {
+        launch(url,height,batch().getAutoApprove(),props);
+
+    }
+
+    public synchronized void launch(String url, int height, boolean autoApprove, DefaultEnabledHitProperties props) {
+        launch(url,height,batch().getAutoApprove(),null,props);
+    }
+
+    public synchronized void launch(String url, int height, boolean autoApprove, List<String> screenWorkers, DefaultEnabledHitProperties props) {
         String annotation = getAnnotation("batchId", batch + "", props.getAnnotation(null));
         long lifetime = props.getLifetime(60 * 60 * 15);
         HIT h = requesterService.createHIT(
@@ -114,7 +132,14 @@ public class HitManager {
                 null); // hitReviewPolicy
 
 
-        Hits hit = CayenneUtils.createHit(DbProvider.getContext(), h, null, batch(), url, lifetime);
+        Hits hit = CayenneUtils.createHit(DbProvider.getContext(), h, null, batch(), url, lifetime,autoApprove);
+        if (screenWorkers!=null && !screenWorkers.isEmpty()) {
+            hit.setScreen(Utils.join(screenWorkers, ";"));
+        }
+        hit.setHitTypeId(h.getHITTypeId());
+        DbProvider.getContext().commitChanges();
+
+
         CayenneUtils.logEvent(DbProvider.getContext(), batch(), "LAUNCH", null, h.getHITId(), null, null, Collections.<String, Object>emptyMap());
 
 
@@ -191,8 +216,9 @@ public class HitManager {
         workers.add(hits.getScreen());
         String screen = Utils.join(workers, ";");
 
-        Hits nhits = CayenneUtils.createHit(DbProvider.getContext(), nhit, oldhit, batch(), hits.getUrl(), hits.getLifetime());
+        Hits nhits = CayenneUtils.createHit(DbProvider.getContext(), nhit, oldhit, batch(), hits.getUrl(), hits.getLifetime(),hits.getAutoApprove());
         nhits.setScreen(screen);
+         nhits.setHitTypeId(h.getHITTypeId());
         DbProvider.getContext().commitChanges();
 
         CayenneUtils.logEvent(DbProvider.getContext(), batch(), "LAUNCH", null, nhit.getHITId(), null, null, Collections.<String, Object>emptyMap());
@@ -273,15 +299,21 @@ public class HitManager {
         return data;
     }
 
-
+    /**
+     * Check if there are any incomplete or unprocessed hits
+     * If new results are found, increment count, and approve if auto approval is set
+     * If all results are retrieved, set hit status to complete and store these results in the "new results" set
+     * If hit expiry time is past, expire hit, otherwise make sure it's listed as still open
+     */
     public synchronized void updateHits() {
         List<Hits> hitses = batch().getHits();
 
         for (Hits h : hitses) {
-            if (h.getStatusEnum() == Hits.Status.MISSING || h.getStatusEnum() == Hits.Status.COMPLETE || h.getStatusEnum() == Hits.Status.RELAUNCHED)
+            if (h.getStatusEnum() == Hits.Status.MISSING || h.getStatusEnum() == Hits.Status.RELAUNCHED || (h.getStatusEnum() == Hits.Status.COMPLETE && h.getProcessed()))
                 continue;
             HIT ahit = requesterService.getHIT(h.getId());
             h.setAmtStatus(ahit.getHITStatus().getValue());
+            if (ahit.getHITTypeId().equals(h.getHitTypeId())) h.setHitTypeId(ahit.getHITTypeId());
             int completed = ahit.getMaxAssignments() - ahit.getNumberOfAssignmentsAvailable();
             if (completed > h.getCompleted()) {
                 completed = 0;
@@ -305,7 +337,7 @@ public class HitManager {
                         if (CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), a.getAssignmentId(), "REJECTED").isEmpty()) {
                             CayenneUtils.logEvent(DbProvider.getContext(), batch(), "REJECTED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>emptyMap());
                         }
-                    } else if (autoApprove) {
+                    } else if (h.getAutoApprove()) {
                         requesterService.approveAssignment(a.getAssignmentId(), "Thanks!");
                         CayenneUtils.logEvent(DbProvider.getContext(), batch(), "APPROVED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>singletonMap("feedback", "Thanks!"));
                     }
@@ -314,31 +346,37 @@ public class HitManager {
                 }
 
                 h.setCompleted(completed);
-                DbProvider.getContext().commitChanges();
+
+
                 if (h.getCompleted().intValue() == h.getRequested()) {
                     h.setStatus(Hits.Status.COMPLETE.name());
-                    Hits loop = h;
-                    while (loop != null) {
-
-                        for (TurkerLog l : loop.getLogs()) {
-                            if (l.getType().equals("RESULTS")) {
-                                newHitResults.add(l);
-                            }
-                        }
-                        loop = loop.getPreviousHit();
-
-                    }
                 }
             }
-            if (!h.getStatus().equals(Hits.Status.COMPLETE.name())) {
+
+
+            if (h.getStatus().equals(Hits.Status.COMPLETE.name())) {
+                Hits loop = h;
+
+                while (loop != null) {
+
+                    for (TurkerLog l : loop.getLogs()) {
+                        if (l.getType().equals("RESULTS")) {
+                            newHitResults.add(l);
+                        }
+                    }
+                    loop = loop.getPreviousHit();
+
+                }
+
                 if (ahit.getExpiration().before(new GregorianCalendar())) {
                     h.setStatus(Hits.Status.HALTED.name());
                 } else if (h.getStatusEnum() == Hits.Status.HALTED) {
                     h.setStatus(Hits.Status.OPEN.name());
                 }
             }
+
+            DbProvider.getContext().commitChanges();
         }
-        DbProvider.getContext().commitChanges();
     }
 
 
@@ -382,12 +420,12 @@ public class HitManager {
 
 
     //maybe go somewhere else?
-    public QualificationType  findQualificationNamed(String name) {
-        SearchQualificationTypesResult result = requesterService.searchQualificationTypes(name,false,true, SortDirection.Ascending,null,null,null);
+    public QualificationType findQualificationNamed(String name) {
+        SearchQualificationTypesResult result = requesterService.searchQualificationTypes(name, false, true, SortDirection.Ascending, null, null, null);
         if (result.getTotalNumResults() == 0) {
             return null;
         }
-        for (QualificationType type:result.getQualificationType()) {
+        for (QualificationType type : result.getQualificationType()) {
             if (type.getName().equalsIgnoreCase(name)) {
                 return type;
             }
@@ -396,8 +434,8 @@ public class HitManager {
 
     }
 
-    public QualificationType createAssignableQualificationType(String name,String keywords,String description) {
-        return requesterService.createQualificationType(name,keywords,description, QualificationTypeStatus.Active,null,null,null,null,false,null);
+    public QualificationType createAssignableQualificationType(String name, String keywords, String description) {
+        return requesterService.createQualificationType(name, keywords, description, QualificationTypeStatus.Active, null, null, null, null, false, null);
         //return requesterService.createQualificationType("Forum Analysis Qualification","forum,MIT,conversation","Allows you to work on HITs for the requester that require you to be able follow the conversation in a web forum");
     }
 

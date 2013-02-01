@@ -36,6 +36,8 @@ public class SolverFormPanel extends Panel {
         form.add(new TextField<Double>("maxCombiningBonus"));
         form.add(new TextField<Double>("baseReward"));
         form.add(new TextField<String>("questionText"));
+        form.add(new TextField<Double>("validationReward"));
+        form.add(new TextField<Integer>("numberOfValidators"));
 
         form.add(new TextField<String>("initialAnswer0"));
         form.add(new TextField<String>("initialAnswer1"));

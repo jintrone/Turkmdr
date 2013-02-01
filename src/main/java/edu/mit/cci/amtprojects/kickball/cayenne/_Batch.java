@@ -15,12 +15,16 @@ import edu.mit.cci.amtprojects.solver.Question;
  */
 public abstract class _Batch extends CayenneDataObject {
 
+    public static final String AUTO_APPROVE_PROPERTY = "autoApprove";
     public static final String AWS_ID_PROPERTY = "awsId";
     public static final String AWS_SECRET_PROPERTY = "awsSecret";
+    public static final String CONTACT_EMAIL_PROPERTY = "contactEmail";
     public static final String CREATED_PROPERTY = "created";
+    public static final String ID_PROPERTY = "id";
     public static final String IS_REAL_PROPERTY = "isReal";
     public static final String NAME_PROPERTY = "name";
     public static final String PARAMETERS_PROPERTY = "parameters";
+    public static final String RESTART_RATE_PROPERTY = "restartRate";
     public static final String HITS_PROPERTY = "hits";
     public static final String TO_EXPERIMENT_PROPERTY = "toExperiment";
     public static final String TO_LOGS_PROPERTY = "toLogs";
@@ -28,6 +32,13 @@ public abstract class _Batch extends CayenneDataObject {
     public static final String TO_STATUS_PROPERTY = "toStatus";
 
     public static final String ID_PK_COLUMN = "id";
+
+    public void setAutoApprove(Boolean autoApprove) {
+        writeProperty("autoApprove", autoApprove);
+    }
+    public Boolean getAutoApprove() {
+        return (Boolean)readProperty("autoApprove");
+    }
 
     public void setAwsId(String awsId) {
         writeProperty("awsId", awsId);
@@ -43,11 +54,25 @@ public abstract class _Batch extends CayenneDataObject {
         return (String)readProperty("awsSecret");
     }
 
+    public void setContactEmail(String contactEmail) {
+        writeProperty("contactEmail", contactEmail);
+    }
+    public String getContactEmail() {
+        return (String)readProperty("contactEmail");
+    }
+
     public void setCreated(Date created) {
         writeProperty("created", created);
     }
     public Date getCreated() {
         return (Date)readProperty("created");
+    }
+
+    public void setId(Long id) {
+        writeProperty("id", id);
+    }
+    public Long getId() {
+        return (Long)readProperty("id");
     }
 
     public void setIsReal(Boolean isReal) {
@@ -69,6 +94,13 @@ public abstract class _Batch extends CayenneDataObject {
     }
     public String getParameters() {
         return (String)readProperty("parameters");
+    }
+
+    public void setRestartRate(Long restartRate) {
+        writeProperty("restartRate", restartRate);
+    }
+    public Long getRestartRate() {
+        return (Long)readProperty("restartRate");
     }
 
     public void addToHits(Hits obj) {

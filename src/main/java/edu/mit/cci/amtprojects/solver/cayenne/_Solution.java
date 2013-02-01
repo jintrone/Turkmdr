@@ -20,8 +20,10 @@ public abstract class _Solution extends CayenneDataObject {
     public static final String ASSIGNMENT_ID_PROPERTY = "assignmentId";
     public static final String CREATION_PROPERTY = "creation";
     public static final String ID_PROPERTY = "id";
+    public static final String META_PROPERTY = "meta";
     public static final String ROUND_PROPERTY = "round";
     public static final String TEXT_PROPERTY = "text";
+    public static final String VALID_PROPERTY = "valid";
     public static final String WORKER_ID_PROPERTY = "workerId";
     public static final String TO_CHILDREN_PROPERTY = "toChildren";
     public static final String TO_PARENTS_PROPERTY = "toParents";
@@ -51,6 +53,13 @@ public abstract class _Solution extends CayenneDataObject {
         return (Long)readProperty("id");
     }
 
+    public void setMeta(String meta) {
+        writeProperty("meta", meta);
+    }
+    public String getMeta() {
+        return (String)readProperty("meta");
+    }
+
     public void setRound(Integer round) {
         writeProperty("round", round);
     }
@@ -63,6 +72,13 @@ public abstract class _Solution extends CayenneDataObject {
     }
     public String getText() {
         return (String)readProperty("text");
+    }
+
+    public void setValid(String valid) {
+        writeProperty("valid", valid);
+    }
+    public String getValid() {
+        return (String)readProperty("valid");
     }
 
     public void setWorkerId(String workerId) {

@@ -7,6 +7,7 @@ import com.amazonaws.mturk.requester.HIT;
 import com.amazonaws.mturk.service.axis.RequesterService;
 import edu.mit.cci.amtprojects.DefaultEnabledHitProperties;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
+import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
 import org.apache.log4j.Logger;
 import org.apache.sling.commons.json.JSONException;
@@ -52,6 +53,12 @@ public class MturkUtils {
         } else {
             return Integer.parseInt(m.group(1));
         }
+   }
+
+   public static String getMturkLink(Hits h) {
+
+       String base = h.getBatch().getIsReal()?"http://www.mturk.com/mturk/preview?groupId=":"http://workersandbox.mturk.com/mturk/preview?groupId=";
+       return base+(h.getHitTypeId()!=null?h.getHitTypeId():"");
    }
 
    public static void addBatchAnnotation(DefaultEnabledHitProperties props, Batch b) {

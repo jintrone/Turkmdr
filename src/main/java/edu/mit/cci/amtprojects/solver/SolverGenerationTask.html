@@ -38,6 +38,7 @@
         <div class="workpanel" wicket:id="chooseId">fragments contents come here</div>
         <div class="workpanel" wicket:id="generateId">fragments contents come here</div>
         <div class="workpanel" wicket:id="improveId">fragments contents come here</div>
+        <div class="workpanel" wicket:id="combineId">fragments contents come here</div>
 
 
     </form>
@@ -61,49 +62,56 @@
 
     </script>
     <div class="inset">
-        <div class="smallinfo">Current Answers:</div>
-
         <table class="buttonlayout">
-            <tr>
-                <td rowspan=3>
+            <tr class="header">
 
-                    <table id="answers">
-
-                        <tr wicket:id="answers">
-
-                            <td class="answer">
-                                <span wicket:id="text">[answer]</span>
-                            </td>
-
-
-                        </tr>
-                    </table>
-
-                </td>
-                <td>
-                                   <button class="choicebutton" wicket:id="generate">
-                                       Create a new answer
-                                       <span wicket:id="maxBonus">[bonus]</span>
-                                   </button>
-                               </td>
-
-
-                </tr>
-            <tr>
-                <td class="button">
-                    <button class="choicebutton" wicket:id="improve">Improve an existing answer<br>
-                        <span wicket:id="maxBonus">[bonus]</span>
-                    </button>
-                </td>
-                </tr>
-            <tr>
-                <td class="button">
-                    <button class="choicebutton" wicket:id="combine">Combine multiple answers<br>
-                        <span wicket:id="maxBonus">[bonus]</span>
-                    </button>
+                <td colspan=3>
+                    Choose a job (you can change your mind later!):
                 </td>
             </tr>
+            <tr>
+                <td class="button">
+                    <button class="choicebutton" wicket:id="generate">
+                        Create a new answer<br>
+                        <span class="bonuslabel">MAX BONUS:</span><span class="bonusvalue"
+                                                                        wicket:id="maxBonus">[bonus]</span>
+                    </button>
+                </td>
+                <td class="button">
+                    <button class="choicebutton" wicket:id="improve">Improve an existing answer<br>
+                        <span class="bonuslabel">MAX BONUS:</span><span class="bonusvalue"
+                                                                        wicket:id="maxBonus">[bonus]</span>
+                    </button>
+                </td>
+                <td class="button">
+                    <button class="choicebutton" wicket:id="combine">Combine existing answers<br>
+                        <span class="bonuslabel">MAX BONUS:</span><span class="bonusvalue"
+                                                                        wicket:id="maxBonus">[bonus]</span>
+                    </button>
+                </td>
+
+            </tr>
         </table>
+        <table id="answers">
+            <tr class=header>
+                <td colspan=2>
+                    Current answers:
+                </td>
+            </tr>
+
+            <tr wicket:id="answers">
+                <td class="number">
+                    <span wicket:id="index">[number]</span>.
+                </td>
+                <td class="answer">
+                    <span wicket:id="text">[answer]</span>
+                </td>
+
+
+            </tr>
+        </table>
+
+
     </div>
 
 
@@ -114,14 +122,19 @@
 
     <p class="instructions">Use existing answers to create a better answer to the above question. Bonus is based on how
         much you
-        improve existing answers. Maximum bonus is <span wicket:id="maxCombiningBonus">[text]</span></p>
+        improve existing answers. Maximum bonus is <span class="red" wicket:id="maxCombiningBonus">[text]</span>.</p>
 
     <div wicket:id="progenitor">
         <table id="answers">
+             <tr class="header">
+               <td colspan="2" class="instructions">
+                    Select an answer to improve:
+                </td>
 
+            </tr>
             <tr wicket:id="answers">
                 <td class="radio">
-                    <input type="radio" wicket:id="radio">[radio]</input>
+                    <input type="radio" wicket:id="radio"/>
                 </td>
 
 
@@ -133,16 +146,18 @@
     </div>
 
 
-    <ol class="instructions">
+    <p class="instructions">Edit your answer below:<br/>
+        <span class="hint">Note, if you change the above selection after you have edited the text below, you will lose your edits.</span>
+    </p>
 
-        <li><span wicket:id="step1">[instructions]</span></li>
-        <li><span wicket:id="step2">[instructions]</span><br>
+    <div class="answerBlock">
+        <textarea wicket:id="improvementText" cols="80" rows="8">Create your improved answer here</textarea>
+    </div>
 
-            <div class="answerBlock">
-                <textarea wicket:id="improvementText" cols="80" rows="8">Create your improved answer here</textarea>
-            </div>
-        </li>
-    </ol>
+    <div class="qualitynote"><b>NOTE:</b> Empty, excessively short, or nonsensical answers will be rejected. Copies with
+        very minimal edits (e.g. just deleting extra spaces, changing punctuation) will be rejected.
+    </div>
+
     <div class="submitBlock">
         <button wicket:id="Submit" name="submit" value="improve">submit</button>
     </div>
@@ -152,16 +167,23 @@
 
     <a class="smallinfo" href="#" wicket:id="choose">&lt;- Go back</a><br>
 
-    <p class="instructions">Use existing answers to create a better answer to the above question. Bonus is based on how
+    <p class="instructions">Combine existing answers to create a better answer to the above question. Bonus is based on how
         much you
-        improve existing answers. Maximum bonus is <span wicket:id="maxCombiningBonus">[text]</span></p>
+        improve existing answers. Maximum bonus is <span class="red" wicket:id="maxCombiningBonus">[text]</span>.</p>
+
+
 
     <div wicket:id="progenitors">
         <table id="answers">
+            <tr class="header">
+               <td colspan=2 class="instructions">
+                    Select at least two answers to combine:
+                </td>
 
-            <tr wicket:id="answers">
+            </tr>
+                <tr wicket:id="answers">
                 <td class="radio">
-                    <input type="checkbox" wicket:id="check">[check]</input>
+                    <input type="checkbox" wicket:id="check"/>
                 </td>
 
 
@@ -172,15 +194,17 @@
         </table>
     </div>
 
-    <ol class="instructions">
-        <li><span wicket:id="step1">[instructions]</span></li>
-        <li><span wicket:id="step2">[instructions]</span><br>
+    <p class="instructions">Edit your answer to create a coherent plan:<br/>
+    <span class="hint">Note, if you change the above selection after you have edited the text below, you will lose your edits.</span>
+    </p>
 
-            <div class="answerBlock">
-                <textarea wicket:id="improvementText" cols="80" rows="8">Create your improved answer here</textarea>
-            </div>
-        </li>
-    </ol>
+    <div class="answerBlock">
+        <textarea wicket:id="improvementText" cols="80" rows="8">Create your improved answer here</textarea>
+    </div>
+    <div class="qualitynote"><b>NOTE:</b> Empty, excessively short, or nonsensical answers will be rejected. Copies with
+        very minimal edits (e.g. just deleting extra spaces, changing punctuation) will be rejected.
+    </div>
+
     <div class="submitBlock">
         <button wicket:id="Submit" name="submit" value="improve">submit</button>
     </div>
@@ -190,11 +214,12 @@
     <a class="smallinfo" href="#" wicket:id="choose">&lt;- Go back</a><br>
 
     <p class="instructions">Create a completely new answer to the above question. Bonus is based on how highly ranked
-        your answer is by other turkers. Maximum bonus is <span wicket:id="maxBonus">[text]</span></p>
-
-    <p class="instructions">Add your answer below:</p>
+        your answer is by other turkers. Maximum bonus is <span class="red" wicket:id="maxBonus">[text]</span>.</p>
 
     <div class="answerBlock"><textarea wicket:id="generateText" cols="80" rows="8">Create your answer here</textarea>
+    </div>
+    <div class="qualitynote"><b>NOTE:</b> Empty, excessively short, or nonsensical answers, and copies of existing
+        answers will be rejected.
     </div>
     <div class="submitBlock">
         <button wicket:id="Submit" name="submit" value="generate">submit</button>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<head>
+    <meta charset="utf-8"/>
+    <title>MechTurk Solution Task</title>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="solver.css" type="text/css" media="screen" title="Stylesheet"/>
+    <script src="js/jquery.1.8.1.min.js"></script>
+
+    <script type="text/javascript">
+        $(function() {
+            $("span.popupTrigger").hover(function() {
+                var pos = $(this).offset();
+
+                $(this).next(".popup").fadeIn("fast");
+                $(this).next(".popup").offset({top:pos.top,left:pos.left - 220});
+            }, function() {
+                $(this).next(".popup").fadeOut("fast");
+            });
+        });
+    </script>
+</head>
+<body>
+<script type="text/javascript" wicket:id="script">[some script]</script>
+<div wicket:id="demographicsPanel">[demographics panel]</div>
+<div>
+
+
+     <p class="instructions">
+        Please evaluate the answer to the question.
+    </p>
+    <table class="layout question">
+        <tr>
+            <td>
+                 <b>Question:</b>
+            </td>
+            <td>
+                <span wicket:id="question">[the question]</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                 <b>Answer:</b>
+            </td>
+            <td>
+                <span wicket:id="answer">[the question]</span>
+            </td>
+        </tr>
+    </table>
+
+    <br/>
+    <br/>
+    <form wicket:id="hitForm">
+        <input wicket:id="assignmentId" id="assignmentId" type="hidden"/>
+        <input wicket:id="phase" id="phase" type="hidden"/>
+        <input wicket:id="round" id="round" type="hidden"/>
+        <input wicket:id="answerId" id="answerId" type="hidden"/>
+
+
+        <table id="screen1" class="visible-layout">
+
+            <tr >
+                <td class="checkbox">
+                    <input type="checkbox" wicket:id="cbBlank"/>
+                </td>
+                <td>
+                   Is the answer to the question blank?
+                </td>
+            </tr>
+
+             <tr>
+                <td class="checkbox">
+                    <input type="checkbox" wicket:id="cbNonsense"/>
+                </td>
+                 <td>
+                    Is it nonsense, excessively short, silly, off-topic, or spam?
+                 </td>
+            </tr>
+
+        </table>
+
+         <p class="instructions">
+            If the answer is a copy of one or more of the following, please select them. (Answers that differ only by spaces or punctuation should be considered copies.  Answers that modify the text in some way should not be considered copies.).
+         </p>
+        <div wicket:id="copies">
+        <table class="visible-layout">
+
+            <tr wicket:id="answers">
+                <td class="radio">
+                    <input type="checkbox" wicket:id="check"/>
+                </td>
+                <td class="answer">
+                    <span wicket:id="text">[answer]</span>
+                </td>
+            </tr>
+        </table>
+        </div>
+
+        <div class="submitBlock">
+        <button wicket:id="submit" name="submit" value="generate">submit</button>
+        </div>
+
+    </form>
+</div>
+
+
+</body>
+
+
+</html>

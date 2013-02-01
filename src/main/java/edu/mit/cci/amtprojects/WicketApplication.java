@@ -1,5 +1,7 @@
 package edu.mit.cci.amtprojects;
 
+import edu.mit.cci.amtprojects.solver.SolverApprovalAdmin;
+import edu.mit.cci.amtprojects.solver.SolverValidationTask;
 import org.apache.cayenne.access.DataContext;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
@@ -49,6 +51,8 @@ public class WicketApplication extends AuthenticatedWebApplication
 
         mountPage("/task/solver/generate", SolverGenerationTask.class);
         mountPage("/task/solver/rank", SolverRankingTask.class);
+        mountPage("/task/solver/validate", SolverValidationTask.class);
+        mountPage("/manage/solver/${batch}", SolverApprovalAdmin.class);
 
         mountPage("/signin",MySignInPage.class);
         
