@@ -182,8 +182,12 @@ public class HitManager {
             requesterService.forceExpireHIT(oldhit);
         } catch (ServiceException ex) {
             ex.printStackTrace();
+
             log.error("Could not delete hit, not relaunching " + oldhit);
+            return;
         }
+
+
 
 
         HIT nhit = requesterService.createHIT(
@@ -218,7 +222,7 @@ public class HitManager {
 
         Hits nhits = CayenneUtils.createHit(DbProvider.getContext(), nhit, oldhit, batch(), hits.getUrl(), hits.getLifetime(),hits.getAutoApprove());
         nhits.setScreen(screen);
-         nhits.setHitTypeId(h.getHITTypeId());
+        nhits.setHitTypeId(h.getHITTypeId());
         DbProvider.getContext().commitChanges();
 
         CayenneUtils.logEvent(DbProvider.getContext(), batch(), "LAUNCH", null, nhit.getHITId(), null, null, Collections.<String, Object>emptyMap());

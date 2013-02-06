@@ -117,9 +117,9 @@ public abstract class BatchProcessMonitor  {
         if (b.getRestartRate() == null || b.getRestartRate()<0) {
             return;
         }
-        Date timeout = new Date(System.currentTimeMillis()-Math.max(MIN_RESTART_RATE, b.getRestartRate()));
+        Date timeout = new Date(System.currentTimeMillis()-Math.max(MIN_RESTART_RATE, b.getRestartRate())*1000);
         for (Hits h:new HashSet<Hits>(b.getHits())) {
-            if (h.getStatusEnum() == Hits.Status.OPEN || h.getStatusEnum() == Hits.Status.RELAUNCHED) {
+            if (h.getStatusEnum() == Hits.Status.OPEN) {
                 TurkerLog tlog =  CayenneUtils.findLastLog(DbProvider.getContext(),h);
                 if (tlog == null) {
                     logger.warn("No logs found for hit "+h.getId());
