@@ -204,7 +204,7 @@ public class CayenneUtils {
 
     public static Solution inflate(DataContext context, Solution s) {
         if (s.getPersistenceState() == PersistenceState.HOLLOW) {
-            return DataObjectUtils.objectForPK(context,Solution.class,s.getObjectId());
+            return DataObjectUtils.objectForPK(context,Solution.class,s.getId());
         } else return s;
     }
 
