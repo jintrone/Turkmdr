@@ -76,6 +76,12 @@ public class SolverTaskStatus implements Serializable {
 
     }
 
+    public void removeFromCurrentAnswers(Solution s) {
+        if (currentSolutions.contains(s.getId())) {
+            currentSolutions.remove(s.getId());
+        }
+    }
+
 
     public void update() throws JSONException {
         Batch b = CayenneUtils.findBatch(DbProvider.getContext(),batchid);

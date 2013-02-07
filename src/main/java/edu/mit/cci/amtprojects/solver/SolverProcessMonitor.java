@@ -121,6 +121,8 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
                 needsAttention.put(s.getId(), s);
             } else if (s.getValidEnum() == Solution.Valid.NEEDS_APPROVAL) {
                 validated = false;
+            } else if (s.getValidEnum() == Solution.Valid.INVALID) {
+                model.getCurrentStatus().removeFromCurrentAnswers(s);
             }
         }
         if (!needsAttention.isEmpty()) {
