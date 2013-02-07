@@ -49,7 +49,8 @@ public class Mailer {
 
     public static Mailer get() {
         if (instance == null) {
-            String f = System.getProperty("turkmdr.mailer.config");
+            String f = System.getProperty("turkmdr.mailer.config","mailer.properties");
+
             InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("/" + f);
             Properties p = new Properties();
             try {
