@@ -115,21 +115,23 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
     private boolean checkValidation(SolverTaskModel model, List<TurkerLog> roundLogs) throws JSONException {
         Map<Long, Solution> needsAttention = new HashMap<Long, Solution>();
-        boolean validated = true;
+        int validated = 0;
         for (Solution s : model.getCurrentStatus().getCurrentAnswers()) {
             if (s.getValidEnum() == Solution.Valid.UNKNOWN) {
                 needsAttention.put(s.getId(), s);
+                validated++;
             } else if (s.getValidEnum() == Solution.Valid.NEEDS_APPROVAL) {
-                validated = false;
+                validated++;
             } else if (s.getValidEnum() == Solution.Valid.INVALID) {
                 model.getCurrentStatus().removeFromCurrentAnswers(s);
+                HitManager.get(model.getBatch()).rejectAssignments(new String[] {s.getAssignmentId()},"The answer you provided was judged to be invalid");
             }
         }
         if (!needsAttention.isEmpty()) {
             for (TurkerLog log : roundLogs) {
-
+                String phase = MturkUtils.extractAnswer(log,"phase");
+                if (!Phase.VALIDATION.name().equals(phase)) continue;
                 Solution t = needsAttention.get(Long.parseLong(MturkUtils.extractAnswer(log, "answerId")));
-
                 if (t != null) {
                     boolean isEmpty = MturkUtils.extractAnswer(log, "blank") != null;
                     boolean isNonesense = MturkUtils.extractAnswer(log, "nonsense")!=null;
@@ -156,7 +158,9 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
                         t.setMeta(new JSONObject(jsonMap).toString());
                         t.setValid(Solution.Valid.NEEDS_APPROVAL);
                         notifyBatchOwner();
-                        validated = false;
+
+                    } else {
+                        validated--;
                     }
 
 
@@ -164,7 +168,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             }
         }
 
-        return validated;
+        return validated == 0;
     }
 
     //TODO
@@ -276,6 +280,8 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
         for (TurkerLog log : logs) {
 
+            String phase = MturkUtils.extractAnswer(log,"phase");
+            if (!Phase.RANK.name().equals(phase) && !Phase.INIT.name().equals(phase)) continue;
             List<Double> ranks = new ArrayList<Double>();
 
             for (Solution s : answers) {

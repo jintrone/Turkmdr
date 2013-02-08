@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
+import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -119,6 +120,7 @@ public class Mailer {
 
         // Put all message parts in the message
         message.setContent(multipart);
+
 
         // Send the message
         session.getTransport("smtp").send(message);

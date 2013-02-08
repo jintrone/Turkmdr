@@ -36,7 +36,7 @@ public class SolverRankingTask extends GenericTask {
     public SolverRankingTask(PageParameters param) {
         super(param,true,true);
         add(new Label("question", getModel().getQuestion().getText()));
-
+        add(new Label("answerCount",""+getModel().getCurrentStatus().getCurrentAnswers().size()));
 
         DataView<Solution> dataView = new DataView<Solution>("answers", new ListDataProvider<Solution>(getModel().getCurrentStatus().getCurrentAnswers())) {
             @Override
