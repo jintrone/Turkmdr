@@ -107,7 +107,7 @@ public class HitManager {
     }
 
     public synchronized void launch(String url, int height, boolean autoApprove, DefaultEnabledHitProperties props) {
-        launch(url,height,batch().getAutoApprove(),null,props);
+        launch(url,height,autoApprove,null,props);
     }
 
     public synchronized void launch(String url, int height, boolean autoApprove, List<String> screenWorkers, DefaultEnabledHitProperties props) {
