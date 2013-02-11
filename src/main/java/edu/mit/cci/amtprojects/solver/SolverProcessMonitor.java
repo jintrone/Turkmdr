@@ -160,6 +160,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
                         notifyBatchOwner();
 
                     } else {
+                        t.setValid(Solution.Valid.VALID);
                         validated--;
                     }
 
