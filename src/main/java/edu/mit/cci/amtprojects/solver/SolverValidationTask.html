@@ -8,8 +8,9 @@
     <script src="js/jquery.1.8.1.min.js"></script>
 
     <script type="text/javascript">
+        var checkcount = 0;
         $(function() {
-            var checkcount = 0;
+
 
             $("span.popupTrigger").hover(function() {
                 var pos = $(this).offset();
@@ -22,26 +23,26 @@
 
             $('input:checkbox.needsapproval').click(function() {
                 if ($(this).attr("checked")) {
-                    $('input:checkbox.aok').attr("enabled",false);
-                    $('button.submit').attr("enabled",true);
+                    $('input:checkbox.aok').attr("disabled",true);
+                    $('button.submit').attr("disabled",false);
                     checkcount++;
                 } else {
                     checkcount--;
                     if (checkcount == 0) {
-                       $('input:checkbox.aok').attr("enabled",true);
-                        $('button.submit').attr("enabled",false);
+                       $('input:checkbox.aok').attr("disabled",false);
+                        $('button.submit').attr("disabled",true);
 
                     }
                 }
             });
             $('input:checkbox.aok').click(function() {
                 if ($(this).attr("checked")) {
-                    $('input:checkbox.needsapproval').attr("enabled",false);
-                    $('button.submit').attr("enabled",true);
+                    $('input:checkbox.needsapproval').attr("disabled",true);
+                    $('button.submit').attr("disabled",false);
 
                 } else {
-                    $('input:checkbox.needsapproval').attr("enabled",true);
-                    $('button.submit').attr("enabled",false);
+                    $('input:checkbox.needsapproval').attr("disabled",false);
+                    $('button.submit').attr("disabled",true);
 
                 }
             })
@@ -115,7 +116,7 @@
         <table class="visible-layout">
 
             <tr wicket:id="answers">
-                <td class="radio">
+                <td class="checkbox">
                     <input class="needsapproval" type="checkbox" wicket:id="check"/>
                 </td>
                 <td class="answer">
@@ -125,14 +126,14 @@
         </table>
         </div>
          <p class="instructions">
-            If the answer seems reasonable, please check the box below.
+            If the answer seems reasonable (it is not blank, off-topic, or silly), and it is not a copy please check the box below.
          </p>
-        <div wicket:id="ok">
+        <div>
         <table class="visible-layout">
 
             <tr>
-                <td class="radio">
-                    <input class="aok" type="checkbox" wicket:id="check"/>
+                <td class="checkbox">
+                    <input class="aok" type="checkbox" wicket:id="cbGood"/>
                 </td>
                 <td class="answer">
                     The answer seems reasonable, and is not an exact copy of another answer.
@@ -142,7 +143,7 @@
         </div>
 
         <div class="submitBlock">
-        <button class="submit" wicket:id="submit" name="submit" value="generate" enabled="false">submit</button>
+        <button class="submit" wicket:id="submit" name="submit" value="generate" disabled="true">submit</button>
         </div>
 
     </form>

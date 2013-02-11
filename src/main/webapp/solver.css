@@ -91,7 +91,7 @@ table.layout td {
     padding: 10px 5px;
 }
 
-td.checkbox {
+table.visible-layout td.checkbox {
     width:20px;
     vertical-align: middle;
     text-align: center;

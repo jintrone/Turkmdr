@@ -127,7 +127,7 @@ public class SolverValidationTask extends GenericTask {
         form.setOutputMarkupId(true);
         form.add(new CheckBox("cbBlank", new PropertyModel<Boolean>(this, "blank")).add(new AttributeModifier("name", "blank")));
         form.add(new CheckBox("cbNonsense", new PropertyModel<Boolean>(this, "nonsense")).add(new AttributeModifier("name", "nonsense")));
-        form.add(new CheckBox("cbGood", new PropertyModel<Boolean>(this, "good")).add(new AttributeModifier("name", "good")));
+        form.add(new CheckBox("cbGood"));
 
 
         form.add(new HiddenField<String>("phase", new Model<String>(model.getCurrentStatus().getPhase().name())));
