@@ -99,7 +99,7 @@ public class SolverValidationTask extends GenericTask {
 
         solutions = new ArrayList<Solution>(model.getCurrentStatus().getCurrentAnswers());
 
-        group  = new CheckGroup<Solution>("copies", copyOf);
+        group = new CheckGroup<Solution>("copies", copyOf);
 
         for (Iterator<Solution> sit = solutions.iterator(); sit.hasNext(); ) {
 
@@ -107,9 +107,7 @@ public class SolverValidationTask extends GenericTask {
             if (s.getId() == param.get("answer").toLong()) {
                 target = s;
                 sit.remove();
-            }
-
-            else if (s.getRound() == model.getCurrentStatus().getCurrentRound()) {
+            } else if (s.getRound() == model.getCurrentStatus().getCurrentRound()) {
                 sit.remove();
             }
         }
@@ -127,8 +125,9 @@ public class SolverValidationTask extends GenericTask {
         form.add(new AttributeModifier("action", batch().getIsReal() ? "https://www.mturk.com/mturk/externalSubmit" : "http://workersandbox.mturk.com/mturk/externalSubmit"));
         form.add(new AttributeModifier("method", "POST"));
         form.setOutputMarkupId(true);
-        form.add(new CheckBox("cbBlank", new PropertyModel<Boolean>(this, "blank")).add(new AttributeModifier("name","blank")));
-        form.add(new CheckBox("cbNonsense", new PropertyModel<Boolean>(this, "nonsense")).add(new AttributeModifier("name","nonsense")));
+        form.add(new CheckBox("cbBlank", new PropertyModel<Boolean>(this, "blank")).add(new AttributeModifier("name", "blank")));
+        form.add(new CheckBox("cbNonsense", new PropertyModel<Boolean>(this, "nonsense")).add(new AttributeModifier("name", "nonsense")));
+        form.add(new CheckBox("cbGood", new PropertyModel<Boolean>(this, "good")).add(new AttributeModifier("name", "good")));
 
 
         form.add(new HiddenField<String>("phase", new Model<String>(model.getCurrentStatus().getPhase().name())));
@@ -156,9 +155,11 @@ public class SolverValidationTask extends GenericTask {
 
         form.add(new Button("submit") {
 
-                public boolean isVisible() {
-                    return !isPreview();
-                }
+            public boolean isVisible() {
+                return !isPreview();
+            }
+
+
         });
 
 

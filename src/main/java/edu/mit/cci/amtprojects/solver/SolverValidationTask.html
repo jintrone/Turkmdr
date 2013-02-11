@@ -9,6 +9,8 @@
 
     <script type="text/javascript">
         $(function() {
+            var checkcount = 0;
+
             $("span.popupTrigger").hover(function() {
                 var pos = $(this).offset();
 
@@ -17,6 +19,33 @@
             }, function() {
                 $(this).next(".popup").fadeOut("fast");
             });
+
+            $('input:checkbox.needsapproval').click(function() {
+                if ($(this).attr("checked")) {
+                    $('input:checkbox.aok').attr("enabled",false);
+                    $('button.submit').attr("enabled",true);
+                    checkcount++;
+                } else {
+                    checkcount--;
+                    if (checkcount == 0) {
+                       $('input:checkbox.aok').attr("enabled",true);
+                        $('button.submit').attr("enabled",false);
+
+                    }
+                }
+            });
+            $('input:checkbox.aok').click(function() {
+                if ($(this).attr("checked")) {
+                    $('input:checkbox.needsapproval').attr("enabled",false);
+                    $('button.submit').attr("enabled",true);
+
+                } else {
+                    $('input:checkbox.needsapproval').attr("enabled",true);
+                    $('button.submit').attr("enabled",false);
+
+                }
+            })
+
         });
     </script>
 </head>
@@ -61,7 +90,7 @@
 
             <tr >
                 <td class="checkbox">
-                    <input type="checkbox" wicket:id="cbBlank"/>
+                    <input class="needsapproval" type="checkbox" wicket:id="cbBlank"/>
                 </td>
                 <td>
                    Is the answer to the question blank?
@@ -70,7 +99,7 @@
 
              <tr>
                 <td class="checkbox">
-                    <input type="checkbox" wicket:id="cbNonsense"/>
+                    <input class="needsapproval" type="checkbox" wicket:id="cbNonsense"/>
                 </td>
                  <td>
                     Is it nonsense, excessively short, silly, off-topic, or spam?
@@ -87,7 +116,7 @@
 
             <tr wicket:id="answers">
                 <td class="radio">
-                    <input type="checkbox" wicket:id="check"/>
+                    <input class="needsapproval" type="checkbox" wicket:id="check"/>
                 </td>
                 <td class="answer">
                     <span wicket:id="text">[answer]</span>
@@ -95,9 +124,25 @@
             </tr>
         </table>
         </div>
+         <p class="instructions">
+            If the answer seems reasonable, please check the box below.
+         </p>
+        <div wicket:id="ok">
+        <table class="visible-layout">
+
+            <tr>
+                <td class="radio">
+                    <input class="aok" type="checkbox" wicket:id="check"/>
+                </td>
+                <td class="answer">
+                    The answer seems reasonable, and is not an exact copy of another answer.
+                </td>
+            </tr>
+        </table>
+        </div>
 
         <div class="submitBlock">
-        <button wicket:id="submit" name="submit" value="generate">submit</button>
+        <button class="submit" wicket:id="submit" name="submit" value="generate" enabled="false">submit</button>
         </div>
 
     </form>
