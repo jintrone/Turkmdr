@@ -167,7 +167,7 @@ public class SolverTaskModel implements IClusterable {
         setMaxCombiningBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxCombiningBonus")));
         setMaxRankingBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxRankingBonus")));
         setMaxGeneratingBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxGeneratingBonus")));
-        setMaxImprovingBonus(Float.parseFloat(Utils.getJsonString(parameters,"maxImprovingBonus")));
+        setMaxImprovingBonus(Float.parseFloat(Utils.getJsonString(parameters,"maxImprovingBonus","0")));
         setBaseReward(Float.parseFloat(Utils.getJsonString(parameters, "baseReward")));
         questionId = Long.parseLong(Utils.getJsonString(parameters, "questionId"));
         String answerArray = Utils.getJsonString(parameters, "initialAnswerIds");
