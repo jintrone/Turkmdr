@@ -89,8 +89,8 @@ public class SolverApprovalAdmin extends WebPage {
 
                 try {
                     JSONObject obj = new JSONObject(sdata.getMeta());
-                    isBlank = obj.has("blank") ? "true" : "false";
-                    nonesense = obj.has("nonsense") ? "true" : "false";
+                    isBlank = obj.has("empty") ? obj.getBoolean("empty")+"" : "false";
+                    nonesense = obj.has("nonsense") ? obj.getBoolean("nonsense")+"" : "false";
                     copies = extractSolutions(obj.getJSONArray("copyof"));
 
                 } catch (JSONException e) {

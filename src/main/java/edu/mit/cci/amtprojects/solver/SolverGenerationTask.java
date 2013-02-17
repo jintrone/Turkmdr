@@ -221,7 +221,7 @@ public class SolverGenerationTask extends GenericTask {
                     return group.getModelObject() != null ? "done" : "notdone";
                 }
             }));
-            add(new Label("maxImprovingBonus", String.format("$%.2f", model.getMaxCombiningBonus())));
+            add(new Label("maxImprovingBonus", String.format("$%.2f", model.getMaxImprovingBonus())));
             improvementText.add(new AttributeModifier("name", "solutiontext"));
 
 
