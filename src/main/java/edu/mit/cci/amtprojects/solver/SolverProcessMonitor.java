@@ -355,17 +355,20 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
             } else if (!s.getToParents().isEmpty() && s.getRound() == status.getCurrentRound()) {
                 float old = 0.0f;
+                int count = 0;
                 for (Solution sp : s.getToParents()) {
-                    old += sp.getLastRank().getRankValue();
+                    count++;
+                    old = Math.max(sp.getLastRank().getRankValue(),old);
 
                 }
-                old /= (float) s.getToParents().size();
+
                 float improvement = s.getLastRank().getRankValue() - old;
-                float bonus = improvement * model.getMaxCombiningBonus();
+                float maxbonus =  count>1?model.getMaxCombiningBonus():model.getMaxImprovingBonus();
+                float bonus = improvement * maxbonus;
                 bonus = Float.parseFloat(String.format("%.2f", bonus));
                 if (bonus > 0) {
                     String feedback = String.format("Your solution achieved an improvement of %.2f (on a 0 - 1 scale) over its progenitors and so" +
-                            "you are granted a bonus of %.2f * $%.2f = %.2f", improvement, improvement, model.getMaxCombiningBonus(), bonus);
+                            "you are granted a bonus of %.2f * $%.2f = %.2f", improvement, improvement, maxbonus, bonus);
                     HitManager.get(b).bonusAssignments(new String[]{s.getAssignmentId()}, feedback, bonus);
                 }
             }

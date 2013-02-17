@@ -163,7 +163,7 @@ public class SolverGenerationTask extends GenericTask {
             };
 
             create.add(new Label("maxBonus", String.format("$%.2f", model.getMaxGeneratingBonus())));
-            improve.add(new Label("maxBonus", String.format("$%.2f", model.getMaxCombiningBonus())));
+            improve.add(new Label("maxBonus", String.format("$%.2f", model.getMaxImprovingBonus())));
             combine.add(new Label("maxBonus", String.format("$%.2f", model.getMaxCombiningBonus())));
 
             add(create, improve, combine);
@@ -221,7 +221,7 @@ public class SolverGenerationTask extends GenericTask {
                     return group.getModelObject() != null ? "done" : "notdone";
                 }
             }));
-            add(new Label("maxCombiningBonus", String.format("$%.2f", model.getMaxCombiningBonus())));
+            add(new Label("maxImprovingBonus", String.format("$%.2f", model.getMaxCombiningBonus())));
             improvementText.add(new AttributeModifier("name", "solutiontext"));
 
 

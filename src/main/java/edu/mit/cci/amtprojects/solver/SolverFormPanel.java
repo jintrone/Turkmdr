@@ -33,6 +33,7 @@ public class SolverFormPanel extends Panel {
         form.add(new TextField<Integer>("sizeOfFront"));
         form.add(new TextField<Double>("maxRankingBonus"));
         form.add(new TextField<Double>("maxGeneratingBonus"));
+        form.add(new TextField<Double>("maxImprovingBonus"));
         form.add(new TextField<Double>("maxCombiningBonus"));
         form.add(new TextField<Double>("baseReward"));
         form.add(new TextField<String>("questionText"));

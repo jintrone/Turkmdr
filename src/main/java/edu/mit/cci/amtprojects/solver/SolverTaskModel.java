@@ -33,6 +33,10 @@ public class SolverTaskModel implements IClusterable {
     public int numberOfRounds = 0;
     public int sizeOfFront = 0;
     public float maxRankingBonus = 0;
+
+
+
+    public float maxImprovingBonus = 0;
     public float maxGeneratingBonus = 0;
     public float maxCombiningBonus = 0;
     public float baseReward = 0;
@@ -48,7 +52,7 @@ public class SolverTaskModel implements IClusterable {
     //other props
     //names to write out
     static String[] names = new String[]{"validationReward","numberOfValidators","groupName","numberOfGenerators", "numberOfRankers", "numberOfRounds", "sizeOfFront",
-            "maxRankingBonus", "maxGeneratingBonus", "maxCombiningBonus", "baseReward", "initialAnswerIds", "questionId","validationReward"};
+            "maxRankingBonus", "maxImprovingBonus","maxGeneratingBonus", "maxCombiningBonus", "baseReward", "initialAnswerIds", "questionId","validationReward"};
 
     String[] initialAnswerText = new String[10];
     String questionText;
@@ -163,6 +167,7 @@ public class SolverTaskModel implements IClusterable {
         setMaxCombiningBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxCombiningBonus")));
         setMaxRankingBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxRankingBonus")));
         setMaxGeneratingBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxGeneratingBonus")));
+        setMaxImprovingBonus(Float.parseFloat(Utils.getJsonString(parameters,"maxImprovingBonus")));
         setBaseReward(Float.parseFloat(Utils.getJsonString(parameters, "baseReward")));
         questionId = Long.parseLong(Utils.getJsonString(parameters, "questionId"));
         String answerArray = Utils.getJsonString(parameters, "initialAnswerIds");
@@ -231,6 +236,14 @@ public class SolverTaskModel implements IClusterable {
         }
 
 
+    }
+
+     public float getMaxImprovingBonus() {
+        return maxImprovingBonus;
+    }
+
+    public void setMaxImprovingBonus(float maxImprovingBonus) {
+        this.maxImprovingBonus = maxImprovingBonus;
     }
 
     public float getMaxCombiningBonus() {
