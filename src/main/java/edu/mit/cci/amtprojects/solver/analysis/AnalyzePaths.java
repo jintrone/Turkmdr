@@ -109,6 +109,7 @@ public class AnalyzePaths {
             node.setAttribute("Age", s.getRound()+1);
             node.setAttribute("Weight", 0f);
             node.setAttribute("SolutionId",s.getId());
+            node.setAttribute("Valid",s.getValid() == null?2:s.getValid().equals("VALID")?1:0);
             nodes.add(node);
             graph.addVertex(node);
 
@@ -118,7 +119,7 @@ public class AnalyzePaths {
                     nodes.add(node);
                     node.setAttribute("Age", r.getRound()+1);
                     node.setAttribute("SolutionId",s.getId());
-
+                    node.setAttribute("Valid",1);
                     graph.addVertex(node);
                 }
                 node.setAttribute("Weight", r.getRankValue());
@@ -176,11 +177,11 @@ public class AnalyzePaths {
     }
 
     public static void main(String[] args) throws SQLException, IOException {
-        long qid = 1881;
+        long qid = 1903;
         AnalyzePaths analysis = new AnalyzePaths();
         Question q = analysis.findQuestion(qid);
         DefaultJungGraph g = AnalyzePaths.createSolutionGraph(q);
-        AnalyzePaths.writeGraphML(g, Utils.mapify("Age",0,"SolutionId",0,"Weight",0f),"SolutionsBatch2021.plain.graphml");
+        AnalyzePaths.writeGraphML(g, Utils.mapify("Age",0,"SolutionId",0,"Weight",0f,"Valid",0),"SolutionsCrowdCamp.plain.graphml");
 
 //        Long[] qs = new Long[]{1500l, 1501l, 1502l, 1503l, 1504l, 1505l};
 //        AnalyzePaths paths = new AnalyzePaths();

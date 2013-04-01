@@ -35,14 +35,13 @@ public class SolverTaskModel implements IClusterable {
     public float maxRankingBonus = 0;
 
 
-
     public float maxImprovingBonus = 0;
     public float maxGeneratingBonus = 0;
     public float maxCombiningBonus = 0;
     public float baseReward = 0;
     public float validationReward = 0;
 
-      public int numberOfValidators = 1;
+    public int numberOfValidators = 1;
 
 
     public List<Long> initialAnswerIds = new ArrayList<Long>();
@@ -51,10 +50,13 @@ public class SolverTaskModel implements IClusterable {
 
     //other props
     //names to write out
-    static String[] names = new String[]{"validationReward","numberOfValidators","groupName","numberOfGenerators", "numberOfRankers", "numberOfRounds", "sizeOfFront",
-            "maxRankingBonus", "maxImprovingBonus","maxGeneratingBonus", "maxCombiningBonus", "baseReward", "initialAnswerIds", "questionId","validationReward"};
+    static String[] names = new String[]{"validationReward", "numberOfValidators", "groupName", "numberOfGenerators", "numberOfRankers", "numberOfRounds", "sizeOfFront",
+            "maxRankingBonus", "maxImprovingBonus", "maxGeneratingBonus", "maxCombiningBonus", "baseReward", "initialAnswerIds", "rankDimensions","rankDimensionsText","questionId", "validationReward"};
 
-    String[] initialAnswerText = new String[10];
+    public String[] initialAnswerText = new String[10];
+    public String[] rankDimensions = new String[3];
+    public String[] rankDimensionsText = new String[3];
+
     String questionText;
     private Long batchId;
     private SolverTaskStatus currentStatus;
@@ -111,7 +113,8 @@ public class SolverTaskModel implements IClusterable {
             }
 
         }
-        b.setParameters(this.toJSONString());
+        String jsonstring = this.toJSONString();
+        b.setParameters(jsonstring);
         DbProvider.getContext().commitChanges();
     }
 
@@ -167,19 +170,23 @@ public class SolverTaskModel implements IClusterable {
         setMaxCombiningBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxCombiningBonus")));
         setMaxRankingBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxRankingBonus")));
         setMaxGeneratingBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxGeneratingBonus")));
-        setMaxImprovingBonus(Float.parseFloat(Utils.getJsonString(parameters,"maxImprovingBonus","0")));
+        setMaxImprovingBonus(Float.parseFloat(Utils.getJsonString(parameters, "maxImprovingBonus", "0")));
         setBaseReward(Float.parseFloat(Utils.getJsonString(parameters, "baseReward")));
         questionId = Long.parseLong(Utils.getJsonString(parameters, "questionId"));
         String answerArray = Utils.getJsonString(parameters, "initialAnswerIds");
+        rankDimensions = Utils.getJsonArray(parameters,"rankDimensions", new String[0]);
+        rankDimensionsText = Utils.getJsonArray(parameters,"rankDimensionsText", new String[0]);
 
-        setNumberOfValidators(Integer.parseInt(Utils.getJsonString(parameters, "numberOfValidators","0")));
-        setValidationReward(Float.parseFloat(Utils.getJsonString(parameters,"validationReward","0")));
+        setNumberOfValidators(Integer.parseInt(Utils.getJsonString(parameters, "numberOfValidators", "0")));
+        setValidationReward(Float.parseFloat(Utils.getJsonString(parameters, "validationReward", "0")));
 
         JSONArray array = new JSONArray(answerArray);
         initialAnswerIds = new ArrayList<Long>();
         for (int i = 0; i < array.length(); i++) {
             initialAnswerIds.add(array.getLong(i));
         }
+
+
 
     }
 
@@ -218,10 +225,18 @@ public class SolverTaskModel implements IClusterable {
         this.baseReward = baseReward;
     }
 
+    public String[] getRankDimensions() {
+        return rankDimensions;
+    }
+
+    public String[] getRankDimensionsText() {
+        return rankDimensionsText;
+    }
+
 
     public List<Solution> getInitialAnswers() {
         String exp = "id in (" + Utils.join(initialAnswerIds, ",") + ")";
-        log.debug("Expression string "+exp);
+        log.debug("Expression string " + exp);
 
         SelectQuery query = new SelectQuery(Solution.class, Expression.fromString(exp));
         List<Solution> result = DbProvider.getContext().performQuery(query);
@@ -238,7 +253,7 @@ public class SolverTaskModel implements IClusterable {
 
     }
 
-     public float getMaxImprovingBonus() {
+    public float getMaxImprovingBonus() {
         return maxImprovingBonus;
     }
 
@@ -385,6 +400,56 @@ public class SolverTaskModel implements IClusterable {
 
     public String getInitialAnswer9() {
         return initialAnswerText[9];
+    }
+
+    public void setRankDimension0(String txt) {
+        rankDimensions[0] = txt;
+    }
+
+    public void setRankDimensionText0(String txt) {
+        rankDimensionsText[0] = txt;
+    }
+
+    public void setRankDimension1(String txt) {
+        rankDimensions[1] = txt;
+    }
+
+    public void setRankDimensionText1(String txt) {
+        rankDimensionsText[1] = txt;
+    }
+
+
+    public void setRankDimension2(String txt) {
+        rankDimensions[2] = txt;
+    }
+
+    public void setRankDimensionText2(String txt) {
+        rankDimensionsText[2] = txt;
+    }
+
+    public String getRankDimension0() {
+        return rankDimensions[0];
+    }
+
+    public String getRankDimensionText0() {
+        return rankDimensionsText[0];
+    }
+
+    public String getRankDimension1() {
+        return rankDimensions[1];
+    }
+
+    public String getRankDimensionText1() {
+        return rankDimensionsText[1];
+    }
+
+
+    public String getRankDimension2() {
+        return rankDimensions[2];
+    }
+
+    public String getRankDimensionText2() {
+        return rankDimensionsText[2];
     }
 
 

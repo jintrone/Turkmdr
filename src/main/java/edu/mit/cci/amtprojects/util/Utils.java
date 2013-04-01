@@ -3,9 +3,11 @@ package edu.mit.cci.amtprojects.util;
 import edu.mit.cci.amtprojects.UrlCreator;
 import edu.mit.cci.amtprojects.solver.SolutionRank;
 import org.apache.log4j.Logger;
+import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.wicket.Component;
+
 import org.apache.wicket.protocol.http.RequestUtils;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebRequest;
@@ -59,6 +61,23 @@ public class Utils {
         return def;
 
     }
+
+    public static String[] getJsonArray(String value, String key, String[] def) {
+            try {
+                JSONObject obj = new JSONObject(value);
+                JSONArray array =  obj.getJSONArray(key);
+                String[] result = new String[array.length()];
+                for (int i=0;i<array.length();i++) {
+                    result[i] = array.getString(i);
+                }
+                return result;
+            } catch (JSONException e) {
+                //e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                log.warn(e.getMessage());
+            }
+            return def;
+
+        }
 
     public static String join(List initialAnswers, String s) {
         StringBuilder result = new StringBuilder();

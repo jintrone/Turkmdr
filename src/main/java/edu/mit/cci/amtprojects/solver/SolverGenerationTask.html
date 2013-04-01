@@ -1,24 +1,75 @@
 <!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<html xmlns:wicket="http://wicket.apache.org">
 <head>
     <meta charset="utf-8"/>
     <title>MechTurk Solution Task</title>
     <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="solver.css" type="text/css" media="screen" title="Stylesheet"/>
-    <script src="js/jquery.1.8.1.min.js"></script>
-
+    <link rel="stylesheet" href="css/solver.css" type="text/css" media="screen" title="Stylesheet"/>
+    <script src="js/jquery-1.9.1.js"></script>
+    <script src="js/findDupes.js" type="text/javascript" language="JavaScript"></script>
     <script type="text/javascript">
-        $(function() {
-            $("span.popupTrigger").hover(function() {
+        keypresscount = 0;
+
+
+        $(function () {
+            $("span.popupTrigger").hover(function () {
                 var pos = $(this).offset();
 
                 $(this).next(".popup").fadeIn("fast");
-                $(this).next(".popup").offset({top:pos.top,left:pos.left - 220});
-            }, function() {
+                $(this).next(".popup").offset({top: pos.top, left: pos.left - 220});
+            }, function () {
                 $(this).next(".popup").fadeOut("fast");
             });
+
+            $("#dialog-confirm").dialog({
+                resizable: false,
+                height: 140,
+                modal: true,
+                buttons: {
+                    "Ignore warning and submit anyway": function () {
+                        $("form#hitForm").submit();
+
+                    },
+                    "Continue editing": function () {
+
+                        $(this).dialog("close");
+                    }
+                }
+            });
         });
+
+        function check() {
+
+            var result = findDupes($("textarea#submissionText").value, 10);
+            var text = "The following potential problems were found with your submission:<ul>";
+            var errors = false;
+            if (result.length >= 10) {
+                text += "<li>There is a long duplicated region of text, starting with the words: '" + result.join(" ") + "'</li>";
+                errors = true;
+            }
+            if (keypresscount < 5) {
+                text += "<li>There were relatively few edits to the text</li>";
+                errors = true;
+            }
+            if (errors) {
+                text += "</ul>If it is found that you either duplicated text within your answer or simply copied one or more answers without adding a substantial contribution, your result will be <em>rejected</em>, possibly reducing your work opportunities in the future.  However, if you feel that your answer is a good contribution, you can chooise to ignore this warning.";
+                $("p#dialogText").text = text;
+                $("#dialog-confirm").dialog("open");
+            } else {
+                $("form#hitForm").submit();
+            }
+        }
+
+        function incrementCount() {
+            keypresscount++;
+        }
+
+        function resetCount() {
+            keypresscount = 0;
+
+        }
     </script>
+
 </head>
 <body>
 <script type="text/javascript" wicket:id="script">[some script]</script>
@@ -30,7 +81,7 @@
         <span wicket:id="question">[the question]</span>
     </p>
 
-    <form wicket:id="hitForm">
+    <form id="hitForm" wicket:id="hitForm">
         <input wicket:id="assignmentId" id="assignmentId" type="hidden"/>
         <input wicket:id="phase" id="phase" type="hidden"/>
         <input wicket:id="round" id="round" type="hidden"/>
@@ -48,13 +99,13 @@
 </body>
 <wicket:fragment wicket:id="chooseMarkup">
     <script type="text/javascript">
-        $(function() {
-            $("span.popupTrigger").hover(function() {
+        $(function () {
+            $("span.popupTrigger").hover(function () {
                 var pos = $(this).offset();
 
                 $(this).next(".popup").fadeIn("fast");
-                $(this).next(".popup").offset({top:pos.top,left:pos.left - 220});
-            }, function() {
+                $(this).next(".popup").offset({top: pos.top, left: pos.left - 220});
+            }, function () {
                 $(this).next(".popup").fadeOut("fast");
             });
         });
@@ -71,20 +122,21 @@
             </tr>
             <tr>
                 <td class="button">
-                    <button class="choicebutton" wicket:id="generate">
+                    <button class="choicebutton" wicket:id="generate" onclick="resetCount()">
                         Create a new answer<br>
                         <span class="bonuslabel">MAX BONUS:</span><span class="bonusvalue"
                                                                         wicket:id="maxBonus">[bonus]</span>
                     </button>
                 </td>
                 <td class="button">
-                    <button class="choicebutton" wicket:id="improve">Improve an existing answer<br>
+                    <button class="choicebutton" wicket:id="improve" onclick="resetCount()">Improve an existing
+                        answer<br>
                         <span class="bonuslabel">MAX BONUS:</span><span class="bonusvalue"
                                                                         wicket:id="maxBonus">[bonus]</span>
                     </button>
                 </td>
                 <td class="button">
-                    <button class="choicebutton" wicket:id="combine">Combine existing answers<br>
+                    <button class="choicebutton" wicket:id="combine" onclick="resetCount()">Combine existing answers<br>
                         <span class="bonuslabel">MAX BONUS:</span><span class="bonusvalue"
                                                                         wicket:id="maxBonus">[bonus]</span>
                     </button>
@@ -114,20 +166,26 @@
 
     </div>
 
+    <div id="dialog-confirm" title="Problems with your solution">
+        <p id="dialog-text"><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span></p>
+    </div>
+
 
 </wicket:fragment>
 <wicket:fragment wicket:id="improveMarkup">
 
     <a class="smallinfo" href="#" wicket:id="choose">&lt;- Go back</a><br>
 
-    <p class="instructions">Use existing answers to create a better answer to the above question. Bonus is based on how
-        much you
-        improve existing answers. Maximum bonus is <span class="red" wicket:id="maxImprovingBonus">[text]</span>.</p>
+    <p class="instructions">Improve an existing answer to the above question. Bonus is based on how
+        much other turkers think you improved the answer. Maximum bonus is <span class="red" wicket:id="maxImprovingBonus">[text]</span>.</p>
+
+    <div class="qualitynote">Please edit your selected answer to make substantial improvements (e.g. fixing grammar, adding detail, improving coherence, etc.). Copies or pointless edits (e.g. adding or deleting spaces, changing punctuation) will results in your work being rejected.
+    </div>
 
     <div wicket:id="progenitor">
         <table id="answers">
-             <tr class="header">
-               <td colspan="2" class="instructions">
+            <tr class="header">
+                <td colspan="2" class="instructions">
                     Select an answer to improve:
                 </td>
 
@@ -151,15 +209,15 @@
     </p>
 
     <div class="answerBlock">
-        <textarea wicket:id="improvementText" cols="80" rows="8">Create your improved answer here</textarea>
+        <textarea wicket:id="improvementText" id="submissionText" onkeypress="incrementCount();" cols="80" rows="8">Create
+            your improved answer here</textarea>
     </div>
 
-    <div class="qualitynote"><b>NOTE:</b> Empty, excessively short, or nonsensical answers will be rejected. Copies with
-        very minimal edits (e.g. just deleting extra spaces, changing punctuation) will be rejected.
-    </div>
+
 
     <div class="submitBlock">
-        <button wicket:id="Submit" name="submit" value="improve">submit</button>
+        <button type="button"  wicket:id="Submit" onclick="check();return false;">submit</button>
+
     </div>
 
 </wicket:fragment>
@@ -167,21 +225,25 @@
 
     <a class="smallinfo" href="#" wicket:id="choose">&lt;- Go back</a><br>
 
-    <p class="instructions">Combine existing answers to create a better answer to the above question. Bonus is based on how
-        much you
-        improve existing answers. Maximum bonus is <span class="red" wicket:id="maxCombiningBonus">[text]</span>.</p>
+    <p class="instructions">Combine existing answers to create a better answer to the above question. Bonus is based on
+        how much better your answer is than the answers you have selected. Maximum bonus is <span class="red" wicket:id="maxCombiningBonus">[text]</span>.</p>
 
+    <div class="qualitynote">Please edit your answer to create a coherent solution. Do not simply submit multiple answers that have been concatenated. Failure to follow these instructions will result in your work being rejected.
+    </div>
 
+    <div class="qualitynote">Empty, excessively short, or nonsensical answers will be rejected. Copies with
+           very minimal edits (e.g. just deleting extra spaces, changing punctuation) will be rejected.
+       </div>
 
     <div wicket:id="progenitors">
         <table id="answers">
             <tr class="header">
-               <td colspan=2 class="instructions">
+                <td colspan=2 class="instructions">
                     Select at least two answers to combine:
                 </td>
 
             </tr>
-                <tr wicket:id="answers">
+            <tr wicket:id="answers">
                 <td class="radio">
                     <input type="checkbox" wicket:id="check"/>
                 </td>
@@ -195,18 +257,18 @@
     </div>
 
     <p class="instructions">Edit your answer to create a coherent plan:<br/>
-    <span class="hint">Note, if you change the above selection after you have edited the text below, you will lose your edits.</span>
+        <span class="hint">Note, if you change the above selection after you have edited the text below, you will lose your edits.</span>
     </p>
 
     <div class="answerBlock">
-        <textarea wicket:id="improvementText" cols="80" rows="8">Create your improved answer here</textarea>
-    </div>
-    <div class="qualitynote"><b>NOTE:</b> Empty, excessively short, or nonsensical answers will be rejected. Copies with
-        very minimal edits (e.g. just deleting extra spaces, changing punctuation) will be rejected.
+        <textarea wicket:id="improvementText" id="submissionText" onkeypress="incrementCount();" cols="80" rows="8">Create
+            your improved answer here</textarea>
     </div>
 
+
     <div class="submitBlock">
-        <button wicket:id="Submit" name="submit" value="improve">submit</button>
+        <button type="button"  wicket:id="Submit" onclick="check();return false;">submit</button>
+
     </div>
 
 </wicket:fragment>
@@ -216,13 +278,19 @@
     <p class="instructions">Create a completely new answer to the above question. Bonus is based on how highly ranked
         your answer is by other turkers. Maximum bonus is <span class="red" wicket:id="maxBonus">[text]</span>.</p>
 
-    <div class="answerBlock"><textarea wicket:id="generateText" cols="80" rows="8">Create your answer here</textarea>
+    <div class="qualitynote">Please enter serious answers only; it is OK to copy solutions from other websites, but please make sure that the solution addresses the problem or question.
+        Failure to follow these instructions will result in your work being rejected.
+        </div>
+
+
+    <div class="answerBlock"><textarea id="submissionText" onkeypress="incrementCount();" wicket:id="generateText"
+                                       cols="80" rows="8">Create your answer here</textarea>
     </div>
-    <div class="qualitynote"><b>NOTE:</b> Empty, excessively short, or nonsensical answers, and copies of existing
-        answers will be rejected.
-    </div>
+
     <div class="submitBlock">
-        <button wicket:id="Submit" name="submit" value="generate">submit</button>
+
+        <button type="button"  wicket:id="Submit" onclick="check();return false;">submit</button>
+
     </div>
 </wicket:fragment>
 

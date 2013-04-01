@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<html xmlns:wicket="http://wicket.apache.org"
         >
 <head>
     <meta charset="utf-8"/>
     <title>Batches</title>
     <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="style.css" type="text/css" media="screen" title="Stylesheet"/>
-    <script src="js/jquery.1.8.1.min.js"></script>
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" title="Stylesheet"/>
+    <script src="js/jquery-1.9.1.js"></script>
 
 </head>
 <body>
@@ -23,32 +23,34 @@
 
     </div>
     <span wicket:id="navigator">[dataview navigator]</span>
-    <div class="scrollable">
+
+    <div wicket:id="batches" class="scrollable">
 
 
-            <table  cellspacing="0" class="posttable">
-                <tr>
-
-                    <th>Name</th>
-                    <th>Creation</th>
-                    <th>AWSId</th>
-                    <th>Is Real?</th>
-                    <th>Status</th>
-
-
-                </tr>
-                <tr wicket:id="pageable">
-                    <td><a href="#" wicket:id="manage"><span wicket:id="name">[id]</span></a> </td>
-                    <td><span wicket:id="creation">[id]</span></td>
-                    <td><span wicket:id="AWSId">[id]</span></td>
-                    <td><span wicket:id="sandbox">[date]</span></td>
-                    <td><span wicket:id="status">[status]</span></td>
+        <table cellspacing="0" class="posttable">
+            <tr>
+                <th>Select</th>
+                <th>Name</th>
+                <th>Creation</th>
+                <th>AWSId</th>
+                <th>Is Real?</th>
+                <th>Status</th>
 
 
+            </tr>
+            <tr wicket:id="pageable">
+                <td class="radio">
+                    <input type="radio" wicket:id="radio"/>
+                </td>
+                <td><a href="#" wicket:id="manage"><span wicket:id="name">[id]</span></a></td>
+                <td><span wicket:id="creation">[id]</span></td>
+                <td><span wicket:id="AWSId">[id]</span></td>
+                <td><span wicket:id="sandbox">[date]</span></td>
+                <td><span wicket:id="status">[status]</span></td>
 
-                </tr>
-            </table>
 
+            </tr>
+        </table>
 
 
     </div>
@@ -56,13 +58,18 @@
     <div id="inputForm">
         <form wicket:id="batchForm">
             <label for="name">Batch name:</label><input wicket:id="name" id="name" type="text" size="40"/> <br>
-            <label for="awsId">AWS Id:</label><input wicket:id="awsId" id="awsId" type="text" size="40"/>  <br>
-            <label for="awsSecret">AWS Secret:</label><input wicket:id="awsSecret" id="awsSecret" type="text" size="128"/>  <br>
-            <label for="awsSecret">Is Real?</label><input wicket:id="isReal" id="isReal" type="checkbox"/>  <br>
-            <label for="restartRate">Restart interval (seconds; &lt;0 for none)</label><input wicket:id="restartRate" id="restartRate" type="text"/>  <br>
-            <label for="restartRate">Contact email</label><input wicket:id="contactEmail" id="contactEmail" type="text"/>  <br>
+            <label for="awsId">AWS Id:</label><input wicket:id="awsId" id="awsId" type="text" size="40"/> <br>
+            <label for="awsSecret">AWS Secret:</label><input wicket:id="awsSecret" id="awsSecret" type="text"
+                                                             size="128"/> <br>
+            <label for="awsSecret">Is Real?</label><input wicket:id="isReal" id="isReal" type="checkbox"/> <br>
+            <label for="restartRate">Restart interval (seconds; &lt;0 for none)</label><input wicket:id="restartRate"
+                                                                                              id="restartRate"
+                                                                                              type="text"/> <br>
+            <label for="restartRate">Contact email</label><input wicket:id="contactEmail" id="contactEmail"
+                                                                 type="text"/> <br>
 
-            <label for="autoApprove">Auto approve hits?</label><input wicket:id="autoApprove" id="autoApprove" type="checkbox"/>  <br>
+            <label for="autoApprove">Auto approve hits?</label><input wicket:id="autoApprove" id="autoApprove"
+                                                                      type="checkbox"/> <br>
 
             <div wicket:id="pluginPanel">[any plugin specific]</div>
 

@@ -87,18 +87,20 @@ public class SolverHitCreator implements HitCreator {
         SolverTaskStatus status = model.getCurrentStatus();
         String groupText = "[" + model.getGroupName() + "]";
         if (status.getPhase() == SolverProcessMonitor.Phase.INIT) {
-            DefaultEnabledHitProperties props = new DefaultEnabledHitProperties();
-            props.setTitle("Rank a set of answers to a question about climate change " + groupText);
-            props.setDescription("Rank a set of answers to the question: " + model.getQuestionText() + "  Bonus of up to $." + String.format("%.2f", model.getMaxRankingBonus()));
-            props.setKeywords("climate,experiment,rank,bonus");
-            props.setMaxAssignments("" + model.getNumberOfRankers());
-            props.setRewardAmount("" + model.getBaseReward());
-            props.setAssignmentDuration("900");
-            MturkUtils.addBatchAnnotation(props, b);
-            props.setLifetime("600000");
+            for (int i = 0; i < model.getRankDimensions().length; i++) {
+                DefaultEnabledHitProperties props = new DefaultEnabledHitProperties();
+                props.setTitle("Rank a set of answers to a question about climate change " + groupText);
+                props.setDescription("Rank a set of answers to the question: " + model.getQuestionText() + "  Bonus of up to $." + String.format("%.2f", model.getMaxRankingBonus()));
+                props.setKeywords("climate,experiment,rank,bonus");
+                props.setMaxAssignments("" + model.getNumberOfRankers());
+                props.setRewardAmount("" + model.getBaseReward());
+                props.setAssignmentDuration("900");
+                MturkUtils.addBatchAnnotation(props, b);
+                props.setLifetime("600000");
 
-            String launchurl = MturkUtils.addUrlParams(rankerpath, "batch", b.getId() + "");
-            HitManager.get(b).launch(launchurl, 1000, props);
+                String launchurl = MturkUtils.addUrlParams(rankerpath, "batch", b.getId() + "",  "dimension", "" + i);
+                HitManager.get(b).launch(launchurl, 1000, props);
+            }
 
 
         } else if (status.getPhase() == SolverProcessMonitor.Phase.GENERATE) {
@@ -116,17 +118,19 @@ public class SolverHitCreator implements HitCreator {
 
 
         } else if (status.getPhase() == SolverProcessMonitor.Phase.RANK) {
-            DefaultEnabledHitProperties props = new DefaultEnabledHitProperties();
-            props.setTitle("Rank a set of answers to a question about climate change [" + model.getGroupName() + "]");
-            props.setDescription("Rank a set of answers to the question: " + model.getQuestionText() + "  Bonus of up to $." + String.format("%.2f", model.getMaxRankingBonus()));
-            props.setKeywords("climate,experiment,rank,bonus");
-            props.setMaxAssignments("" + model.getNumberOfRankers());
-            props.setRewardAmount("" + model.getBaseReward());
-            props.setLifetime("600000");
-            MturkUtils.addBatchAnnotation(props, b);
-            String launchurl = MturkUtils.addUrlParams(rankerpath, "batch", b.getId() + "");
-            props.setAssignmentDuration("900");
-            HitManager.get(b).launch(launchurl, 1000, props);
+            for (int i = 0; i < model.getRankDimensions().length; i++) {
+                DefaultEnabledHitProperties props = new DefaultEnabledHitProperties();
+                props.setTitle("Rank a set of answers to a question about climate change [" + model.getGroupName() + "]");
+                props.setDescription("Rank a set of answers to the question: " + model.getQuestionText() + "  Bonus of up to $." + String.format("%.2f", model.getMaxRankingBonus()));
+                props.setKeywords("climate,experiment,rank,bonus");
+                props.setMaxAssignments("" + model.getNumberOfRankers());
+                props.setRewardAmount("" + model.getBaseReward());
+                props.setLifetime("600000");
+                MturkUtils.addBatchAnnotation(props, b);
+                String launchurl = MturkUtils.addUrlParams(rankerpath, "batch", b.getId() + "", "dimension", "" + i);
+                props.setAssignmentDuration("900");
+                HitManager.get(b).launch(launchurl, 1000, props);
+            }
 
         } else if (status.getPhase() == SolverProcessMonitor.Phase.VALIDATION) {
             for (Solution s : status.getCurrentAnswers()) {
@@ -141,7 +145,7 @@ public class SolverHitCreator implements HitCreator {
                     MturkUtils.addBatchAnnotation(props, b);
                     String launchurl = MturkUtils.addUrlParams(validationpath, "batch", b.getId() + "", "answer", s.getId() + "");
                     props.setAssignmentDuration("300");
-                    HitManager.get(b).launch(launchurl, 1000,false, Collections.singletonList(s.getWorkerId()), props);
+                    HitManager.get(b).launch(launchurl, 1000, false, Collections.singletonList(s.getWorkerId()), props);
                 }
             }
         }

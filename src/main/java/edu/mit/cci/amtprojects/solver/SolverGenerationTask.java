@@ -453,6 +453,8 @@ public class SolverGenerationTask extends GenericTask {
                 public boolean isVisible() {
                     return !isPreview();
                 }
+
+
             });
 
 

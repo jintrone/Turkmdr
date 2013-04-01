@@ -37,6 +37,11 @@ public class SolverRankingTask extends GenericTask {
         super(param,true,true);
         add(new Label("question", getModel().getQuestion().getText()));
         add(new Label("answerCount",""+getModel().getCurrentStatus().getCurrentAnswers().size()));
+        int dimension = param.get("dimension").toInt(0);
+        String dimensionName = getModel().getRankDimensions()[dimension];
+        String dimensionText = getModel().getRankDimensionsText()[dimension];
+        //add(new Label("dimensionName",dimensionName));
+        add(new Label("dimensionText",dimensionText));
 
         DataView<Solution> dataView = new DataView<Solution>("answers", new ListDataProvider<Solution>(getModel().getCurrentStatus().getCurrentAnswers())) {
             @Override
@@ -60,6 +65,7 @@ public class SolverRankingTask extends GenericTask {
         getForm().add(dataView);
         getForm().add(new HiddenField<String>("round",new Model<String>(getModel().getCurrentStatus().getCurrentRound()+"")));
         getForm().add(new HiddenField<String>("phase",new Model<String>(getModel().getCurrentStatus().getPhase().name()+"")));
+        getForm().add(new HiddenField<Integer>("dimension",new Model<Integer>(dimension)));
         getForm().add(new Button("submit") {
           public boolean isVisible() {
                     return !isPreview();

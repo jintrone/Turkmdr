@@ -2,9 +2,8 @@ package edu.mit.cci.amtprojects.solver;
 
 import edu.mit.cci.amtprojects.InnerFormCallback;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.CompoundPropertyModel;
 
@@ -39,6 +38,13 @@ public class SolverFormPanel extends Panel {
         form.add(new TextField<String>("questionText"));
         form.add(new TextField<Double>("validationReward"));
         form.add(new TextField<Integer>("numberOfValidators"));
+
+        form.add(new TextField<String>("rankDimension0"));
+        form.add(new TextArea<String>("rankDimensionText0"));
+        form.add(new TextField<String>("rankDimension1"));
+        form.add(new TextArea<String>("rankDimensionText1"));
+        form.add(new TextField<String>("rankDimension2"));
+        form.add(new TextArea<String>("rankDimensionText2"));
 
         form.add(new TextField<String>("initialAnswer0"));
         form.add(new TextField<String>("initialAnswer1"));

@@ -2,7 +2,6 @@ package edu.mit.cci.amtprojects.solver;
 
 import edu.mit.cci.amtprojects.BatchProcessMonitor;
 import edu.mit.cci.amtprojects.DbProvider;
-import edu.mit.cci.amtprojects.HitCreator;
 import edu.mit.cci.amtprojects.HitManager;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
@@ -18,7 +17,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.json.JSONException;
 import org.apache.wicket.ajax.json.JSONObject;
-import org.apache.wicket.ajax.json.JSONStringer;
 
 import javax.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
@@ -72,20 +70,28 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
         boolean shouldLaunch = true;
         if (!roundLogs.isEmpty()) {
             if (model.getCurrentStatus().getPhase() == Phase.INIT) {
-
-                updateRanks(b, model, roundLogs);
-                model.getCurrentStatus().setPhase(Phase.GENERATE);
+                if (doneRanking(model, roundLogs)) {
+                    setProcessed(roundLogs);
+                    updateRanks(b, model, roundLogs);
+                    model.getCurrentStatus().setPhase(Phase.GENERATE);
+                } else {
+                    shouldLaunch = false;
+                }
 
             } else if (model.getCurrentStatus().getPhase() == Phase.RANK) {
-
-                updateRanks(b, model, roundLogs);
-                pruneSolutions(model);
-                if (currentRound + 1 == model.getNumberOfRounds()) {
-                    model.getCurrentStatus().setPhase(Phase.COMPLETE);
+                if (doneRanking(model, roundLogs)) {
+                    updateRanks(b, model, roundLogs);
+                    pruneSolutions(model);
+                    if (currentRound + 1 == model.getNumberOfRounds()) {
+                        model.getCurrentStatus().setPhase(Phase.COMPLETE);
+                    } else {
+                        model.getCurrentStatus().setPhase(Phase.GENERATE);
+                        model.getCurrentStatus().setCurrentRound(currentRound + 1);
+                    }
                 } else {
-                    model.getCurrentStatus().setPhase(Phase.GENERATE);
-                    model.getCurrentStatus().setCurrentRound(currentRound + 1);
+                    shouldLaunch = false;
                 }
+
 
             } else if (model.getCurrentStatus().getPhase() == Phase.GENERATE) {
                 updateAnswers(model, roundLogs);
@@ -113,6 +119,16 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
     }
 
+    private boolean doneRanking(SolverTaskModel model, List<TurkerLog> roundLogs) {
+        int dimcount = model.getRankDimensions().length;
+        Set<String> ids = new HashSet<String>();
+        for (TurkerLog l : roundLogs) {
+            ids.add(l.getHit().getId());
+        }
+        return ids.size() == dimcount;
+
+    }
+
     private boolean checkValidation(SolverTaskModel model, List<TurkerLog> roundLogs) throws JSONException {
         Map<Long, Solution> needsAttention = new HashMap<Long, Solution>();
         int validated = 0;
@@ -124,17 +140,17 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
                 validated++;
             } else if (s.getValidEnum() == Solution.Valid.INVALID) {
                 model.getCurrentStatus().removeFromCurrentAnswers(s);
-                HitManager.get(model.getBatch()).rejectAssignments(new String[] {s.getAssignmentId()},"The answer you provided was judged to be invalid");
+                HitManager.get(model.getBatch()).rejectAssignments(new String[]{s.getAssignmentId()}, "The answer you provided was judged to be invalid");
             }
         }
         if (!needsAttention.isEmpty()) {
             for (TurkerLog log : roundLogs) {
-                String phase = MturkUtils.extractAnswer(log,"phase");
+                String phase = MturkUtils.extractAnswer(log, "phase");
                 if (!Phase.VALIDATION.name().equals(phase)) continue;
                 Solution t = needsAttention.get(Long.parseLong(MturkUtils.extractAnswer(log, "answerId")));
                 if (t != null) {
                     boolean isEmpty = MturkUtils.extractAnswer(log, "blank") != null;
-                    boolean isNonesense = MturkUtils.extractAnswer(log, "nonsense")!=null;
+                    boolean isNonesense = MturkUtils.extractAnswer(log, "nonsense") != null;
                     Set<String> copies = new HashSet<String>();
                     String copiedIds = MturkUtils.extractAnswer(log, "copies");
                     if (copiedIds != null && !copiedIds.isEmpty()) {
@@ -142,7 +158,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
                             if (c == null || c.isEmpty()) continue;
                             Solution ps = DataObjectUtils.objectForPK(DbProvider.getContext(), Solution.class, Long.parseLong(c));
                             if (ps == null) {
-                                logger.error("Cannot identify solution "+c);
+                                logger.error("Cannot identify solution " + c);
 
                             } else {
                                 copies.add(c);
@@ -154,7 +170,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
                     }
 
                     if (isEmpty || isNonesense || !copies.isEmpty()) {
-                        Map<String,Object> jsonMap = Utils.mapify("empty",isEmpty,"nonsense",isNonesense,"copyof",copies);
+                        Map<String, Object> jsonMap = Utils.mapify("empty", isEmpty, "nonsense", isNonesense, "copyof", copies);
                         t.setMeta(new JSONObject(jsonMap).toString());
                         t.setValid(Solution.Valid.NEEDS_APPROVAL);
                         notifyBatchOwner();
@@ -180,7 +196,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             logger.warn("Mailer could not be configured, not messaging");
         } else {
             try {
-                mailer.sendMail("jintrone@gmail.com",batch().getContactEmail(),"[TURKMDR] A hit is awaiting your approval","New hits have been added to the approval page");
+                mailer.sendMail("jintrone@gmail.com", batch().getContactEmail(), "[TURKMDR] A hit is awaiting your approval", "New hits have been added to the approval page");
             } catch (MessagingException e) {
                 logger.warn("Error sending message");
             }
@@ -243,16 +259,16 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             model.getCurrentStatus().addToCurrentAnswers(s);
 
         }
-         setProcessed(roundLogs);
+        setProcessed(roundLogs);
         DbProvider.getContext().commitChanges();
     }
 
     public void setProcessed(List<TurkerLog> logs) {
         Set<Hits> hits = new HashSet<Hits>();
-        for (TurkerLog l:logs) {
+        for (TurkerLog l : logs) {
             if (hits.add(l.getHit())) {
                 if (l.getHit() == null) {
-                    logger.warn("hit for log "+l.getObjectId()+" is null");
+                    logger.warn("hit for log " + l.getObjectId() + " is null");
                 } else {
                     l.getHit().setProcessed(true);
                 }
@@ -279,9 +295,12 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
         SolverTaskStatus status = model.getCurrentStatus();
         List<Solution> answers = new ArrayList<Solution>(status.getCurrentAnswers());
 
+        Map<Integer, double[]> ranksByDim = new HashMap<Integer, double[]>();
+
+
         for (TurkerLog log : logs) {
 
-            String phase = MturkUtils.extractAnswer(log,"phase");
+            String phase = MturkUtils.extractAnswer(log, "phase");
             if (!Phase.RANK.name().equals(phase) && !Phase.INIT.name().equals(phase)) continue;
             List<Double> ranks = new ArrayList<Double>();
 
@@ -291,14 +310,26 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
                 ranks.add(rank);
             }
-            response.put(log, ArrayUtils.toPrimitive(ranks.toArray(new Double[ranks.size()]), 0d));
+            double[] rankingArray = ArrayUtils.toPrimitive(ranks.toArray(new Double[ranks.size()]), 0d);
+            response.put(log, rankingArray);
+            int dim = Integer.parseInt(MturkUtils.extractAnswer(log, "dimension"));
+            if (!ranksByDim.containsKey(dim)) {
+                ranksByDim.put(dim, new double[answers.size()]);
+            }
+            for (int i = 0; i < rankingArray.length; i++) {
+                ranksByDim.get(dim)[i] += rankingArray[i] / (double) model.getRankDimensions().length;
+            }
+
+
         }
+
 
         double[][] ranks = response.values().toArray(new double[response.size()][]);
         logger.info("Ranks are:");
         for (double[] rank1 : ranks) {
             logger.info(Arrays.toString(rank1));
         }
+
         double[] finalRanks = new double[answers.size()];
         float w = (float) new FriedmanTest(new MatchedData(ranks)).getW();
         logger.info("W = " + w);
@@ -321,24 +352,29 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             }
             answers.get(s).addToToRanks(solutionRank);
         }
+
         setProcessed(logs);
 
         DbProvider.getContext().commitChanges();
 
         //assign bonus to rankers based on kendall's W
         for (int r = 0; r < logs.size(); r++) {
-            float agreement = (float) new FriedmanTest(new MatchedData(new double[][]{finalRanks, ranks[r]})).getW();
+            int dim = Integer.parseInt(MturkUtils.extractAnswer(logs.get(r), "dimension"));
+            float agreement = (float) new FriedmanTest(new MatchedData(new double[][]{ranksByDim.get(dim), ranks[r]})).getW();
             float bonus = agreement * model.getMaxRankingBonus();
-            String feedback = String.format("Your ranking was similar to the mean ranking with a score of %.2f as assessed by Kendall's W. You are thus granted a bonus " +
-                    "of %.2f * %.2f = $%.2f", agreement, agreement, model.getMaxRankingBonus(), bonus);
+            String feedback = String.format("Your ranking was similar to the mean ranking along dimension " + model.getRankDimensions()[dim] + "with a score of %.2f as assessed by Kendall's W. You are thus granted a bonus " +
+                    " of %.2f * %.2f = $%.2f", agreement, agreement, model.getMaxRankingBonus(), bonus);
             if (logs.get(r).getAssignmentId() == null || logs.get(r).getAssignmentId().isEmpty()) {
                 continue;
             }
+            logger.debug("Attempting to assign bonus of "+bonus+" to "+logs.get(r).getAssignmentId()+" on dimension "+model.getRankDimensions()[dim]);
             HitManager.get(b).bonusAssignments(new String[]{logs.get(r).getAssignmentId()}, feedback, bonus);
         }
 
         //assign bonus to generators
-        Collections.sort(answers, new Comparator<Solution>() {
+        Collections.sort(answers, new Comparator<Solution>()
+
+        {
             public int compare(Solution solution, Solution solution1) {
                 return -1 * ((Float) solution.getLastRank().getRankValue()).compareTo(solution1.getLastRank().getRankValue());
             }
@@ -358,12 +394,12 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
                 int count = 0;
                 for (Solution sp : s.getToParents()) {
                     count++;
-                    old = Math.max(sp.getLastRank().getRankValue(),old);
+                    old = Math.max(sp.getLastRank().getRankValue(), old);
 
                 }
 
                 float improvement = s.getLastRank().getRankValue() - old;
-                float maxbonus =  count>1?model.getMaxCombiningBonus():model.getMaxImprovingBonus();
+                float maxbonus = count > 1 ? model.getMaxCombiningBonus() : model.getMaxImprovingBonus();
                 float bonus = improvement * maxbonus;
                 bonus = Float.parseFloat(String.format("%.2f", bonus));
                 if (bonus > 0) {

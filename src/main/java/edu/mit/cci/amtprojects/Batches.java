@@ -7,6 +7,8 @@ import edu.mit.cci.amtprojects.util.Utils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.json.JSONException;
 import org.apache.wicket.authroles.authorization.strategies.role.annotations.AuthorizeInstantiation;
 import org.apache.wicket.markup.html.WebPage;
@@ -14,6 +16,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.Radio;
+import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
@@ -21,6 +25,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.CompoundPropertyModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.UnsupportedEncodingException;
@@ -73,6 +78,9 @@ public class Batches extends WebPage {
             throw new RestartResponseException(HomePage.class, parameters);
         }
 
+        final RadioGroup<Batch> batches = new RadioGroup<Batch>("batches",new Model());
+
+
 
 
         final DataView<Batch> dataView = new DataView<Batch>("pageable", new BatchDataProvider(experiment)) {
@@ -81,7 +89,14 @@ public class Batches extends WebPage {
             @Override
             protected void populateItem(final Item<Batch> item) {
                 final Batch batch = item.getModelObject();
+
                 pluginFactory.getBatchManager();
+                item.add(new Radio<Batch>("radio", item.getModel(), batches).add(new AjaxEventBehavior("change") {
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                       batches.setModelObject(batch);
+                    }
+                }));
                 item.add(new Label("AWSId", batch.getAwsId()));
                 item.add(new Label("creation", DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(batch.getCreated())));
                 item.add(new Label("sandbox", String.valueOf(batch.getIsReal())));
@@ -111,8 +126,19 @@ public class Batches extends WebPage {
 
             }
         };
+        batches.add(dataView);
 
-        add(dataView);
+        add(batches);
+        add(new Button("Copy") {
+            public boolean isEnabled() {
+                return batches.getModelObject()!=null;
+            }
+
+
+
+
+        });
+
         dataView.setItemsPerPage(itemsPerPage);
         pagingNavigator = new PagingNavigator("navigator", dataView);
         add(pagingNavigator);
@@ -158,7 +184,7 @@ public class Batches extends WebPage {
                 }
             }
 
-        });
+        }.setOutputMarkupId(true));
 
 
     }
