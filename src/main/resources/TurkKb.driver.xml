@@ -2,5 +2,5 @@
 <driver project-version="3.0.0.1" class="com.mysql.jdbc.Driver">
 	<url value="jdbc:mysql://localhost:3306/turk-kb"/>
 	<connectionPool min="1" max="1"/>
-	<login userName="turk" password="turk"/>
+	<login userName="root" password=""/>
 </driver>
