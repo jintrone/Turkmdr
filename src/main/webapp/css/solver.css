@@ -1,24 +1,33 @@
 body, p, li, a {
     font-family: 'Source+Sans+Pro', sans-serif;
-    font-size: 10pt;
+    font-size: 12pt;
 }
 
 h1, h2, h3 {
     font-family: 'Source+Sans+Pro', sans-serif;
 }
 
+h3 {
+    text-decoration: underline;
+}
+
 body {
     margin: 0 auto;
     padding: 0;
     width: 700px;
+
 }
 
-.instructions {font-size:20px; font-style:italic; color:#909090; margin-bottom:5px}
+.instructions {font-size:16px; font-style:italic; color:#909090; margin-bottom:5px}
 .hint {font-size:12px; font-style:italic; color:#303030; margin-bottom:0px}
+.question {font-size:20px}
+.organizer-panel {background: rgb(189, 199, 209)}
+.attention-panel {background: rgb(200,100,100); padding:5px 15px}
 
-.question {font-size:22px}
 div.inset {width: 700px;margin: 0 auto}
 
+
+td.checkbox {width:20px;text-align: center}
 table#answers {width:100%; margin-top: 20px}
 table#answers th {background-color: #C0C0C0; padding: 5px;}
 table#answers th#rankcol {width:25px}
@@ -28,7 +37,7 @@ table#answers td {padding: 15px 0px; vertical-align: top}
 table#answers td.number {width:20px; text-align: center}
 table#answers td.answer p {font-size:16px; margin:0}
 table#answers td.score {width:20px; text-align: center}
-table#answers td.checkbox {width:20px;text-align: center}
+
 
 div.workpanel {margin-top:40px}
 
@@ -55,7 +64,7 @@ button:hover, input[type="submit"]:hover {background: #103060;}
 button:disabled,  input[type="submit"][enabled="false"]:disabled {background: #606161}
 
 button .bonuslabel {font-weight:bold; color:black; font-size:18px}
-button .bonusvalue {color:#fafad2; font-size: 18px}
+.bonusvalue {color:#fafad2; font-size: 18px}
 
 .submitBlock {text-align: center; margin-top:20px}
 div.popup {display:none; width:200px; font-size:12px; font-style:italic; color:#030303; background-color: #fce174; border: thin solid #030303; position: absolute; padding: 10px}
@@ -80,6 +89,11 @@ div.feedback {color: #962626; font-size:18px}
 textarea:disabled {background:lightgray}
 .qualitynote {font-size:16px;color:black}
 .red {color: #962626;}
+
+
+
+table.wide {width:100%}
+table.padded td {padding:5px}
 
 table.visible-layout {border-collapse: collapse;border: thin black solid; width:100%}
 table.visible-layout td {border: thin gray solid; padding: 5px; vertical-align: top}

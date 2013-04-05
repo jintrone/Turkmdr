@@ -40,8 +40,9 @@ public class SolverRankingTask extends GenericTask {
         int dimension = param.get("dimension").toInt(0);
         String dimensionName = getModel().getRankDimensions()[dimension];
         String dimensionText = getModel().getRankDimensionsText()[dimension];
-        //add(new Label("dimensionName",dimensionName));
+        add(new Label("dimensionName",dimensionName));
         add(new Label("dimensionText",dimensionText));
+        add(new Label("bonusValue",String.format("$%.2f",getModel().getMaxRankingBonus())));
 
         DataView<Solution> dataView = new DataView<Solution>("answers", new ListDataProvider<Solution>(getModel().getCurrentStatus().getCurrentAnswers())) {
             @Override

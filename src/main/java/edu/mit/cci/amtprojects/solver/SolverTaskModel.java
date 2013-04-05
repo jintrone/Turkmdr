@@ -107,6 +107,22 @@ public class SolverTaskModel implements IClusterable {
                 }
             }
 
+            List<String> rd = new ArrayList<String>();
+            List<String> rdt = new ArrayList<String>();
+
+            for (int i=0;i<rankDimensions.length;i++) {
+                if (rankDimensions[i] == null) {
+                    continue;
+                } else {
+                   rd.add(rankDimensions[i]);
+                    rdt.add(rankDimensionsText[i]);
+                }
+
+            }
+            rankDimensions = rd.toArray(new String[rd.size()]);
+            rankDimensionsText = rdt.toArray(new String[rdt.size()]);
+
+
             DbProvider.getContext().commitChanges();
             for (Solution s : solutions) {
                 initialAnswerIds.add(s.getId());
@@ -428,28 +444,28 @@ public class SolverTaskModel implements IClusterable {
     }
 
     public String getRankDimension0() {
-        return rankDimensions[0];
+        return rankDimensions.length == 0?null:rankDimensions[0];
     }
 
     public String getRankDimensionText0() {
-        return rankDimensionsText[0];
+        return rankDimensions.length == 0?null:rankDimensionsText[0];
     }
 
     public String getRankDimension1() {
-        return rankDimensions[1];
+        return rankDimensions.length <2 ?null:rankDimensions[1];
     }
 
     public String getRankDimensionText1() {
-        return rankDimensionsText[1];
+        return rankDimensions.length <2 ?null:rankDimensionsText[1];
     }
 
 
     public String getRankDimension2() {
-        return rankDimensions[2];
+        return rankDimensions.length  <3?null:rankDimensions[2];
     }
 
     public String getRankDimensionText2() {
-        return rankDimensionsText[2];
+        return rankDimensions.length <3?null:rankDimensionsText[2];
     }
 
 

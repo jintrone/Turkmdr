@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<html xmlns:wicket="http://wicket.apache.org">
 <head>
     <meta charset="utf-8"/>
     <title>MechTurk Solution Task</title>
@@ -11,25 +11,26 @@
     <script type="text/javascript">
         function validateForm() {
 
-            var count=0;
-            var ranks = $("input.solutionRank").map(function() {
+            var count = 0;
+            var ranks = $("input.solutionRank").map(function () {
                 count++;
                 if (this.value) return parseInt(this.value);
             }).get();
 
-            if (count!= ranks.length) {
+            if (count != ranks.length) {
                 alert("Please rank all items");
                 return false;
             }
 
-            ranks.sort(function(a,b) {return a-b});
-            for (var i = 0;i<count;i++) {
-                if (i+1!=ranks[i]) {
-                   alert("Please rank each item with a unique value from 1 to "+count);
+            ranks.sort(function (a, b) {
+                return a - b
+            });
+            for (var i = 0; i < count; i++) {
+                if (i + 1 != ranks[i]) {
+                    alert("Please rank each item with a unique value from 1 to " + count);
                     return false;
                 }
             }
-
 
 
             return true;
@@ -43,39 +44,49 @@
 <body>
 <div wicket:id="demographicsPanel">[demographics panel]</div>
 <div>
-     <p class="question">
+    <p class="question">
         <span wicket:id="question">[the question]</span>
     </p>
+
+    <div class="attention-panel">
+        <h3>
+            Rank by <em><span wicket:id="dimensionName">[Ranking text]</span></em>
+        </h3>
+
+        <p class="payattention">
+            <span wicket:id="dimensionText">[Ranking text]</span> You will receive a bonus of up to <span wicket:id="bonusValue" class="bonusvalue">[value]</span> based on how similar your ranking is to other turkers' rankings.
+        </p>
+    </div>
+
     <p class="instructions">
-    Please rank the following answers from 1 to <span wicket:id="answerCount">[count]</span>. 1 is the best. All answers must
-    be assigned a unique rank.
-    <span wicket:id="dimensionText">[Ranking text]</span>
+        Rank the solutions from 1 to <span wicket:id="answerCount">[count]</span>. 1 is the best. All answers must
+        be assigned a unique rank.
 
-
-  </p>
+    </p>
 
 
     <div class="inset">
-        <span class="smallinfo">Current Answers:</span>
         <form wicket:id="hitForm" onsubmit="return validateForm();">
             <input wicket:id="assignmentId" id="assignmentId" type="hidden"/>
             <input wicket:id="round" id="round" type="hidden"/>
-             <input wicket:id="phase" id="phase" type="hidden"/>
+            <input wicket:id="phase" id="phase" type="hidden"/>
             <input wicket:id="dimension" id="dimension" type="hidden"/>
             <table id="answers">
                 <tr>
-                  <th id="rankcol">Rank</th>
-                  <th>Answer</th>
-                 </tr>
+
+                    <th>Solution</th>
+                    <th id="rankcol">Rank</th>
+                </tr>
                 <tr wicket:id="answers">
+                    <td class="answer">
+                        <span wicket:id="text">[answer]</span>
+                    </td>
                     <td class="checkbox">
                         <input type="text" wicket:id="rank" class="solutionRank"/>
 
                     </td>
-                    <td class="answer">
-                         <span wicket:id="text">[answer]</span>
-                    </td>
-                 </tr>
+
+                </tr>
             </table>
             <div class="submitBlock"><input type="submit" value="Submit ranking" wicket:id="submit"/></div>
         </form>

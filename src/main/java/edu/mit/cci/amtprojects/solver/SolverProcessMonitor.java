@@ -367,7 +367,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             if (logs.get(r).getAssignmentId() == null || logs.get(r).getAssignmentId().isEmpty()) {
                 continue;
             }
-            logger.debug("Attempting to assign bonus of "+bonus+" to "+logs.get(r).getAssignmentId()+" on dimension "+model.getRankDimensions()[dim]);
+            logger.info("Attempting to assign bonus of "+bonus+" to "+logs.get(r).getAssignmentId()+" on dimension "+model.getRankDimensions()[dim]);
             HitManager.get(b).bonusAssignments(new String[]{logs.get(r).getAssignmentId()}, feedback, bonus);
         }
 

@@ -5,7 +5,10 @@
     <title>MechTurk Solution Task</title>
     <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="css/solver.css" type="text/css" media="screen" title="Stylesheet"/>
+    <link rel="stylesheet" href="css/smoothness/jquery-ui-1.10.1.custom.css" type="text/css" media="screen"
+          title="Stylesheet"/>
     <script src="js/jquery-1.9.1.js"></script>
+    <script src="js/jquery-ui-1.10.1.custom.min.js"></script>
     <script src="js/findDupes.js" type="text/javascript" language="JavaScript"></script>
     <script type="text/javascript">
         keypresscount = 0;
@@ -22,8 +25,9 @@
             });
 
             $("#dialog-confirm").dialog({
+                autoOpen: false,
                 resizable: false,
-                height: 140,
+                width: 500,
                 modal: true,
                 buttons: {
                     "Ignore warning and submit anyway": function () {
@@ -38,22 +42,35 @@
             });
         });
 
-        function check() {
+        function check(id) {
 
-            var result = findDupes($("textarea#submissionText").value, 10);
+            var data = $("#" + id).val();
+
+
             var text = "The following potential problems were found with your submission:<ul>";
             var errors = false;
-            if (result.length >= 10) {
-                text += "<li>There is a long duplicated region of text, starting with the words: '" + result.join(" ") + "'</li>";
+
+            if (!data) {
                 errors = true;
-            }
-            if (keypresscount < 5) {
-                text += "<li>There were relatively few edits to the text</li>";
-                errors = true;
+                text += "<li>There is no text.</li>";
+
+            } else {
+                var tokens = data.toLowerCase().split(/[\W\s]+/);
+                var testlength = Math.min(10,tokens.length);
+                var result = findDupes(tokens, testlength);
+                if (result.length >= testlength) {
+                    text += "<li>There is a long duplicated region of text, starting with the words: '" + result.join(" ") + "'</li>";
+                    errors = true;
+                }
+
+                if (keypresscount < 10) {
+                    text += "<li>There were relatively few edits to the text</li>";
+                    errors = true;
+                }
             }
             if (errors) {
                 text += "</ul>If it is found that you either duplicated text within your answer or simply copied one or more answers without adding a substantial contribution, your result will be <em>rejected</em>, possibly reducing your work opportunities in the future.  However, if you feel that your answer is a good contribution, you can chooise to ignore this warning.";
-                $("p#dialogText").text = text;
+                $("p#dialog-text").html(text);
                 $("#dialog-confirm").dialog("open");
             } else {
                 $("form#hitForm").submit();
@@ -66,6 +83,7 @@
 
         function resetCount() {
             keypresscount = 0;
+            return false;
 
         }
     </script>
@@ -123,20 +141,20 @@
             <tr>
                 <td class="button">
                     <button class="choicebutton" wicket:id="generate" onclick="resetCount()">
-                        Create a new answer<br>
+                        Create a new solution<br>
                         <span class="bonuslabel">MAX BONUS:</span><span class="bonusvalue"
                                                                         wicket:id="maxBonus">[bonus]</span>
                     </button>
                 </td>
                 <td class="button">
                     <button class="choicebutton" wicket:id="improve" onclick="resetCount()">Improve an existing
-                        answer<br>
+                        solution<br>
                         <span class="bonuslabel">MAX BONUS:</span><span class="bonusvalue"
                                                                         wicket:id="maxBonus">[bonus]</span>
                     </button>
                 </td>
                 <td class="button">
-                    <button class="choicebutton" wicket:id="combine" onclick="resetCount()">Combine existing answers<br>
+                    <button class="choicebutton" wicket:id="combine" onclick="resetCount()">Combine existing solutions<br>
                         <span class="bonuslabel">MAX BONUS:</span><span class="bonusvalue"
                                                                         wicket:id="maxBonus">[bonus]</span>
                     </button>
@@ -167,7 +185,7 @@
     </div>
 
     <div id="dialog-confirm" title="Problems with your solution">
-        <p id="dialog-text"><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span></p>
+        <p id="dialog-text"></p>
     </div>
 
 
@@ -176,22 +194,30 @@
 
     <a class="smallinfo" href="#" wicket:id="choose">&lt;- Go back</a><br>
 
-    <p class="instructions">Improve an existing answer to the above question. Bonus is based on how
-        much other turkers think you improved the answer. Maximum bonus is <span class="red" wicket:id="maxImprovingBonus">[text]</span>.</p>
+    <div class="attention-panel">
 
-    <div class="qualitynote">Please edit your selected answer to make substantial improvements (e.g. fixing grammar, adding detail, improving coherence, etc.). Copies or pointless edits (e.g. adding or deleting spaces, changing punctuation) will results in your work being rejected.
+        <h3>Improve solution</h3>
+        <p>
+        Improve an existing solution to the above problem. Bonus is based on how
+        much other turkers think you improved the solution. Maximum bonus is <span class="bonusvalue"
+                                                                                 wicket:id="maxImprovingBonus">[text]</span>.
+        </p>
     </div>
+    <br/>
+    <p class="instructions">Edit your selected solution to make substantial improvements (e.g. fixing grammar,
+        adding detail, improving coherence, etc.). Copies or pointless edits will result in your work being <span class="red">rejected</span>.
+    </p>
 
     <div wicket:id="progenitor">
         <table id="answers">
             <tr class="header">
                 <td colspan="2" class="instructions">
-                    Select an answer to improve:
+                    Select an solution to improve:
                 </td>
 
             </tr>
             <tr wicket:id="answers">
-                <td class="radio">
+                <td class="checkbox">
                     <input type="radio" wicket:id="radio"/>
                 </td>
 
@@ -204,19 +230,18 @@
     </div>
 
 
-    <p class="instructions">Edit your answer below:<br/>
+    <p class="instructions">Edit your solution below:<br/>
         <span class="hint">Note, if you change the above selection after you have edited the text below, you will lose your edits.</span>
     </p>
 
     <div class="answerBlock">
-        <textarea wicket:id="improvementText" id="submissionText" onkeypress="incrementCount();" cols="80" rows="8">Create
-            your improved answer here</textarea>
+        <textarea wicket:id="improvementText" id="improvementText" onkeypress="incrementCount();" cols="80" rows="8">Create
+            your improved solution here</textarea>
     </div>
 
 
-
     <div class="submitBlock">
-        <button type="button"  wicket:id="Submit" onclick="check();return false;">submit</button>
+        <button type="button" wicket:id="Submit" onclick="check('improvementText');return false;">submit</button>
 
     </div>
 
@@ -225,26 +250,29 @@
 
     <a class="smallinfo" href="#" wicket:id="choose">&lt;- Go back</a><br>
 
-    <p class="instructions">Combine existing answers to create a better answer to the above question. Bonus is based on
-        how much better your answer is than the answers you have selected. Maximum bonus is <span class="red" wicket:id="maxCombiningBonus">[text]</span>.</p>
-
-    <div class="qualitynote">Please edit your answer to create a coherent solution. Do not simply submit multiple answers that have been concatenated. Failure to follow these instructions will result in your work being rejected.
+    <div class="attention-panel">
+        <h3>Combine solutions</h3>
+    <p >Combine existing solutions to create a better solution to the above problem. Bonus is based on
+        how much better your solution is than the solutions you have selected. Maximum bonus is <span class="bonusvalue"
+                                                                                                  wicket:id="maxCombiningBonus">[text]</span>.
+    </p>
     </div>
-
-    <div class="qualitynote">Empty, excessively short, or nonsensical answers will be rejected. Copies with
-           very minimal edits (e.g. just deleting extra spaces, changing punctuation) will be rejected.
-       </div>
+    <br/>
+    <p class="instructions">Please edit your solution to create a <em>coherent</em> solution. Do not simply submit multiple
+        solutions that have been concatenated. Failure to follow these instructions will result in your work being
+        <span class="red">rejected</span>.
+    </p>
 
     <div wicket:id="progenitors">
         <table id="answers">
             <tr class="header">
                 <td colspan=2 class="instructions">
-                    Select at least two answers to combine:
+                    Select at least two solutions to combine:
                 </td>
 
             </tr>
             <tr wicket:id="answers">
-                <td class="radio">
+                <td class="checkbox">
                     <input type="checkbox" wicket:id="check"/>
                 </td>
 
@@ -256,18 +284,18 @@
         </table>
     </div>
 
-    <p class="instructions">Edit your answer to create a coherent plan:<br/>
+    <p class="instructions">Edit your solution to create a coherent plan:<br/>
         <span class="hint">Note, if you change the above selection after you have edited the text below, you will lose your edits.</span>
     </p>
 
     <div class="answerBlock">
-        <textarea wicket:id="improvementText" id="submissionText" onkeypress="incrementCount();" cols="80" rows="8">Create
-            your improved answer here</textarea>
+        <textarea wicket:id="improvementText" id="combineText" onkeypress="incrementCount();" cols="80" rows="8">Create
+            your improved solution here</textarea>
     </div>
 
 
     <div class="submitBlock">
-        <button type="button"  wicket:id="Submit" onclick="check();return false;">submit</button>
+        <button type="button" wicket:id="Submit" onclick="check('combineText');return false;">submit</button>
 
     </div>
 
@@ -275,21 +303,25 @@
 <wicket:fragment wicket:id="generateMarkup">
     <a class="smallinfo" href="#" wicket:id="choose">&lt;- Go back</a><br>
 
-    <p class="instructions">Create a completely new answer to the above question. Bonus is based on how highly ranked
-        your answer is by other turkers. Maximum bonus is <span class="red" wicket:id="maxBonus">[text]</span>.</p>
+    <div class="attention-panel">
+        <h3>Create a new solution</h3>
+    <p>Create a new solution to the above problem. Bonus is based on how highly ranked
+        your solution is by other turkers. Maximum bonus is <span class="bonusvalue" wicket:id="maxBonus">[text]</span>.</p>
+    </div>
+    <br/>
+    <div class="instructions">Please enter serious solutions only; it is OK to copy solutions from other websites, but
+        please make sure that the solution addresses the stated problem.
+        Failure to follow these instructions will result in your work being <span class="red">rejected</span>.
+    </div>
 
-    <div class="qualitynote">Please enter serious answers only; it is OK to copy solutions from other websites, but please make sure that the solution addresses the problem or question.
-        Failure to follow these instructions will result in your work being rejected.
-        </div>
 
-
-    <div class="answerBlock"><textarea id="submissionText" onkeypress="incrementCount();" wicket:id="generateText"
-                                       cols="80" rows="8">Create your answer here</textarea>
+    <div class="answerBlock"><textarea id="generateText" onkeypress="incrementCount();" wicket:id="generateText"
+                                       cols="80" rows="8">Create your solution here</textarea>
     </div>
 
     <div class="submitBlock">
 
-        <button type="button"  wicket:id="Submit" onclick="check();return false;">submit</button>
+        <button type="button" wicket:id="Submit" onclick="check('generateText');return false;">submit</button>
 
     </div>
 </wicket:fragment>

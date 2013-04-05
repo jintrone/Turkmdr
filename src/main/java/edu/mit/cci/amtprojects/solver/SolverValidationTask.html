@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<html xmlns:wicket="http://wicket.apache.org">
 <head>
     <meta charset="utf-8"/>
     <title>MechTurk Solution Task</title>
@@ -9,40 +9,40 @@
 
     <script type="text/javascript">
         var checkcount = 0;
-        $(function() {
+        $(function () {
 
 
-            $("span.popupTrigger").hover(function() {
+            $("span.popupTrigger").hover(function () {
                 var pos = $(this).offset();
 
                 $(this).next(".popup").fadeIn("fast");
-                $(this).next(".popup").offset({top:pos.top,left:pos.left - 220});
-            }, function() {
+                $(this).next(".popup").offset({top: pos.top, left: pos.left - 220});
+            }, function () {
                 $(this).next(".popup").fadeOut("fast");
             });
 
-            $('input:checkbox.needsapproval').click(function() {
-                if ($(this).attr("checked")) {
-                    $('input:checkbox.aok').attr("disabled",true);
-                    $('button.submit').attr("disabled",false);
+            $('input:checkbox.needsapproval').click(function () {
+                if (this.checked) {
+                    $('input:checkbox.aok').prop("disabled", true);
+                    $('button.submit').prop("disabled", false);
                     checkcount++;
                 } else {
                     checkcount--;
                     if (checkcount == 0) {
-                       $('input:checkbox.aok').attr("disabled",false);
-                        $('button.submit').attr("disabled",true);
+                        $('input:checkbox.aok').prop("disabled", false);
+                        $('button.submit').prop("disabled", true);
 
                     }
                 }
             });
-            $('input:checkbox.aok').click(function() {
-                if ($(this).attr("checked")) {
-                    $('input:checkbox.needsapproval').attr("disabled",true);
-                    $('button.submit').attr("disabled",false);
+            $('input:checkbox.aok').click(function () {
+                if (this.checked) {
+                    $('input:checkbox.needsapproval').prop("disabled", true);
+                    $('button.submit').prop("disabled", false);
 
                 } else {
-                    $('input:checkbox.needsapproval').attr("disabled",false);
-                    $('button.submit').attr("disabled",true);
+                    $('input:checkbox.needsapproval').prop("disabled", false);
+                    $('button.submit').prop("disabled", true);
 
                 }
             })
@@ -56,13 +56,13 @@
 <div>
 
 
-     <p class="instructions">
+    <p class="instructions">
         Please evaluate the answer to the question.
     </p>
     <table class="layout question">
         <tr>
             <td>
-                 <b>Question:</b>
+                <b>Problem:</b>
             </td>
             <td>
                 <span wicket:id="question">[the question]</span>
@@ -70,7 +70,7 @@
         </tr>
         <tr>
             <td>
-                 <b>Answer:</b>
+                <b>Solution:</b>
             </td>
             <td>
                 <span wicket:id="answer">[the question]</span>
@@ -80,6 +80,7 @@
 
     <br/>
     <br/>
+
     <form wicket:id="hitForm">
         <input wicket:id="assignmentId" id="assignmentId" type="hidden"/>
         <input wicket:id="phase" id="phase" type="hidden"/>
@@ -87,63 +88,64 @@
         <input wicket:id="answerId" id="answerId" type="hidden"/>
 
 
-        <table id="screen1" class="visible-layout">
+        <table id="screen1" class="wide organizer-panel padded">
 
-            <tr >
+            <tr>
+                <td>
+                    Is the answer to the question blank or excessively short?
+                </td>
                 <td class="checkbox">
                     <input class="needsapproval" type="checkbox" wicket:id="cbBlank"/>
                 </td>
-                <td>
-                   Is the answer to the question blank?
-                </td>
+
             </tr>
 
-             <tr>
+            <tr>
+                <td>
+                    Does it contain content that is off-topic, silly, or repetitive?
+                </td>
                 <td class="checkbox">
                     <input class="needsapproval" type="checkbox" wicket:id="cbNonsense"/>
                 </td>
-                 <td>
-                    Is it nonsense, excessively short, silly, off-topic, or spam?
-                 </td>
+
             </tr>
 
-        </table>
 
-         <p class="instructions">
-            If the answer is a copy of one or more of the following, please select them. (Answers that differ only by spaces or punctuation should be considered copies.  Answers that modify the text in some way should not be considered copies.).
-         </p>
+        </table>
+        <br/>
         <div wicket:id="copies">
-        <table class="visible-layout">
+            Is the answer a close copy of one of the following:
+            <br/>
+            <table class="wide organizer-panel padded">
+                <tr wicket:id="answers">
+                    <td class="answer">
+                        <span wicket:id="text">[answer]</span>
+                    </td>
+                    <td class="checkbox">
+                        <input class="needsapproval" type="checkbox" wicket:id="check"/>
+                    </td>
 
-            <tr wicket:id="answers">
-                <td class="checkbox">
-                    <input class="needsapproval" type="checkbox" wicket:id="check"/>
-                </td>
-                <td class="answer">
-                    <span wicket:id="text">[answer]</span>
-                </td>
-            </tr>
-        </table>
+                </tr>
+            </table>
         </div>
-         <p class="instructions">
-            If the answer seems reasonable (it is not blank, off-topic, or silly), and it is not a copy please check the box below.
-         </p>
+        <br/>
         <div>
-        <table class="visible-layout">
+            <table class="wide organizer-panel padded">
 
-            <tr>
-                <td class="checkbox">
-                    <input class="aok" type="checkbox" wicket:id="cbGood"/>
-                </td>
-                <td class="answer">
-                    The answer seems reasonable, and is not an exact copy of another answer.
-                </td>
-            </tr>
-        </table>
+                <tr>
+                    <td class="answer">
+                        Everything looks pretty good here!
+                    </td>
+                    <td class="checkbox">
+                        <input class="aok" type="checkbox" wicket:id="cbGood"/>
+                    </td>
+
+                </tr>
+            </table>
         </div>
 
         <div class="submitBlock">
-        <button class="submit" wicket:id="submit" name="submit" value="generate" disabled="true">submit</button>
+            <button class="submit" wicket:id="submit" name="submit" value="generate" disabled="true">submit</button>
         </div>
 
     </form>
