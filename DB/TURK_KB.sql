@@ -161,6 +161,9 @@ CREATE TABLE `Users` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 
+INSERT INTO `Users` (`id`, `password`, `username`)
+VALUES
+	(0, 'asdf', 'admin');
 
 
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;

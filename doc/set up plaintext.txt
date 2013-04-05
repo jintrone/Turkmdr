@@ -1,0 +1,40 @@
+How to set up Turkommander
+
+Working config on my host: Java 1.7.0_09 with Maven 3.0.3. Eclipse Juno for Java EE. 
+ 
+1.	Clone Git repo https://github.com/jintrone/Turkommander
+	a.	If new to Git, you might want to consider using their convenient App for Mac: http://mac.github.com/
+2.	Download Tomcat 7, extract to local dir. http://tomcat.apache.org/download-70.cgi
+3.	Get Eclipse Juno for Java EE ( http://www.eclipse.org/downloads/packages/eclipse-ide-java-ee-developers/junosr2 ). DL Links are to the right.
+4.	Install Maven plugin: Help / Eclipse Market place / Search for m2e / Install “Maven Integration for Eclipse”
+5.	Open a new terminal and direct it to the folder where your cloned Turkommander repo resides. 
+6.	Initialize the Java Web project by typing: mvn –Dwtpversion=2.0 eclipse:eclipse
+	a.	Make sure Maven is in your PATH environment variable
+	b.	Maven will download the dependencies, be patient
+7.	Go to eclipse and import ‘Existing Projects into Workspace’
+	a.	Select your Turkommander Repo as root directory.  A single project called “AmtProjects” should show up in the Projects View. 
+	b.	Make sure the project has a tick left of its name (default) and hit Finish
+8.	Set up eclipse tomcat integration to work with your new project.
+	a.	If Tomcat hasn’t been installed yet
+		i.	Open Servers View
+		ii.	Right click / new / server
+		iii.	Select Tomcat v7.0 Server and use the Runtime Environment you extracted Tomcat to previously
+		iv.	Finish
+	b.	Right click your Tomcat v7.0 Server / Add and remove / Add AmtProjects from the left side to the right
+9.	 Set up MySQL 
+	a.	If not installed yet: http://www.mysql.com/downloads/mysql/
+	b.	Add databases: turk-kb and amtsolutions
+	c.	Add users with simple pw for these DBs: (Open your MySQL Client and establish connection to your DB. Then enter following commands) 
+		i.	create user 'turk'@'localhost' identified by 'turk';
+		ii.	create user 'amtsolutions'@'localhost' identified by 'amtsolutions';
+		iii.	grant all privileges on `turk-kb`.*  to 'turk'@'localhost'
+		iv.	grant all privileges on `amtsolutions`.*  to 'amtsolutions'@'localhost'
+	d.	Import SQL scripts in DB folder of your local Git Repo to their databases
+		i.	cat AMTSOLUTIONS.sql | mysql –u amtsolutions –p amtsolutions
+		ii.	cat TURK_KB.sql | mysql –u turk –p turk-kb
+10.	Start your tomcat instance using Eclipse (right click / start)
+11.	Cross fingers
+12.	Access http://localhost:8180/AmtProjects/?1 in your Webbrowser. Default Username / Password is admin / asdf
+	a.	PW Can be changed in DB turk-kb, table Users
+
+Please don’t hesitate to contact me (pdeboer@mit.edu) if you run into problems ☺ 
