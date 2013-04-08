@@ -8,10 +8,12 @@ import org.apache.cayenne.DataObjectUtils;
 import org.apache.cayenne.PersistenceState;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.json.JSONException;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.Button;
@@ -40,10 +42,20 @@ public class SolverRankingTask extends GenericTask {
         int dimension = param.get("dimension").toInt(0);
         String dimensionName = getModel().getRankDimensions()[dimension];
         String dimensionText = getModel().getRankDimensionsText()[dimension];
-        add(new Label("dimensionName",dimensionName));
-        add(new Label("dimensionText",dimensionText));
-        add(new Label("bonusValue",String.format("$%.2f",getModel().getMaxRankingBonus())));
 
+        WebMarkupContainer container = new WebMarkupContainer("attentionpanel");
+        add(container);
+        container.add(new AttributeModifier("class", "dim-" + dimension+" attention-panel"));
+        container.add(new Label("dimensionName",dimensionName));
+
+        WebMarkupContainer container2 = new WebMarkupContainer("attentionpanel-2");
+        container2.add(new AttributeModifier("class", "dim-" + dimension+" attention-panel"));
+        container2.add(new Label("dimensionText",dimensionText));
+
+        add(new Label("bonusValue",String.format("$%.2f", getModel().getMaxRankingBonus())));
+        add(container2);
+
+        getForm().add(new Label("dimensionName",dimensionName));
         DataView<Solution> dataView = new DataView<Solution>("answers", new ListDataProvider<Solution>(getModel().getCurrentStatus().getCurrentAnswers())) {
             @Override
             protected void populateItem(Item<Solution> solutionItem) {

@@ -9,6 +9,11 @@ h1, h2, h3 {
 
 h3 {
     text-decoration: underline;
+    font-size: 26px;
+}
+
+.centered {
+    text-align: center;
 }
 
 body {
@@ -23,6 +28,15 @@ body {
 .question {font-size:20px}
 .organizer-panel {background: rgb(189, 199, 209)}
 .attention-panel {background: rgb(200,100,100); padding:5px 15px}
+.attention-panel.dim-1 {background: rgb(200, 171, 80)}
+.attention-panel.dim-2 {background: rgb(85, 200, 112)
+}
+.attention-panel.dim-3 {background: rgb(51, 149, 200)}
+.attention-panel.dim-4 {background: rgb(91, 97, 200)
+}
+.attention-panel.dim-5 {background: rgb(199, 94, 200)}
+
+
 
 div.inset {width: 700px;margin: 0 auto}
 
