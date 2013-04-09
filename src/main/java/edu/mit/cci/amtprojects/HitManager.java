@@ -315,6 +315,7 @@ public class HitManager {
         for (Hits h : hitses) {
             if (h.getStatusEnum() == Hits.Status.MISSING || h.getStatusEnum() == Hits.Status.RELAUNCHED || (h.getStatusEnum() == Hits.Status.COMPLETE && h.getProcessed()))
                 continue;
+            log.info("Process HIT "+h.getId());
             HIT ahit = requesterService.getHIT(h.getId());
             h.setAmtStatus(ahit.getHITStatus().getValue());
             if (ahit.getHITTypeId().equals(h.getHitTypeId())) h.setHitTypeId(ahit.getHITTypeId());

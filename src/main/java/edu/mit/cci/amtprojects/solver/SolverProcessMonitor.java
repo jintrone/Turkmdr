@@ -67,6 +67,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
         manager.updateHits();
         List<TurkerLog> logs = manager.getNewHitResults(true);
         List<TurkerLog> roundLogs = findCurrentLogs(currentRound, model.getCurrentStatus().getPhase(), logs);
+        logger.info("Got "+roundLogs.size()+" logs");
         boolean shouldLaunch = true;
         if (!roundLogs.isEmpty()) {
             if (model.getCurrentStatus().getPhase() == Phase.INIT) {
