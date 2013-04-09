@@ -54,7 +54,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
 
     public void update() throws UnsupportedEncodingException, JSONException {
-        logger.info("Checking status");
+        logger.info("Checking workflow status");
         Batch b = batch();
         SolverTaskModel model = new SolverTaskModel(b);
         if (model.getCurrentStatus().getPhase() == Phase.COMPLETE) {
