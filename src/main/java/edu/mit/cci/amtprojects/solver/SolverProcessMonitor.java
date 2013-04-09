@@ -124,7 +124,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
         int dimcount = model.getRankDimensions().length;
         Set<String> ids = new HashSet<String>();
         for (TurkerLog l : roundLogs) {
-            ids.add(l.getHit().getId());
+            ids.add(MturkUtils.extractAnswer(l,"dimension"));
         }
         logger.info("Num dims available = "+dimcount+", dims found = "+ids);
         return ids.size() == dimcount;
