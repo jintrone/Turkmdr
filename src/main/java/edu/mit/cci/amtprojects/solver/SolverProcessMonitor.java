@@ -364,6 +364,11 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             int dim = Integer.parseInt(MturkUtils.extractAnswer(logs.get(r), "dimension"));
             float agreement = (float) new FriedmanTest(new MatchedData(new double[][]{ranksByDim.get(dim), ranks[r]})).getW();
             float bonus = agreement * model.getMaxRankingBonus();
+            //bonus = Float.parseFloat(String.format("%.2f", bonus));
+            if (bonus == 0f) {
+                logger.info("Skipping bonus of 0");
+                continue;
+            }
             String feedback = String.format("Your ranking was similar to the mean ranking along dimension " + model.getRankDimensions()[dim] + "with a score of %.2f as assessed by Kendall's W. You are thus granted a bonus " +
                     " of %.2f * %.2f = $%.2f", agreement, agreement, model.getMaxRankingBonus(), bonus);
             if (logs.get(r).getAssignmentId() == null || logs.get(r).getAssignmentId().isEmpty()) {
@@ -387,6 +392,11 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             if (s.getToParents().isEmpty() && s.getRound() == status.getCurrentRound()) {
                 float rank = s.getLastRank().getRankValue();
                 float bonus = rank * model.getMaxGeneratingBonus();
+                if (bonus == 0f) {
+                                logger.info("Skipping bonus of 0");
+                                continue;
+                            }
+                //bonus = Float.parseFloat(String.format("%.2f", bonus));
                 String feedback = String.format("Your solution achieved a rank of %.2f (on a 0 - 1 scale) and so" +
                         "you are granted a bonus of %.2f * $%.2f = %.2f", rank, rank, model.getMaxGeneratingBonus(), bonus);
                 HitManager.get(b).bonusAssignments(new String[]{s.getAssignmentId()}, feedback, bonus);
