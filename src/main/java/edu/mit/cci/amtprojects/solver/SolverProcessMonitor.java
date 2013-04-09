@@ -369,7 +369,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
                 logger.info("Skipping bonus of 0");
                 continue;
             }
-            String feedback = String.format("Your ranking was similar to the mean ranking along dimension " + model.getRankDimensions()[dim] + "with a score of %.2f as assessed by Kendall's W. You are thus granted a bonus " +
+            String feedback = String.format("Your ranking was similar to the mean ranking along dimension " + model.getRankDimensions()[dim] + " with a score of %.2f as assessed by Kendall's W. You are thus granted a bonus " +
                     " of %.2f * %.2f = $%.2f", agreement, agreement, model.getMaxRankingBonus(), bonus);
             if (logs.get(r).getAssignmentId() == null || logs.get(r).getAssignmentId().isEmpty()) {
                 continue;
