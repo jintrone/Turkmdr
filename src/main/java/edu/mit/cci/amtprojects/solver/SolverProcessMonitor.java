@@ -125,6 +125,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
         for (TurkerLog l : roundLogs) {
             ids.add(l.getHit().getId());
         }
+        logger.info("Num dims available = "+dimcount+", dims found = "+ids);
         return ids.size() == dimcount;
 
     }
