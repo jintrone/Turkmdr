@@ -14,6 +14,7 @@
             var count = 0;
             var ranks = $("input.solutionRank").map(function () {
                 count++;
+                this.value = this.value.trim();
                 if (this.value) return parseInt(this.value);
             }).get();
 

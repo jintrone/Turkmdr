@@ -307,7 +307,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             List<Double> ranks = new ArrayList<Double>();
 
             for (Solution s : answers) {
-                double rank = (1 + answers.size() - Integer.parseInt(MturkUtils.extractAnswer(log, "Solution." + s.getId()))) / (double) (answers.size());
+                double rank = (1 + answers.size() - Integer.parseInt(MturkUtils.extractAnswer(log, "Solution." + s.getId()).trim())) / (double) (answers.size());
 
 
                 ranks.add(rank);
