@@ -21,8 +21,8 @@ public class SolverBatchManager implements BatchManager {
 
 
     public void restartBatchProcessor(Batch b,UrlCreator creator) {
-        SolverHitCreator.configure(creator);
-        SolverProcessMonitor monitor = SolverProcessMonitor.get(b);
+        MultiHitSolverHitCreator.configure(creator);
+        MultiHitSolverProcessMonitor monitor = MultiHitSolverProcessMonitor.get(b);
         if (!monitor.isRunning()) {
             monitor.restart();
         }
@@ -30,7 +30,7 @@ public class SolverBatchManager implements BatchManager {
     }
 
     public void haltBatchProcessor(Batch b) {
-       SolverProcessMonitor monitor = SolverProcessMonitor.get(b);
+       MultiHitSolverProcessMonitor monitor = MultiHitSolverProcessMonitor.get(b);
         if (monitor.isRunning()) {
             monitor.halt();
         }
@@ -47,11 +47,11 @@ public class SolverBatchManager implements BatchManager {
     }
 
     public Status getStatus(Batch b) {
-       SolverProcessMonitor monitor = SolverProcessMonitor.get(b);
+       MultiHitSolverProcessMonitor monitor = MultiHitSolverProcessMonitor.get(b);
 
         try {
             SolverTaskModel model = new SolverTaskModel(b);
-            if (model.getCurrentStatus().getPhase() == SolverProcessMonitor.Phase.COMPLETE) {
+            if (model.getCurrentStatus().getPhase() == SolverPluginFactory.Phase.COMPLETE) {
                 return Status.COMPLETE;
             }
         } catch (JSONException e) {
@@ -67,7 +67,7 @@ public class SolverBatchManager implements BatchManager {
 
     public synchronized void restartActiveHits(Batch b) {
 
-        SolverProcessMonitor monitor = SolverProcessMonitor.get(b);
+        MultiHitSolverProcessMonitor monitor = MultiHitSolverProcessMonitor.get(b);
         monitor.halt();
         HitManager manager = HitManager.get(b);
         manager.updateHits();

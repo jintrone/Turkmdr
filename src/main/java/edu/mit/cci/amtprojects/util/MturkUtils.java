@@ -114,4 +114,13 @@ public class MturkUtils {
         }
         return null;
     }
+
+
+    public static String extractAnswer(String answer,String key) {
+            QuestionFormAnswers answers = RequesterService.parseAnswers(answer);
+            for (QuestionFormAnswersType.AnswerType a:(List< QuestionFormAnswersType.AnswerType>) answers.getAnswer()) {
+              if (a.getQuestionIdentifier().equals(key)) return a.getFreeText();
+            }
+            return null;
+        }
 }

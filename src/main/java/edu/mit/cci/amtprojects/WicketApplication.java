@@ -41,6 +41,7 @@ public class WicketApplication extends AuthenticatedWebApplication
 	{
 		super.init();
         getDebugSettings().setComponentUseCheck(false);
+
         getRootRequestMapperAsCompound().add(new MountedMapper("/manage/${experiment}", Batches.class));
 
 

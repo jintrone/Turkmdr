@@ -4,6 +4,20 @@
   xsi:schemaLocation="http://cayenne.apache.org/schema/3.0/modelMap http://cayenne.apache.org/schema/3.0/modelMap.xsd"
   project-version="3.0.0.1">
 	<property name="defaultPackage" value="edu.mit.cci.amtprojects.kickball.cayenne"/>
+	<db-entity name="Assignments">
+		<db-attribute name="assignmentId" type="VARCHAR" length="256"/>
+		<db-attribute name="bonused" type="FLOAT"/>
+		<db-attribute name="completionDate" type="DATE"/>
+		<db-attribute name="hitId" type="VARCHAR" isMandatory="true" length="256"/>
+		<db-attribute name="id" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="launchDate" type="DATE"/>
+		<db-attribute name="processed" type="BIT"/>
+		<db-attribute name="results" type="LONGVARCHAR"/>
+		<db-attribute name="status" type="VARCHAR" length="128"/>
+		<db-attribute name="taskDurationSeconds" type="BIGINT"/>
+		<db-attribute name="url" type="VARCHAR" length="1024"/>
+		<db-attribute name="workerId" type="VARCHAR" length="256"/>
+	</db-entity>
 	<db-entity name="AwsCredentials">
 		<db-attribute name="awsId" type="VARCHAR" isMandatory="true" length="2048"/>
 		<db-attribute name="awsSecret" type="VARCHAR" isMandatory="true" length="2048"/>
@@ -67,6 +81,19 @@
 		<db-attribute name="password" type="VARCHAR" length="128"/>
 		<db-attribute name="username" type="VARCHAR" length="128"/>
 	</db-entity>
+	<obj-entity name="Assignments" className="edu.mit.cci.amtprojects.kickball.cayenne.Assignments" dbEntityName="Assignments">
+		<obj-attribute name="assignmentId" type="java.lang.String" db-attribute-path="assignmentId"/>
+		<obj-attribute name="bonused" type="java.lang.Float" db-attribute-path="bonused"/>
+		<obj-attribute name="completionDate" type="java.util.Date" db-attribute-path="completionDate"/>
+		<obj-attribute name="hitId" type="java.lang.String" db-attribute-path="hitId"/>
+		<obj-attribute name="launchDate" type="java.util.Date" db-attribute-path="launchDate"/>
+		<obj-attribute name="processed" type="boolean" db-attribute-path="processed"/>
+		<obj-attribute name="results" type="java.lang.String" db-attribute-path="results"/>
+		<obj-attribute name="status" type="java.lang.String" db-attribute-path="status"/>
+		<obj-attribute name="taskDurationSeconds" type="java.lang.Long" db-attribute-path="taskDurationSeconds"/>
+		<obj-attribute name="url" type="java.lang.String" db-attribute-path="url"/>
+		<obj-attribute name="workerId" type="java.lang.String" db-attribute-path="workerId"/>
+	</obj-entity>
 	<obj-entity name="AwsCredentials" className="edu.mit.cci.amtprojects.kickball.cayenne.AwsCredentials" dbEntityName="AwsCredentials">
 		<obj-attribute name="awsId" type="java.lang.String" db-attribute-path="awsId"/>
 		<obj-attribute name="awsSecret" type="java.lang.String" db-attribute-path="awsSecret"/>
@@ -120,6 +147,9 @@
 		<obj-attribute name="password" type="java.lang.String" db-attribute-path="password"/>
 		<obj-attribute name="username" type="java.lang.String" db-attribute-path="username"/>
 	</obj-entity>
+	<db-relationship name="hit" source="Assignments" target="Hits" toMany="false">
+		<db-attribute-pair source="hitId" target="id"/>
+	</db-relationship>
 	<db-relationship name="user" source="AwsCredentials" target="Users" toMany="false">
 		<db-attribute-pair source="username" target="username"/>
 	</db-relationship>
@@ -144,6 +174,9 @@
 	<db-relationship name="toBatch" source="Experiment" target="Batch" toMany="true">
 		<db-attribute-pair source="id" target="experimentId"/>
 	</db-relationship>
+	<db-relationship name="assignments" source="Hits" target="Assignments" toMany="true">
+		<db-attribute-pair source="id" target="hitId"/>
+	</db-relationship>
 	<db-relationship name="batch" source="Hits" target="Batch" toMany="false">
 		<db-attribute-pair source="batchId" target="id"/>
 	</db-relationship>
@@ -165,6 +198,7 @@
 	<db-relationship name="awsCredentials" source="Users" target="AwsCredentials" toMany="true">
 		<db-attribute-pair source="username" target="username"/>
 	</db-relationship>
+	<obj-relationship name="hit" source="Assignments" target="Hits" deleteRule="Nullify" db-relationship-path="hit"/>
 	<obj-relationship name="user" source="AwsCredentials" target="Users" deleteRule="Nullify" db-relationship-path="user"/>
 	<obj-relationship name="hits" source="Batch" target="Hits" deleteRule="Nullify" db-relationship-path="hits"/>
 	<obj-relationship name="toExperiment" source="Batch" target="Experiment" deleteRule="Nullify" db-relationship-path="toExperiment"/>
@@ -173,6 +207,7 @@
 	<obj-relationship name="toStatus" source="Batch" target="BatchStatus" deleteRule="Nullify" db-relationship-path="toStatus"/>
 	<obj-relationship name="toBatch" source="BatchStatus" target="Batch" deleteRule="Deny" db-relationship-path="toBatch"/>
 	<obj-relationship name="toBatch" source="Experiment" target="Batch" deleteRule="Deny" db-relationship-path="toBatch"/>
+	<obj-relationship name="assignments" source="Hits" target="Assignments" db-relationship-path="assignments"/>
 	<obj-relationship name="batch" source="Hits" target="Batch" deleteRule="Nullify" db-relationship-path="batch"/>
 	<obj-relationship name="logs" source="Hits" target="TurkerLog" deleteRule="Deny" db-relationship-path="logs"/>
 	<obj-relationship name="nextHit" source="Hits" target="Hits" deleteRule="Nullify" db-relationship-path="nextHit"/>

@@ -2,6 +2,7 @@ package edu.mit.cci.amtprojects.util;
 
 import com.amazonaws.mturk.requester.HIT;
 import edu.mit.cci.amtprojects.DbProvider;
+import edu.mit.cci.amtprojects.kickball.cayenne.Assignments;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Experiment;
 import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
@@ -14,6 +15,7 @@ import org.apache.cayenne.DataRow;
 import org.apache.cayenne.PersistenceState;
 import org.apache.cayenne.access.DataContext;
 import org.apache.cayenne.exp.Expression;
+import org.apache.cayenne.exp.ExpressionFactory;
 import org.apache.cayenne.query.SQLTemplate;
 import org.apache.cayenne.query.SelectQuery;
 import org.apache.log4j.Logger;
@@ -21,6 +23,8 @@ import org.apache.wicket.ajax.json.JSONObject;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -36,6 +40,8 @@ import java.util.Set;
 public class CayenneUtils {
 
     private static Logger log = Logger.getLogger(CayenneUtils.class);
+
+    private static Set<Assignments.Status> completed = new HashSet<Assignments.Status>(Arrays.asList(Assignments.Status.RESULTS, Assignments.Status.APPROVED));
 
     public static int count(DataContext context, String table, Class clz, String where) {
 
@@ -182,6 +188,15 @@ public class CayenneUtils {
             }
             nhit.setPreviousHit(oldhit);
         }
+
+        for (int i = 0; i < h.getMaxAssignments(); i++) {
+            Assignments a = new Assignments();
+            a.setHit(nhit);
+            a.setUrl(url);
+            a.setLaunchDate(new Date());
+            a.setStatus(Assignments.Status.PENDING.name());
+        }
+
         context.commitChanges();
         return nhit;
 
@@ -204,12 +219,55 @@ public class CayenneUtils {
 
     public static Solution inflate(DataContext context, Solution s) {
         if (s.getPersistenceState() == PersistenceState.HOLLOW) {
-            return DataObjectUtils.objectForPK(context,Solution.class,s.getId());
+            return DataObjectUtils.objectForPK(context, Solution.class, s.getId());
         } else return s;
     }
 
     public static List<Solution> findSolutions(DataContext context, Long batchid, Solution.Valid validity) {
         SQLTemplate q = new SQLTemplate(Solution.class, "select Solution.* from Solution inner join Question on Solution.questionId = Question.id where Question.batchId = " + batchid + " and Solution.valid " + (validity == null ? "IS NULL" : "='" + validity.name() + "'"));
-        return  context.performQuery(q);
+        return context.performQuery(q);
     }
+
+    public static Collection<Assignments> findAssignmentsForBatch(DataContext context, Long batch, boolean b, Assignments.Status... status) {
+        SelectQuery query = new SelectQuery(Assignments.class);
+
+        List<String> statuses = new ArrayList<String>();
+        for (Assignments.Status s : status) {
+            statuses.add(s.name());
+        }
+        query.setQualifier(ExpressionFactory.matchDbExp("batchId", batch));
+        if (!statuses.isEmpty()) query.andQualifier(ExpressionFactory.inExp("status", statuses));
+        query.andQualifier(ExpressionFactory.matchExp("processed", b));
+        return context.performQuery(query);
+    }
+
+    public static Collection<Hits> findHitsForBatch(DataContext context, Long batch, boolean b, Hits.Status... status) {
+        SelectQuery query = new SelectQuery(Hits.class);
+
+        List<String> statuses = new ArrayList<String>();
+        for (Hits.Status s : status) {
+            statuses.add(s.name());
+        }
+        query.setQualifier(ExpressionFactory.matchDbExp("batchId", batch));
+        if (!statuses.isEmpty()) query.andQualifier(ExpressionFactory.inExp("status", statuses));
+        query.andQualifier(ExpressionFactory.matchExp("processed", b));
+        return context.performQuery(query);
+    }
+
+    public static Collection<Assignments> collectCompletedAssignments(Collection<Hits> hits, Integer round) {
+        List<Assignments> results = new ArrayList<Assignments>();
+
+        for (Hits h:hits) {
+            if (h.getPreviousHit()!=null) {
+                results.addAll(collectCompletedAssignments(Collections.singletonList(h),round));
+            }
+            for (Assignments a:h.getAssignments()) {
+                if (completed.contains(a.getStatusEnum()) && (round==null || Integer.parseInt(MturkUtils.extractAnswer(a.getResults(),"round"))==round)) {
+                    results.add(a);
+                }
+            }
+        }
+        return results;
+    }
+
 }

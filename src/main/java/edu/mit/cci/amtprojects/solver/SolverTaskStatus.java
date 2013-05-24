@@ -27,7 +27,7 @@ public class SolverTaskStatus implements Serializable {
 
     long batchid;
     int currentRound = -1;
-    SolverProcessMonitor.Phase phase;
+    SolverPluginFactory.Phase phase;
     List<Long> currentSolutions = new ArrayList<Long>();
 
 
@@ -51,12 +51,12 @@ public class SolverTaskStatus implements Serializable {
 
     }
 
-    public SolverProcessMonitor.Phase getPhase() {
+    public SolverPluginFactory.Phase getPhase() {
         return phase;
     }
 
 
-    public void setPhase(SolverProcessMonitor.Phase phase) {
+    public void setPhase(SolverPluginFactory.Phase phase) {
         this.phase = phase;
     }
 
@@ -109,7 +109,7 @@ public class SolverTaskStatus implements Serializable {
         BatchStatus status = Utils.last(b.getToStatus());
         JSONObject obj = new JSONObject(status.getJsonStatus());
         setCurrentRound(obj.getInt("Round"));
-        setPhase(SolverProcessMonitor.Phase.valueOf(obj.getString("Phase")));
+        setPhase(SolverPluginFactory.Phase.valueOf(obj.getString("Phase")));
         JSONArray array = obj.getJSONArray("Solutions");
         currentSolutions = new ArrayList<Long>();
         for (int i=0;i<array.length();i++) {

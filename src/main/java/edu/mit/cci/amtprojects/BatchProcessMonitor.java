@@ -1,26 +1,12 @@
 package edu.mit.cci.amtprojects;
 
 import com.amazonaws.mturk.service.exception.InternalServiceException;
-import edu.mit.cci.amtprojects.HitManager;
-import edu.mit.cci.amtprojects.DbProvider;
-import edu.mit.cci.amtprojects.kickball.KickballProcessMonitor;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
 import edu.mit.cci.amtprojects.kickball.cayenne.User;
-import edu.mit.cci.amtprojects.solver.Solution;
-import edu.mit.cci.amtprojects.solver.SolutionRank;
-import edu.mit.cci.amtprojects.solver.SolverHitCreator;
-import edu.mit.cci.amtprojects.solver.SolverProcessMonitor;
-import edu.mit.cci.amtprojects.solver.SolverTaskModel;
-import edu.mit.cci.amtprojects.solver.SolverTaskStatus;
 import edu.mit.cci.amtprojects.util.CayenneUtils;
-import edu.mit.cci.amtprojects.util.MturkUtils;
-import jsc.datastructures.MatchedData;
-import jsc.descriptive.MeanVar;
-import jsc.relatedsamples.FriedmanTest;
 import org.apache.cayenne.DataObjectUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.json.JSONException;
 

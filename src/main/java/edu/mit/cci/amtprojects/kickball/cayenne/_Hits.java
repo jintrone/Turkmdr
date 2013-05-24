@@ -25,6 +25,7 @@ public abstract class _Hits extends CayenneDataObject {
     public static final String SCREEN_PROPERTY = "screen";
     public static final String STATUS_PROPERTY = "status";
     public static final String URL_PROPERTY = "url";
+    public static final String ASSIGNMENTS_PROPERTY = "assignments";
     public static final String BATCH_PROPERTY = "batch";
     public static final String LOGS_PROPERTY = "logs";
     public static final String NEXT_HIT_PROPERTY = "nextHit";
@@ -115,6 +116,18 @@ public abstract class _Hits extends CayenneDataObject {
     public String getUrl() {
         return (String)readProperty("url");
     }
+
+    public void addToAssignments(Assignments obj) {
+        addToManyTarget("assignments", obj, true);
+    }
+    public void removeFromAssignments(Assignments obj) {
+        removeToManyTarget("assignments", obj, true);
+    }
+    @SuppressWarnings("unchecked")
+    public List<Assignments> getAssignments() {
+        return (List<Assignments>)readProperty("assignments");
+    }
+
 
     public void setBatch(Batch batch) {
         setToOneTarget("batch", batch, true);

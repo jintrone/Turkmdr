@@ -3,9 +3,10 @@ package edu.mit.cci.amtprojects.solver;
 import edu.mit.cci.amtprojects.BatchProcessMonitor;
 import edu.mit.cci.amtprojects.DbProvider;
 import edu.mit.cci.amtprojects.HitManager;
+import edu.mit.cci.amtprojects.kickball.cayenne.Assignments;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
-import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
+import edu.mit.cci.amtprojects.util.CayenneUtils;
 import edu.mit.cci.amtprojects.util.Mailer;
 import edu.mit.cci.amtprojects.util.MturkUtils;
 import edu.mit.cci.amtprojects.util.Utils;
@@ -24,22 +25,25 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
+ * SolverProcessMonitor monitors the batch and takes care of launching HITs as the batch progresses.  This version of the
+ * process monitor presumes that each HIT represents a phase in a round of a workflow.
+ * <p/>
  * User: jintrone
  * Date: 10/15/12
  * Time: 2:55 PM
  */
-public class SolverProcessMonitor extends BatchProcessMonitor {
+public class MultiHitSolverProcessMonitor extends BatchProcessMonitor {
 
 
-    private static Logger logger = Logger.getLogger(SolverProcessMonitor.class);
+    private static Logger logger = Logger.getLogger(MultiHitSolverProcessMonitor.class);
 
-    public SolverProcessMonitor(Batch b) {
+    public MultiHitSolverProcessMonitor(Batch b) {
         super(b);
     }
 
-    public static SolverProcessMonitor get(Batch b) {
+    public static MultiHitSolverProcessMonitor get(Batch b) {
         try {
-            return (SolverProcessMonitor) get(b, SolverProcessMonitor.class);
+            return (MultiHitSolverProcessMonitor) get(b, MultiHitSolverProcessMonitor.class);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (InvocationTargetException e) {
@@ -57,7 +61,7 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
         logger.info("Checking workflow status");
         Batch b = batch();
         SolverTaskModel model = new SolverTaskModel(b);
-        if (model.getCurrentStatus().getPhase() == Phase.COMPLETE) {
+        if (model.getCurrentStatus().getPhase() == SolverPluginFactory.Phase.COMPLETE) {
 
             t.cancel();
         }
@@ -65,28 +69,28 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
         int currentRound = model.getCurrentStatus().getCurrentRound();
         HitManager manager = HitManager.get(b);
         manager.updateHits();
-        List<TurkerLog> logs = manager.getNewHitResults(true);
-        List<TurkerLog> roundLogs = findCurrentLogs(currentRound, model.getCurrentStatus().getPhase(), logs);
-        logger.info("Got "+roundLogs.size()+" logs");
+        Collection<Hits> hits = manager.getCompleteUnprocessedHits();
+        Collection<Assignments> assignments = CayenneUtils.collectCompletedAssignments(hits, currentRound);
+
         boolean shouldLaunch = true;
-        if (!roundLogs.isEmpty()) {
-            if (model.getCurrentStatus().getPhase() == Phase.INIT) {
-                if (doneRanking(model, roundLogs)) {
-                    setProcessed(roundLogs);
-                    updateRanks(b, model, roundLogs);
-                    model.getCurrentStatus().setPhase(Phase.GENERATE);
+        if (!assignments.isEmpty()) {
+            if (model.getCurrentStatus().getPhase() == SolverPluginFactory.Phase.INIT) {
+                if (doneRanking(model, assignments)) {
+                    setProcessed(assignments);
+                    updateRanks(b, model, assignments);
+                    model.getCurrentStatus().setPhase(SolverPluginFactory.Phase.GENERATE);
                 } else {
                     shouldLaunch = false;
                 }
 
-            } else if (model.getCurrentStatus().getPhase() == Phase.RANK) {
-                if (doneRanking(model, roundLogs)) {
-                    updateRanks(b, model, roundLogs);
+            } else if (model.getCurrentStatus().getPhase() == SolverPluginFactory.Phase.RANK) {
+                if (doneRanking(model, assignments)) {
+                    updateRanks(b, model, assignments);
                     pruneSolutions(model);
                     if (currentRound + 1 == model.getNumberOfRounds()) {
-                        model.getCurrentStatus().setPhase(Phase.COMPLETE);
+                        model.getCurrentStatus().setPhase(SolverPluginFactory.Phase.COMPLETE);
                     } else {
-                        model.getCurrentStatus().setPhase(Phase.GENERATE);
+                        model.getCurrentStatus().setPhase(SolverPluginFactory.Phase.GENERATE);
                         model.getCurrentStatus().setCurrentRound(currentRound + 1);
                     }
                 } else {
@@ -94,14 +98,14 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
                 }
 
 
-            } else if (model.getCurrentStatus().getPhase() == Phase.GENERATE) {
-                updateAnswers(model, roundLogs);
-                model.getCurrentStatus().setPhase(Phase.VALIDATION);
+            } else if (model.getCurrentStatus().getPhase() == SolverPluginFactory.Phase.GENERATE) {
+                updateAnswers(model, assignments);
+                model.getCurrentStatus().setPhase(SolverPluginFactory.Phase.VALIDATION);
 
-            } else if (model.getCurrentStatus().getPhase() == Phase.VALIDATION) {
-                if (checkValidation(model, roundLogs)) {
-                    setProcessed(roundLogs);
-                    model.getCurrentStatus().setPhase(Phase.RANK);
+            } else if (model.getCurrentStatus().getPhase() == SolverPluginFactory.Phase.VALIDATION) {
+                if (checkValidation(model, assignments)) {
+                    setProcessed(assignments);
+                    model.getCurrentStatus().setPhase(SolverPluginFactory.Phase.RANK);
                 } else {
                     shouldLaunch = false;
                 }
@@ -110,8 +114,8 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
             model.updateCurrentStatus();
             DbProvider.getContext().commitChanges();
-            if (model.getCurrentStatus().getPhase() != Phase.COMPLETE && shouldLaunch) {
-                SolverHitCreator.getInstance().launch(null, null, b);
+            if (model.getCurrentStatus().getPhase() != SolverPluginFactory.Phase.COMPLETE && shouldLaunch) {
+                MultiHitSolverHitCreator.getInstance().launch(null, null, b);
 
             }
 
@@ -120,18 +124,19 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
     }
 
-    private boolean doneRanking(SolverTaskModel model, List<TurkerLog> roundLogs) {
+    private boolean doneRanking(SolverTaskModel model, Collection<Assignments> assignments) {
         int dimcount = model.getRankDimensions().length;
         Set<String> ids = new HashSet<String>();
-        for (TurkerLog l : roundLogs) {
-            ids.add(MturkUtils.extractAnswer(l,"dimension"));
+        for (Assignments a : assignments) {
+
+            ids.add(MturkUtils.extractAnswer(a.getResults(), "dimension"));
         }
-        logger.info("Num dims available = "+dimcount+", dims found = "+ids);
+        logger.info("Num dims available = " + dimcount + ", dims found = " + ids);
         return ids.size() == dimcount;
 
     }
 
-    private boolean checkValidation(SolverTaskModel model, List<TurkerLog> roundLogs) throws JSONException {
+    private boolean checkValidation(SolverTaskModel model, Collection<Assignments> assignments) throws JSONException {
         Map<Long, Solution> needsAttention = new HashMap<Long, Solution>();
         int validated = 0;
         for (Solution s : model.getCurrentStatus().getCurrentAnswers()) {
@@ -146,15 +151,15 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             }
         }
         if (!needsAttention.isEmpty()) {
-            for (TurkerLog log : roundLogs) {
-                String phase = MturkUtils.extractAnswer(log, "phase");
-                if (!Phase.VALIDATION.name().equals(phase)) continue;
-                Solution t = needsAttention.get(Long.parseLong(MturkUtils.extractAnswer(log, "answerId")));
+            for (Assignments a : assignments) {
+                String phase = MturkUtils.extractAnswer(a.getResults(), "phase");
+                if (!SolverPluginFactory.Phase.VALIDATION.name().equals(phase)) continue;
+                Solution t = needsAttention.get(Long.parseLong(MturkUtils.extractAnswer(a.getResults(), "answerId")));
                 if (t != null) {
-                    boolean isEmpty = MturkUtils.extractAnswer(log, "blank") != null;
-                    boolean isNonesense = MturkUtils.extractAnswer(log, "nonsense") != null;
+                    boolean isEmpty = MturkUtils.extractAnswer(a.getResults(), "blank") != null;
+                    boolean isNonesense = MturkUtils.extractAnswer(a.getResults(), "nonsense") != null;
                     Set<String> copies = new HashSet<String>();
-                    String copiedIds = MturkUtils.extractAnswer(log, "copies");
+                    String copiedIds = MturkUtils.extractAnswer(a.getResults(), "copies");
                     if (copiedIds != null && !copiedIds.isEmpty()) {
                         for (String c : copiedIds.split("\\|")) {
                             if (c == null || c.isEmpty()) continue;
@@ -228,23 +233,23 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
     }
 
 
-    private void updateAnswers(SolverTaskModel model, List<TurkerLog> roundLogs) {
-        for (TurkerLog l : roundLogs) {
-            String text = MturkUtils.extractAnswer(l, "solutiontext");
+    private void updateAnswers(SolverTaskModel model, Collection<Assignments> assignments) {
+        for (Assignments l:assignments) {
+            String text = MturkUtils.extractAnswer(l.getResults(), "solutiontext");
 
             Solution s = DbProvider.getContext().newObject(Solution.class);
             s.setText(text);
             s.setAssignmentId(l.getAssignmentId());
-            s.setCreation(l.getDate());
-            s.setRound(Integer.parseInt(MturkUtils.extractAnswer(l, "round")));
+            s.setCreation(l.getCompletionDate());
+            s.setRound(Integer.parseInt(MturkUtils.extractAnswer(l.getResults(), "round")));
             s.setWorkerId(l.getWorkerId());
             s.setToQuestion(model.getQuestion());
             s.setValid(Solution.Valid.UNKNOWN);
 
 
-            String parentText = MturkUtils.extractAnswer(l, "parents");
+            String parentText = MturkUtils.extractAnswer(l.getResults(), "parents");
             if (parentText != null && !parentText.isEmpty()) {
-                String[] parents = MturkUtils.extractAnswer(l, "parents").split("\\|");
+                String[] parents = MturkUtils.extractAnswer(l.getResults(), "parents").split("\\|");
                 for (String p : parents) {
                     if (p == null || p.isEmpty()) continue;
                     Solution ps = DataObjectUtils.objectForPK(DbProvider.getContext(), Solution.class, Long.parseLong(p));
@@ -261,60 +266,65 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             model.getCurrentStatus().addToCurrentAnswers(s);
 
         }
-        setProcessed(roundLogs);
+        setProcessed(assignments);
         DbProvider.getContext().commitChanges();
     }
 
-    public void setProcessed(List<TurkerLog> logs) {
+    public void setProcessed(Collection<Assignments> assignments) {
         Set<Hits> hits = new HashSet<Hits>();
-        for (TurkerLog l : logs) {
-            if (hits.add(l.getHit())) {
-                if (l.getHit() == null) {
-                    logger.warn("hit for log " + l.getObjectId() + " is null");
-                } else {
-                    l.getHit().setProcessed(true);
-                }
-            }
+        for (Assignments a:assignments) {
+            a.setProcessed(true);
+           hits.add(a.getHit());
         }
+        for (Hits s:hits) {
+            boolean done = true;
+            for (Assignments a:assignments) {
+               if (!a.isProcessed()) {
+                   done = false;
+                   break;
+               }
+            }
+            if (done) s.setProcessed(true);
+        }
+        DbProvider.getContext().commitChanges();
+
+
+
     }
 
-    private void updateRanks(Batch b, SolverTaskModel model, List<TurkerLog> logs) throws JSONException {
 
 
-        //map of each turkers assessment
+    private void updateRanks(Batch b, SolverTaskModel model, Collection<Assignments> assignmentsCollection) throws JSONException {
 
-        //debug
-        if (logs.size() == 1) {
-            TurkerLog log = new TurkerLog();
-            log.setData(logs.get(0).getData());
-            logs.add(log);
-        }
 
-        String hitId = logs.get(0).getHit().getId();
-        int round = Integer.parseInt(MturkUtils.extractAnswer(logs.get(0), "round"));
 
-        Map<TurkerLog, double[]> response = new HashMap<TurkerLog, double[]>();
+        //String hitId = logs.get(0).getHit().getId();
+        List<Assignments> assignments = new ArrayList<Assignments>(assignmentsCollection);
+
+        int round = Integer.parseInt(MturkUtils.extractAnswer(assignments.iterator().next().getResults(), "round"));
+        Map<Assignments, double[]> response = new HashMap<Assignments, double[]>();
         SolverTaskStatus status = model.getCurrentStatus();
         List<Solution> answers = new ArrayList<Solution>(status.getCurrentAnswers());
 
         Map<Integer, double[]> ranksByDim = new HashMap<Integer, double[]>();
 
 
-        for (TurkerLog log : logs) {
+        for (Assignments a : assignments) {
 
-            String phase = MturkUtils.extractAnswer(log, "phase");
-            if (!Phase.RANK.name().equals(phase) && !Phase.INIT.name().equals(phase)) continue;
+            String phase = MturkUtils.extractAnswer(a.getResults(), "phase");
+            if (!SolverPluginFactory.Phase.RANK.name().equals(phase) && !SolverPluginFactory.Phase.INIT.name().equals(phase))
+                continue;
             List<Double> ranks = new ArrayList<Double>();
 
             for (Solution s : answers) {
-                double rank = (1 + answers.size() - Integer.parseInt(MturkUtils.extractAnswer(log, "Solution." + s.getId()).trim())) / (double) (answers.size());
+                double rank = (1 + answers.size() - Integer.parseInt(MturkUtils.extractAnswer(a.getResults(), "Solution." + s.getId()).trim())) / (double) (answers.size());
 
 
                 ranks.add(rank);
             }
             double[] rankingArray = ArrayUtils.toPrimitive(ranks.toArray(new Double[ranks.size()]), 0d);
-            response.put(log, rankingArray);
-            int dim = Integer.parseInt(MturkUtils.extractAnswer(log, "dimension"));
+            response.put(a, rankingArray);
+            int dim = Integer.parseInt(MturkUtils.extractAnswer(a.getResults(), "dimension"));
             if (!ranksByDim.containsKey(dim)) {
                 ranksByDim.put(dim, new double[answers.size()]);
             }
@@ -337,15 +347,15 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
         logger.info("W = " + w);
         //update ranks
         for (int s = 0; s < answers.size(); s++) {
-            double[] row = new double[logs.size()];
-            for (int r = 0; r < logs.size(); r++) {
+            double[] row = new double[assignments.size()];
+            for (int r = 0; r < assignments.size(); r++) {
                 row[r] = ranks[r][s];
             }
             MeanVar mv = new MeanVar(row);
             SolutionRank solutionRank = DbProvider.getContext().newObject(SolutionRank.class);
             solutionRank.setDate(new Date());
             solutionRank.setRound(round);
-            solutionRank.setHitId(hitId);
+            //solutionRank.setHitId(hitId);
             try {
                 finalRanks[s] = mv.getMean();
                 solutionRank.setRank(w, (float) mv.getSd(), (float) finalRanks[s]);
@@ -355,13 +365,13 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             answers.get(s).addToToRanks(solutionRank);
         }
 
-        setProcessed(logs);
+        setProcessed(assignments);
 
         DbProvider.getContext().commitChanges();
 
         //assign bonus to rankers based on kendall's W
-        for (int r = 0; r < logs.size(); r++) {
-            int dim = Integer.parseInt(MturkUtils.extractAnswer(logs.get(r), "dimension"));
+        for (int r = 0; r < assignments.size(); r++) {
+            int dim = Integer.parseInt(MturkUtils.extractAnswer(assignments.get(r).getResults(), "dimension"));
             float agreement = (float) new FriedmanTest(new MatchedData(new double[][]{ranksByDim.get(dim), ranks[r]})).getW();
             float bonus = agreement * model.getMaxRankingBonus();
             //bonus = Float.parseFloat(String.format("%.2f", bonus));
@@ -371,11 +381,11 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
             }
             String feedback = String.format("Your ranking was similar to the mean ranking along dimension " + model.getRankDimensions()[dim] + " with a score of %.2f as assessed by Kendall's W. You are thus granted a bonus " +
                     " of %.2f * %.2f = $%.2f", agreement, agreement, model.getMaxRankingBonus(), bonus);
-            if (logs.get(r).getAssignmentId() == null || logs.get(r).getAssignmentId().isEmpty()) {
+            if (assignments.get(r).getAssignmentId() == null || assignments.get(r).getAssignmentId().isEmpty()) {
                 continue;
             }
-            logger.info("Attempting to assign bonus of "+bonus+" to "+logs.get(r).getAssignmentId()+" on dimension "+model.getRankDimensions()[dim]);
-            HitManager.get(b).bonusAssignments(new String[]{logs.get(r).getAssignmentId()}, feedback, bonus);
+            logger.info("Attempting to assign bonus of " + bonus + " to " + assignments.get(r).getAssignmentId() + " on dimension " + model.getRankDimensions()[dim]);
+            HitManager.get(b).bonusAssignments(new String[]{assignments.get(r).getAssignmentId()}, feedback, bonus);
         }
 
         //assign bonus to generators
@@ -393,9 +403,9 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
                 float rank = s.getLastRank().getRankValue();
                 float bonus = rank * model.getMaxGeneratingBonus();
                 if (bonus == 0f) {
-                                logger.info("Skipping bonus of 0");
-                                continue;
-                            }
+                    logger.info("Skipping bonus of 0");
+                    continue;
+                }
                 //bonus = Float.parseFloat(String.format("%.2f", bonus));
                 String feedback = String.format("Your solution achieved a rank of %.2f (on a 0 - 1 scale) and so" +
                         "you are granted a bonus of %.2f * $%.2f = %.2f", rank, rank, model.getMaxGeneratingBonus(), bonus);
@@ -424,21 +434,5 @@ public class SolverProcessMonitor extends BatchProcessMonitor {
 
     }
 
-    private List<TurkerLog> findCurrentLogs(int currentRound, Phase currentPhase, List<TurkerLog> logs) {
-        for (Iterator<TurkerLog> itl = logs.iterator(); itl.hasNext(); ) {
-            TurkerLog log = itl.next();
-            if (Integer.parseInt(MturkUtils.extractAnswer(log, "round")) != currentRound || !MturkUtils.extractAnswer(log, "phase").equals(currentPhase.name())) {
-                logger.warn("Removing a log (" + log.getObjectId() + ") this is odd!");
-                itl.remove();
-            }
-
-        }
-        return logs;
-    }
-
-
-    public static enum Phase {
-        INIT, GENERATE, RANK, VALIDATION, COMPLETE
-    }
 
 }

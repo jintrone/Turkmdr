@@ -12,6 +12,7 @@ import com.amazonaws.mturk.requester.SortDirection;
 import com.amazonaws.mturk.service.axis.RequesterService;
 import com.amazonaws.mturk.service.exception.ServiceException;
 import com.amazonaws.mturk.util.ClientConfig;
+import edu.mit.cci.amtprojects.kickball.cayenne.Assignments;
 import edu.mit.cci.amtprojects.kickball.cayenne.Batch;
 import edu.mit.cci.amtprojects.kickball.cayenne.Hits;
 import edu.mit.cci.amtprojects.kickball.cayenne.TurkerLog;
@@ -23,15 +24,7 @@ import org.apache.cayenne.DataObjectUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * User: jintrone
@@ -45,12 +38,9 @@ public class HitManager {
 
 
     private RequesterService requesterService;
-   Set<TurkerLog> newHitResults = new HashSet<TurkerLog>();
-    boolean isModified = false;
+
 
     private Long batch;
-
-    boolean autoApprove = true;
 
 
     private static Map<Batch, HitManager> managerMap = new HashMap<Batch, HitManager>();
@@ -96,18 +86,16 @@ public class HitManager {
     }
 
 
-    public boolean isModified() {
-        return isModified;
-    }
 
 
-    public  void launch(String url, int height, DefaultEnabledHitProperties props) {
-        launch(url,height,batch().getAutoApprove(),props);
+
+    public void launch(String url, int height, DefaultEnabledHitProperties props) {
+        launch(url, height, batch().getAutoApprove(), props);
 
     }
 
     public synchronized void launch(String url, int height, boolean autoApprove, DefaultEnabledHitProperties props) {
-        launch(url,height,autoApprove,null,props);
+        launch(url, height, autoApprove, null, props);
     }
 
     public synchronized void launch(String url, int height, boolean autoApprove, List<String> screenWorkers, DefaultEnabledHitProperties props) {
@@ -132,8 +120,8 @@ public class HitManager {
                 null); // hitReviewPolicy
 
 
-        Hits hit = CayenneUtils.createHit(DbProvider.getContext(), h, null, batch(), url, lifetime,autoApprove);
-        if (screenWorkers!=null && !screenWorkers.isEmpty()) {
+        Hits hit = CayenneUtils.createHit(DbProvider.getContext(), h, null, batch(), url, lifetime, autoApprove);
+        if (screenWorkers != null && !screenWorkers.isEmpty()) {
             hit.setScreen(Utils.join(screenWorkers, ";"));
         }
         hit.setHitTypeId(h.getHITTypeId());
@@ -145,6 +133,11 @@ public class HitManager {
 
     }
 
+    /**
+     * Relaunches a hit, copying the old one and adding users to be screened
+     *
+     * @param oldhit
+     */
     public synchronized void reLaunch(String oldhit) {
         Hits hits = DataObjectUtils.objectForPK(DbProvider.getContext(), Hits.class, oldhit);
         if (hits == null) {
@@ -156,6 +149,7 @@ public class HitManager {
             return;
         } else if (hits.getStatusEnum() == Hits.Status.MISSING) {
             log.error("Hit is missing");
+            return;
         }
 
         HIT h = null;
@@ -188,6 +182,11 @@ public class HitManager {
         }
 
 
+        for (Assignments a : hits.getAssignments()) {
+            if (a.getStatusEnum() == Assignments.Status.PENDING) {
+                a.setStatus(Assignments.Status.CANCELED.name());
+            }
+        }
 
 
         HIT nhit = requesterService.createHIT(
@@ -220,7 +219,7 @@ public class HitManager {
         workers.add(hits.getScreen());
         String screen = Utils.join(workers, ";");
 
-        Hits nhits = CayenneUtils.createHit(DbProvider.getContext(), nhit, oldhit, batch(), hits.getUrl(), hits.getLifetime(),hits.getAutoApprove());
+        Hits nhits = CayenneUtils.createHit(DbProvider.getContext(), nhit, oldhit, batch(), hits.getUrl(), hits.getLifetime(), hits.getAutoApprove());
         nhits.setScreen(screen);
         nhits.setHitTypeId(h.getHITTypeId());
         DbProvider.getContext().commitChanges();
@@ -234,11 +233,7 @@ public class HitManager {
     }
 
 
-    public List<TurkerLog> getNewHitResults(boolean clear) {
-        List<TurkerLog> results = new ArrayList<TurkerLog>(newHitResults);
-        if (clear) newHitResults.clear();
-        return results;
-    }
+
 
 
     public synchronized void approveAssignments(String[] ids, String feedback) {
@@ -303,6 +298,15 @@ public class HitManager {
         return data;
     }
 
+    public Collection<Assignments> getCompleteUnprocessedAssignments() {
+        return CayenneUtils.findAssignmentsForBatch(DbProvider.getContext(), batch, false, Assignments.Status.RESULTS, Assignments.Status.APPROVED);
+
+    }
+
+    public Collection<Hits> getCompleteUnprocessedHits() {
+        return CayenneUtils.findHitsForBatch(DbProvider.getContext(), batch, false, Hits.Status.COMPLETE, Hits.Status.COMPLETE);
+    }
+
     /**
      * Check if there are any incomplete or unprocessed hits
      * If new results are found, increment count, and approve if auto approval is set
@@ -310,79 +314,89 @@ public class HitManager {
      * If hit expiry time is past, expire hit, otherwise make sure it's listed as still open
      */
     public synchronized void updateHits() {
-        List<Hits> hitses = batch().getHits();
+        Collection<Hits> hitses = CayenneUtils.findHitsForBatch(DbProvider.getContext(), batch, false, Hits.Status.OPEN);
+
 
         for (Hits h : hitses) {
             if (h.getStatusEnum() == Hits.Status.MISSING || h.getStatusEnum() == Hits.Status.RELAUNCHED || (h.getStatusEnum() == Hits.Status.COMPLETE && h.getProcessed()))
                 continue;
-            log.info("Process HIT "+h.getId());
+            log.info("Process HIT " + h.getId());
             HIT ahit = requesterService.getHIT(h.getId());
             h.setAmtStatus(ahit.getHITStatus().getValue());
             if (ahit.getHITTypeId().equals(h.getHitTypeId())) h.setHitTypeId(ahit.getHITTypeId());
-            int completed = ahit.getMaxAssignments() - ahit.getNumberOfAssignmentsAvailable();
-            if (completed > h.getCompleted()) {
-                completed = 0;
-                Assignment[] result = requesterService.getAllAssignmentsForHIT(ahit.getHITId());
-                List<TurkerLog> results = new ArrayList<TurkerLog>();
-                for (Assignment a : result) {
-                    if (a.getSubmitTime() == null) {
-                        log.info("Got null submit time??");
-                        continue;
+            Map<String, Assignments> ids = new HashMap<String, Assignments>();
+            List<Assignments> assignments = new ArrayList<Assignments>(h.getAssignments());
+            int completed = 0;
+            for (Iterator<Assignments> i = assignments.iterator(); i.hasNext(); ) {
+                Assignments curr = i.next();
+                if (curr.getStatusEnum() != Assignments.Status.PENDING) {
+                    i.remove();
+                    if (curr.getStatusEnum() != Assignments.Status.CANCELED) {
+                        ids.put(curr.getAssignmentId(), curr);
+                        completed++;
                     }
-                    if (CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), a.getAssignmentId(), "RESULTS").isEmpty()) {
-                        results.add(CayenneUtils.logEvent(DbProvider.getContext(), batch(), "RESULTS", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>singletonMap("answer", a.getAnswer())));
+                }
+            }
+            Assignment[] result = requesterService.getAllAssignmentsForHIT(ahit.getHITId());
+            for (Assignment a : result) {
+                //Check to see if we need to update approval status
+                if (ids.containsKey(a.getAssignmentId())) {
+                    Assignments stored = ids.get(a.getAssignmentId());
+
+                    if (stored.getStatusEnum() == Assignments.Status.RESULTS) {
+                        if (Assignments.Status.lookup(a.getAssignmentStatus()) != ids.get(a.getAssignmentId()).getStatusEnum()) {
+                            stored.setStatus(Assignments.Status.lookup(a.getAssignmentStatus()).name());
+                            CayenneUtils.logEvent(DbProvider.getContext(), batch(), stored.getStatus(), a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>emptyMap());
+                        } else if (h.getAutoApprove()) {
+                            requesterService.approveAssignment(a.getAssignmentId(), "Thanks!");
+                            stored.setStatus(Assignments.Status.APPROVED.name());
+                            CayenneUtils.logEvent(DbProvider.getContext(), batch(), "APPROVED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>singletonMap("feedback", "Thanks!"));
+                        }
+
+                    }
+                //Otherwise, we have a newly completed hit
+
+                } else {
+                    Assignments n = assignments.remove(0);
+                    n.setAssignmentId(a.getAssignmentId());
+                    n.setCompletionDate(a.getSubmitTime().getTime());
+                    n.setWorkerId(a.getWorkerId());
+                    n.setTaskDurationSeconds((a.getSubmitTime().getTimeInMillis()-a.getAcceptTime().getTimeInMillis())/1000);
+                    n.setResults(a.getAnswer());
+                    CayenneUtils.logEvent(DbProvider.getContext(), batch(), "RESULTS", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>singletonMap("answer", a.getAnswer()));
+
+                    if (h.getAutoApprove()) {
+                        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "APPROVED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>emptyMap());
+                        n.setStatus(Assignments.Status.APPROVED.name());
+                    } else {
+                        n.setStatus(Assignments.Status.RESULTS.name());
                     }
                     completed++;
-                    if (a.getAssignmentStatus() == AssignmentStatus.Approved) {
-                        if (CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), a.getAssignmentId(), "APPROVED").isEmpty()) {
-
-                            CayenneUtils.logEvent(DbProvider.getContext(), batch(), "APPROVED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>emptyMap());
-                        }
-                    } else if (a.getAssignmentStatus() == AssignmentStatus.Rejected) {
-                        if (CayenneUtils.getTurkerLogForAssignment(DbProvider.getContext(), a.getAssignmentId(), "REJECTED").isEmpty()) {
-                            CayenneUtils.logEvent(DbProvider.getContext(), batch(), "REJECTED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>emptyMap());
-                        }
-                    } else if (h.getAutoApprove()) {
-                        requesterService.approveAssignment(a.getAssignmentId(), "Thanks!");
-                        CayenneUtils.logEvent(DbProvider.getContext(), batch(), "APPROVED", a.getWorkerId(), ahit.getHITId(), a.getAssignmentId(), null, Collections.<String, Object>singletonMap("feedback", "Thanks!"));
-                    }
 
 
-                }
-
-                h.setCompleted(completed);
-
-
-                if (h.getCompleted().intValue() == h.getRequested()) {
-                    h.setStatus(Hits.Status.COMPLETE.name());
-                }
             }
 
+            h.setCompleted(completed);
 
-            if (h.getStatus().equals(Hits.Status.COMPLETE.name())) {
-                Hits loop = h;
 
-                while (loop != null) {
-
-                    for (TurkerLog l : loop.getLogs()) {
-                        if (l.getType().equals("RESULTS")) {
-                            newHitResults.add(l);
-                        }
-                    }
-                    loop = loop.getPreviousHit();
-
-                }
-
-                if (ahit.getExpiration().before(new GregorianCalendar())) {
-                    h.setStatus(Hits.Status.HALTED.name());
-                } else if (h.getStatusEnum() == Hits.Status.HALTED) {
-                    h.setStatus(Hits.Status.OPEN.name());
-                }
+            if (h.getCompleted().intValue() == h.getRequested()) {
+                h.setStatus(Hits.Status.COMPLETE.name());
             }
-
-            DbProvider.getContext().commitChanges();
         }
+
+
+        if (h.getStatus().equals(Hits.Status.COMPLETE.name())) {
+            if (ahit.getExpiration().before(new GregorianCalendar())) {
+                h.setStatus(Hits.Status.HALTED.name());
+            } else if (h.getStatusEnum() == Hits.Status.HALTED) {
+                h.setStatus(Hits.Status.OPEN.name());
+            }
+        }
+
+        DbProvider.getContext().commitChanges();
     }
+
+}
 
 
     public void extendHits(Collection<String> hits, long duration) {

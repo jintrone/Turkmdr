@@ -16,22 +16,22 @@ import java.util.Collections;
  * Date: 10/15/12
  * Time: 3:57 PM
  */
-public class SolverHitCreator implements HitCreator {
+public class MultiHitSolverHitCreator implements HitCreator {
 
 
-    private static SolverHitCreator instance;
+    private static MultiHitSolverHitCreator instance;
 
     private static String rankerpath;
     private static String generatorpath;
     private static String validationpath;
 
-    private SolverHitCreator() {
+    private MultiHitSolverHitCreator() {
 
     }
 
-    public static SolverHitCreator getInstance() {
+    public static MultiHitSolverHitCreator getInstance() {
         if (instance == null) {
-            instance = new SolverHitCreator();
+            instance = new MultiHitSolverHitCreator();
         }
         return instance;
     }
@@ -79,14 +79,14 @@ public class SolverHitCreator implements HitCreator {
 //                b.setParameters(props);
 //                DbProvider.getContext().commitChanges();
 //            }
-            SolverProcessMonitor.get(b).restart();
+            MultiHitSolverProcessMonitor.get(b).restart();
 
         } else {
             model = new SolverTaskModel(b);
         }
         SolverTaskStatus status = model.getCurrentStatus();
         String groupText = "[" + model.getGroupName() + "]";
-        if (status.getPhase() == SolverProcessMonitor.Phase.INIT) {
+        if (status.getPhase() == SolverPluginFactory.Phase.INIT) {
             for (int i = 0; i < model.getRankDimensions().length; i++) {
                 DefaultEnabledHitProperties props = new DefaultEnabledHitProperties();
                 props.setTitle("Rank a set of answers to a question about climate change " + groupText);
@@ -103,7 +103,7 @@ public class SolverHitCreator implements HitCreator {
             }
 
 
-        } else if (status.getPhase() == SolverProcessMonitor.Phase.GENERATE) {
+        } else if (status.getPhase() == SolverPluginFactory.Phase.GENERATE) {
             DefaultEnabledHitProperties props = new DefaultEnabledHitProperties();
             props.setTitle("Create or improve an answer to a question about climate change " + groupText);
             props.setDescription("Choose to create a new answer or improve existing answers to the question: " + model.getQuestionText() + "  Bonus of up to $." + String.format("%.2f", Math.max(model.getMaxGeneratingBonus(), model.getMaxCombiningBonus())));
@@ -117,7 +117,7 @@ public class SolverHitCreator implements HitCreator {
             HitManager.get(b).launch(launchurl, 1000, props);
 
 
-        } else if (status.getPhase() == SolverProcessMonitor.Phase.RANK) {
+        } else if (status.getPhase() == SolverPluginFactory.Phase.RANK) {
             for (int i = 0; i < model.getRankDimensions().length; i++) {
                 DefaultEnabledHitProperties props = new DefaultEnabledHitProperties();
                 props.setTitle("Rank a set of answers to a question about climate change [" + model.getGroupName() + "]");
@@ -132,7 +132,7 @@ public class SolverHitCreator implements HitCreator {
                 HitManager.get(b).launch(launchurl, 1000, props);
             }
 
-        } else if (status.getPhase() == SolverProcessMonitor.Phase.VALIDATION) {
+        } else if (status.getPhase() == SolverPluginFactory.Phase.VALIDATION) {
             for (Solution s : status.getCurrentAnswers()) {
                 if (s.getRound() == model.getCurrentStatus().getCurrentRound()) {
                     DefaultEnabledHitProperties props = new DefaultEnabledHitProperties();

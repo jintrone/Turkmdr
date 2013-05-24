@@ -158,7 +158,7 @@ public class SolverTaskModel implements IClusterable {
                 try {
                     if (b.getToStatus().isEmpty()) {
                         currentStatus.setCurrentAnswers(getInitialAnswers());
-                        currentStatus.setPhase(SolverProcessMonitor.Phase.INIT);
+                        currentStatus.setPhase(SolverPluginFactory.Phase.INIT);
                         currentStatus.setCurrentRound(0);
                         currentStatus.update();
                     } else {

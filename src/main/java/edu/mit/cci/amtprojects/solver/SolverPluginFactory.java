@@ -23,11 +23,15 @@ public class SolverPluginFactory implements PluginFactory, Serializable {
     }
 
     public HitCreator getHitCreator() {
-        return SolverHitCreator.getInstance();
+        return MultiHitSolverHitCreator.getInstance();
     }
 
 
     public BatchManager getBatchManager() {
         return new SolverBatchManager();
+    }
+
+    public static enum Phase {
+        INIT, GENERATE, RANK, VALIDATION, COMPLETE
     }
 }
